@@ -1,17 +1,54 @@
 {
   "name": "fuse-schematics",
-  "version": "0.0.0",
-  "description": "A blank schematics",
+  "version": "1.0.0",
+  "description": "Fuse Admin v19.0.0 loyihalarini va CRUD feature modullarini avtomatik generatsiya qiluvchi Angular schematics to'plami",
+  "main": "src/collection.json",
+  "schematics": "./src/collection.json",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "npm run build && jasmine src/**/*_spec.js"
+    "test": "npm run build && jasmine src/**/*_spec.js",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
-    "schematics"
+    "angular",
+    "schematics",
+    "fuse",
+    "fuse-admin",
+    "angular-schematics",
+    "crud",
+    "generator",
+    "code-generator",
+    "angular19",
+    "primeng",
+    "tailwind",
+    "typescript",
+    "enterprise",
+    "admin-template",
+    "dashboard",
+    "crud-generator",
+    "angular-crud",
+    "scaffolding"
   ],
-  "author": "",
+  "author": {
+    "name": "Islom Karimov",
+    "email": "islomkarimovalisherovich@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Islom1999/fuse-schematics.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Islom1999/fuse-schematics/issues"
+  },
+  "homepage": "https://github.com/Islom1999/fuse-schematics#readme",
   "license": "MIT",
-  "schematics": "./src/collection.json",
+  "engines": {
+    "node": ">=18.19.0",
+    "npm": ">=9.0.0"
+  },
+  "peerDependencies": {
+    "@angular/core": "^19.0.0"
+  },
   "dependencies": {
     "@angular-devkit/core": "^20.3.9",
     "@angular-devkit/schematics": "^20.3.9",
@@ -21,5 +58,11 @@
     "@types/node": "^20.17.19",
     "@types/jasmine": "~5.1.0",
     "jasmine": "^5.0.0"
-  }
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ]
 }

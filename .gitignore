@@ -1,19 +1,41 @@
+# Compiled output
+/dist
+/tmp
+/out-tsc
+*.js
+*.js.map
+*.d.ts
+!src/**/*.d.ts
 
-# Outputs
-src/**/*.js
-src/**/*.js.map
-src/**/*.d.ts
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
 
-# IDEs
+# IDEs and editors
 .idea/
-jsconfig.json
-.vscode/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
 
-# Misc
-node_modules/
-npm-debug.log*
-yarn-error.log*
-
-# Mac OSX Finder files.
-**/.DS_Store
+# System files
 .DS_Store
+Thumbs.db
+
+# Testing
+/coverage
+/.nyc_output
+*.spec.js
+
+# Build
+*.tsbuildinfo
+tsconfig.tsbuildinfo

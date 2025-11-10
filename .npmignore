@@ -1,4 +1,37 @@
-
-# Ignores TypeScript files, but keeps definitions.
+# TypeScript source files
 *.ts
 !*.d.ts
+
+# Test files
+**/*.spec.ts
+**/*.spec.js
+**/test/**
+
+# Development files
+.vscode/
+.idea/
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Build artifacts
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Node modules
+node_modules/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# IDE
+*.swp
+*.swo
+*~
