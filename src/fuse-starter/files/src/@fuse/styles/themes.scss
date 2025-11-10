@@ -1,0 +1,77 @@
+@use "sass:map";
+@use "user-themes" as userThemes;
+
+// Base foreground/background tokens for light and dark appearances.
+$light-base: (
+    foreground: (
+        base: #000000,
+        divider: #E2E8F0,
+        disabled: #94A3B8,
+        hint: #94A3B8,
+        secondary: #64748B,
+        text: #1E293B,
+    ),
+    background: (
+        base: #F1F5F9,
+        card: #FFFFFF,
+        dialog: #FFFFFF,
+        hover: rgba(148, 163, 184, 0.12),
+        tooltip: #1E293B,
+    )
+);
+
+$dark-base: (
+    foreground: (
+        base: #FFFFFF,
+        divider: rgba(241, 245, 249, 0.12),
+        disabled: #475569,
+        hint: #64748B,
+        secondary: #94A3B8,
+        text: #FFFFFF,
+    ),
+    background: (
+        base: #0F172A,
+        card: #1E293B,
+        dialog: #1E293B,
+        hover: rgba(255, 255, 255, 0.05),
+        tooltip: #64748B,
+    )
+);
+
+// Emit CSS variables for a given palette map.
+@mixin emit-theme-variables($selector, $base-map) {
+    #{$selector} {
+        @each $group, $values in $base-map {
+            @each $token, $value in $values {
+                --fuse-#{$group}-#{$token}: #{$value};
+            }
+        }
+    }
+}
+
+@include emit-theme-variables(":root", $light-base);
+@include emit-theme-variables(".theme-light", $light-base);
+@include emit-theme-variables(".theme-dark", $dark-base);
+
+// Generate palette variables for each configured theme.
+@each $theme-name, $theme in userThemes.$user-themes {
+    #{map.get($theme, selector)} {
+        @each $palette-name in (primary, accent, warn) {
+            $palette: map.get($theme, $palette-name);
+
+            @each $shade, $color in $palette {
+                @if $shade != contrast {
+                    --fuse-#{$palette-name}-#{$shade}: #{$color};
+                }
+            }
+
+            $contrasts: map.get($palette, contrast);
+            @each $shade, $color in $contrasts {
+                --fuse-#{$palette-name}-contrast-#{$shade}: #{$color};
+            }
+
+            --fuse-#{$palette-name}-default: #{map.get($palette, DEFAULT)};
+            --fuse-#{$palette-name}-contrast-default: #{map.get($contrasts, DEFAULT)};
+        }
+    }
+}

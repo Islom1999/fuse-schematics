@@ -1,0 +1,17 @@
+{
+  "$schema": "../node_modules/@angular-devkit/schematics/collection-schema.json",
+  "schematics": {
+    "fuse-starter": {
+      "description": "Generate a new Fuse starter Angular project",
+      "factory": "./fuse-starter/index#fuseStarter",
+      "schema": "./fuse-starter/schema.json",
+      "aliases": ["starter", "new"]
+    },
+    "fuse-feature": {
+      "description": "Generate a CRUD feature module with grid, form and services",
+      "factory": "./fuse-feature/index#fuseFeature",
+      "schema": "./fuse-feature/schema.json",
+      "aliases": ["feature", "crud"]
+    }
+  }
+}
