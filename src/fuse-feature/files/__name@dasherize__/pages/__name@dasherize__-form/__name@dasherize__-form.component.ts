@@ -1,18 +1,16 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { ReactiveFormsModule } from '@angular/forms'
-import { <%= classify(name) %>Service } from '../common/<%= dasherize(name) %>.service'
-import { I<%= classify(name) %> } from '../common/<%= dasherize(name) %>.model'
-import { ButtonModule } from 'primeng/button'
-import { TranslocoPipe } from '@ngneat/transloco'
 import { FormlyModule } from '@ngx-formly/core'
 import { BaseFormComponent } from 'app/shared/abstracts'
+import { FormActionButtonsComponent } from 'app/shared'
 import { Observable } from 'rxjs'
+import { I<%= classify(name) %>, <%= classify(name) %>Service } from '../../common'
 
 @Component({
-  selector: '<%= prefix %>-<%= dasherize(name) %>-form',
+  selector: 'app-<%= dasherize(name) %>-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ButtonModule, TranslocoPipe, FormlyModule],
+  imports: [CommonModule, ReactiveFormsModule, FormlyModule, FormActionButtonsComponent],
   templateUrl: './<%= dasherize(name) %>-form.component.html',
   styleUrls: ['./<%= dasherize(name) %>-form.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,7 +20,14 @@ export class <%= classify(name) %>FormComponent extends BaseFormComponent<I<%= c
 
   protected initFormFields(): void {
     this.fields = [
-
+      {
+        key: 'name',
+        type: 'input',
+        templateOptions: {
+          label: 'admin.<%= camelize(name) %>.fields.name',
+          required: true,
+        },
+      },
     ]
   }
 
@@ -34,7 +39,10 @@ export class <%= classify(name) %>FormComponent extends BaseFormComponent<I<%= c
     return this.crudService.create(data)
   }
 
-  protected update(id: string, data: Partial<I<%= classify(name) %>>): Observable<I<%= classify(name) %>> {
+  protected update(
+    id: string,
+    data: Partial<I<%= classify(name) %>>,
+  ): Observable<I<%= classify(name) %>> {
     return this.crudService.update(id, data)
   }
 
@@ -43,8 +51,7 @@ export class <%= classify(name) %>FormComponent extends BaseFormComponent<I<%= c
   }
 
   protected mapToModel(data: I<%= classify(name) %>): Partial<I<%= classify(name) %>> {
-    return {
-    }
+    return {}
   }
 
   protected getDeleteTitle(): string {

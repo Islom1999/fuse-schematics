@@ -5,6 +5,57 @@ Barcha muhim o'zgarishlar ushbu faylda hujjatlashtiriladi.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) ga asoslangan,
 va bu loyiha [Semantic Versioning](https://semver.org/spec/v2.0.0.html) dan foydalanadi.
 
+## [1.0.2] - 2025-11-10
+
+### O'zgartirildi
+
+- `fuse-feature` yangi modulli tuzilishga o'tkazildi
+- `common` papka `models` va `services` ga ajratildi
+- `pages` papka `list` va `form` ga ajratildi
+- `components` papka tayyor shaklda qo'shildi
+- Barrel exports (`index.ts`) qo'shildi
+- Routes yangi pages/index imports ishlatadi
+- `quill` versiyasi 1.3.7 dan 2.0.2 ga yangilandi
+- `karma-jasmine-html-reporter` versiyasi 2.0.0 dan 2.1.0 ga yangilandi
+
+### Tuzatildi
+
+- `quill` versiya nomuvofiqligini hal qildi (ngx-quill@28.0.1 uchun)
+- `karma-jasmine-html-reporter` versiya nomuvofiqligini tuzatdi
+
+### Yangi tuzilish
+
+```
+feature-module/
+├── common/
+│   ├── index.ts
+│   ├── models/
+│   │   └── feature.model.ts
+│   └── services/
+│       ├── feature.service.ts
+│       └── feature-grid.service.ts
+├── components/
+│   └── index.ts
+├── pages/
+│   ├── index.ts
+│   ├── feature-list/
+│   │   ├── feature-list.component.ts
+│   │   ├── feature-list.component.html
+│   │   └── feature-list.component.scss
+│   └── feature-form/
+│       ├── feature-form.component.ts
+│       ├── feature-form.component.html
+│       └── feature-form.component.scss
+└── feature.routes.ts
+```
+
+## [1.0.1] - 2025-11-10
+
+### Tuzatildi
+
+- `API_BASE_URL` provider xatosi tuzatildi
+- app.config.ts da DITokens.API_BASE_URL ishlatildi
+
 ## [1.0.0] - 2025-11-10
 
 ### Qo'shildi

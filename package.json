@@ -1,6 +1,6 @@
 {
   "name": "fuse-schematics",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Fuse Admin v19.0.0 loyihalarini va CRUD feature modullarini avtomatik generatsiya qiluvchi Angular schematics to'plami",
   "main": "src/collection.json",
   "schematics": "./src/collection.json",

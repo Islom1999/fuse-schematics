@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core'
 import { BaseCrudService } from 'app/shared/services/base-crud.service'
-import { I<%= classify(name) %> } from './<%= dasherize(name) %>.model'
+import { I<%= classify(name) %> } from '../models/<%= dasherize(name) %>.model'
 
 @Injectable({ providedIn: 'root' })
 export class <%= classify(name) %>Service extends BaseCrudService<I<%= classify(name) %>> {

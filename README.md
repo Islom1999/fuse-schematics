@@ -7,12 +7,12 @@ Fuse Admin v19.0.0 loyihalarini va CRUD feature modullarini avtomatik generatsiy
 
 ## Xususiyatlari
 
-Ì∫Ä **Tez Loyiha Yaratish** - Fuse Admin Angular loyihalarini soniyalar ichida yarating  
-Ì≥¶ **CRUD Modul Generatori** - Grid, form va servislar bilan feature modullarni avtomatik yaratadi  
-Ìæ® **PrimeNG Integratsiyasi** - PrimeNG komponentlari oldindan sozlangan  
-Ìºê **i18n Tayyor** - Transloco integratsiyasi tayyor holda  
+- **Tez Loyiha Yaratish** - Fuse Admin Angular loyihalarini soniyalar ichida yarating  
+- **CRUD Modul Generatori** - Grid, form va servislar bilan feature modullarni avtomatik yaratadi  
+- **PrimeNG Integratsiyasi** - PrimeNG komponentlari oldindan sozlangan  
+- **i18n Tayyor** - Transloco integratsiyasi tayyor holda  
 ‚ö° **TypeScript & Tailwind** - Zamonaviy texnologiyalar va eng yaxshi amaliyotlar  
-ÌøóÔ∏è **Enterprise Patternlar** - BaseTableComponent, BaseCrudService va boshqalar
+-Ô∏è **Enterprise Patternlar** - BaseTableComponent, BaseCrudService va boshqalar
 
 ## Mundarija
 
@@ -423,9 +423,9 @@ Batafsil o'zgarishlar ro'yxati uchun [CHANGELOG.md](CHANGELOG.md) ga qarang.
 
 ## Qo'llab-quvvatlash
 
-- Ì≥ß Email: support@example.com
-- Ì∞õ Muammolar: [GitHub Issues](https://github.com/yourusername/fuse-schematics/issues)
-- Ì≤¨ Muhokamalar: [GitHub Discussions](https://github.com/yourusername/fuse-schematics/discussions)
+- - Email: support@example.com
+- - Muammolar: [GitHub Issues](https://github.com/yourusername/fuse-schematics/issues)
+- - Muhokamalar: [GitHub Discussions](https://github.com/yourusername/fuse-schematics/discussions)
 
 ## Yo'l Xaritasi
 
