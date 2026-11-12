@@ -3,6 +3,5 @@
 const { generatePalette, contrastPalette } = require('./color')
 const { uiTheming, themeColors } = require('./theming')
 const { uiUtilities } = require('./utilities')
-const { uiIconSize } = require('./icon-size')
 
-module.exports = { uiTheming, uiUtilities, uiIconSize, generatePalette, contrastPalette, themeColors }
+module.exports = { uiTheming, uiUtilities, generatePalette, contrastPalette, themeColors }

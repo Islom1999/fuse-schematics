@@ -44,7 +44,7 @@ export const MAIN_NAVIGATION = 'mainNavigation'
           [attr.aria-label]="'layout.toggleNavigation' | transloco"
           (click)="toggleNavigation()"
         >
-          <ui-icon class="icon-size-6" svgIcon="heroicons_outline:bars-3" />
+          <ui-icon class="size-6" svgIcon="heroicons_outline:bars-3" />
         </button>
         <ng-content />
       </div>

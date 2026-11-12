@@ -112,7 +112,7 @@
               [attr.aria-label]="'notifications.remove' | transloco"
               (click)="remove(notification)"
             >
-              <ui-icon class="icon-size-4" svgIcon="heroicons_outline:x-mark" />
+              <ui-icon class="size-4" svgIcon="heroicons_outline:x-mark" />
             </button>
           </div>
         </div>
@@ -136,7 +136,7 @@
     <img class="mr-4 h-8 w-8 shrink-0 rounded-full object-cover" alt="" [src]="notification.image" />
   } @else if (notification.icon) {
     <div class="mr-4 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700">
-      <ui-icon class="icon-size-5" [svgIcon]="notification.icon" />
+      <ui-icon class="size-5" [svgIcon]="notification.icon" />
     </div>
   }
   <div class="flex min-w-0 flex-auto flex-col">

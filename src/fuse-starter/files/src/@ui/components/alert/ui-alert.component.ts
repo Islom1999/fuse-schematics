@@ -68,7 +68,7 @@ function writeDismissal(name: string, dismissed: boolean): void {
           <div class="ui-alert-icon" [class]="tone().icon">
             <ng-content select="[uiAlertIcon]" />
             @if (!customIcon()) {
-              <ui-icon class="icon-size-5" [icon]="defaultIcon()" />
+              <ui-icon class="size-5 text-xl" [icon]="defaultIcon()" />
             }
           </div>
         }
@@ -86,7 +86,7 @@ function writeDismissal(name: string, dismissed: boolean): void {
             aria-label="Dismiss"
             (click)="dismiss()"
           >
-            <ui-icon class="icon-size-4" icon="pi pi-times" />
+            <ui-icon class="size-4 text-base" icon="pi pi-times" />
           </button>
         }
       </div>

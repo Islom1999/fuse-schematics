@@ -17,7 +17,7 @@
     <div
       class="ui-slide-in-top absolute inset-0 z-99 flex shrink-0 items-center bg-card focus-within:ring-1 focus-within:ring-inset focus-within:ring-primary"
     >
-      <ui-icon class="pointer-events-none absolute ml-6 text-secondary icon-size-5 sm:ml-8" svgIcon="heroicons_outline:magnifying-glass" />
+      <ui-icon class="pointer-events-none absolute ml-6 text-secondary size-5 sm:ml-8" svgIcon="heroicons_outline:magnifying-glass" />
       <ng-container
         *ngTemplateOutlet="field; context: { $implicit: 'h-full w-full border-0 bg-transparent px-16 outline-none focus-visible:outline-none sm:px-18' }"
       />
@@ -38,7 +38,7 @@
 } @else {
   <div #wrapper class="relative w-full sm:min-w-80" (focusout)="onFocusOut($event, wrapper)">
     <ui-icon
-      class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-secondary icon-size-5"
+      class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-secondary size-5"
       svgIcon="heroicons_outline:magnifying-glass"
     />
     <ng-container
@@ -119,7 +119,7 @@
               }
               @case ('tasks') {
                 <ui-icon
-                  class="icon-size-5"
+                  class="size-5"
                   [class.text-primary]="row.result.completed"
                   [class.text-hint]="!row.result.completed"
                   svgIcon="heroicons_outline:check-circle"

@@ -36,11 +36,11 @@
       </div>
 
       <button type="button" role="menuitem" class="flex h-11 w-full cursor-pointer items-center gap-3 rounded-md px-4 text-left text-sm hover:bg-gray-100 dark:hover:bg-hover" (click)="openRoute(profileRoute)">
-        <ui-icon class="icon-size-5" svgIcon="heroicons_outline:user-circle" />
+        <ui-icon class="size-5" svgIcon="heroicons_outline:user-circle" />
         <span>{{ 'user.profile' | transloco }}</span>
       </button>
       <button type="button" role="menuitem" class="flex h-11 w-full cursor-pointer items-center gap-3 rounded-md px-4 text-left text-sm hover:bg-gray-100 dark:hover:bg-hover" (click)="openRoute(settingsRoute)">
-        <ui-icon class="icon-size-5" svgIcon="heroicons_outline:cog-8-tooth" />
+        <ui-icon class="size-5" svgIcon="heroicons_outline:cog-8-tooth" />
         <span>{{ 'user.settings' | transloco }}</span>
       </button>
 
@@ -53,10 +53,10 @@
           [attr.aria-expanded]="statusOpen()"
           (click)="statusOpen.set(!statusOpen())"
         >
-          <ui-icon class="icon-size-5" svgIcon="heroicons_outline:ellipsis-horizontal-circle" />
+          <ui-icon class="size-5" svgIcon="heroicons_outline:ellipsis-horizontal-circle" />
           <span>{{ 'user.status' | transloco }}</span>
           <ui-icon
-            class="ml-auto icon-size-4"
+            class="ml-auto size-4"
             [svgIcon]="statusOpen() ? 'heroicons_outline:chevron-up' : 'heroicons_outline:chevron-down'"
           />
         </button>
@@ -80,7 +80,7 @@
 
       <div class="my-2 border-t" role="separator"></div>
       <button type="button" role="menuitem" class="flex h-11 w-full cursor-pointer items-center gap-3 rounded-md px-4 text-left text-sm hover:bg-gray-100 dark:hover:bg-hover text-red-500" (click)="signOut()">
-        <ui-icon class="icon-size-5" svgIcon="heroicons_outline:arrow-right-on-rectangle" />
+        <ui-icon class="size-5" svgIcon="heroicons_outline:arrow-right-on-rectangle" />
         <span>{{ 'user.signOut' | transloco }}</span>
       </button>
     </div>

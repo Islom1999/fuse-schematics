@@ -2,7 +2,7 @@
 const colors = require('tailwindcss/colors')
 const defaultTheme = require('tailwindcss/defaultTheme')
 const typography = require('@tailwindcss/typography')
-const { uiTheming, uiUtilities, uiIconSize } = require('./src/@ui/tailwind')
+const { uiTheming, uiUtilities } = require('./src/@ui/tailwind')
 
 /**
  * Theme palettes. Each becomes a body class `theme-<key>` (see `themes` in the app config).
@@ -178,5 +178,5 @@ module.exports = {
     placeholderOpacity: false,
     verticalAlign: false,
   },
-  plugins: [uiTheming({ themes }), uiUtilities, uiIconSize, typography],
+  plugins: [uiTheming({ themes }), uiUtilities, typography],
 }

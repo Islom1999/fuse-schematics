@@ -12,7 +12,7 @@ const DEFAULT_NAMESPACE = 'heroicons_outline'
 
 /**
  * One icon from an SVG sprite (`namespace:name`, e.g. `heroicons_outline:bell`) or
- * from an icon font class list (`pi pi-expand`). Size it with `icon-size-*` on the host.
+ * from an icon font class list (`pi pi-expand`). Size it with Tailwind `size-*` on the host; font icons also need a `text-*` size.
  */
 @Component({
   selector: 'ui-icon',

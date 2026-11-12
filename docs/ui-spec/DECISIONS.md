@@ -42,7 +42,7 @@ All owner questions were answered on 2026-11-12.
 | T3 | Dark borders, hr margin, placeholder color | Use the **intended values**: borders and dividers at slate-100 / 12% in dark mode, hr margin 32 px, scheme-aware placeholder. The light slate-200 line in dark mode is a bug. Same for layouts Q1. |
 | T4 | Unused fonts | Drop Material Icons and IBM Plex Mono. Keep Inter. |
 | T5 | Global `outline: none !important` | Remove it. Restore `:focus-visible` rings (2 px, primary color, 2 px offset). Mouse focus stays without a ring. |
-| T6 | Custom utility class names | Keep every class name listed in `theming.md` (`bg-card`, `bg-default`, `text-secondary`, `text-hint`, `text-disabled`, `border`, `divider`, `icon-size-*`, `bg-primary`, `text-on-primary` and the rest), so that layout code and the generated CRUD code keep working. |
+| T6 | Custom utility class names | Keep every class name listed in `theming.md` (`bg-card`, `bg-default`, `text-secondary`, `text-hint`, `text-disabled`, `border`, `divider`, `bg-primary`, `text-on-primary` and the rest), so that layout code and the generated CRUD code keep working. Exception (owner, 2026-11-12): `icon-size-*` is dropped; icons use Tailwind `size-*` (plus a `text-*` size for font icons). |
 | T7 | Logo, wordmark, favicon, splash spinner color, brand base color (`#2196F3`) | Owner, 2026-11-12: a neutral placeholder mark (a rounded square with the letter "A"), the text "Admin", and keep `#2196F3` as the brand base and splash color. |
 | T8 | Avatars in mock data and on the auth pages | Owner, 2026-11-12: generated initials avatars, no image files. |
 | T9 | Unused material sprites, scene PNGs, Fuse marketing text | Delete them in phase 3, as `theming.md` lists. |

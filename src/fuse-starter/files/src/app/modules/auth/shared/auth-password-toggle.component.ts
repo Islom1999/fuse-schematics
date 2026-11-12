@@ -20,7 +20,7 @@ import { UiIconComponent } from '@ui/components/icon/ui-icon.component'
       [attr.aria-pressed]="visible()"
       (click)="toggle()"
     >
-      <ui-icon class="icon-size-5" [svgIcon]="visible() ? 'heroicons_solid:eye-slash' : 'heroicons_solid:eye'" />
+      <ui-icon class="size-5" [svgIcon]="visible() ? 'heroicons_solid:eye-slash' : 'heroicons_solid:eye'" />
     </button>
   `,
 })
