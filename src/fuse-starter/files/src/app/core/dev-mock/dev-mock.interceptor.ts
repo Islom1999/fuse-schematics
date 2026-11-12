@@ -1,15 +1,23 @@
-import { HttpErrorResponse, HttpEvent, HttpInterceptorFn, HttpRequest, HttpResponse } from '@angular/common/http'
+import {
+  HttpErrorResponse,
+  HttpEvent,
+  HttpEventType,
+  HttpInterceptorFn,
+  HttpRequest,
+  HttpResponse,
+} from '@angular/common/http'
 import { inject, isDevMode } from '@angular/core'
 import { decodeJwtPayload } from 'app/core/auth/auth.utils'
 import { buildNavigation } from 'app/core/navigation/navigation.service'
 import { User } from 'app/core/user/user.types'
 import { DITokens } from 'app/core/utils/di-tokens'
 import { environment } from 'environments/environment'
-import { map, mergeMap, Observable, throwError, timer } from 'rxjs'
+import type { MediaFile } from 'app/core/upload/upload.types'
+import { concat, map, mergeMap, Observable, throwError, timer } from 'rxjs'
 
 /*
- * Development-only fake backend for sign-in, session refresh, the current user, the navigation
- * and an empty notifications list.
+ * Development-only fake backend for sign-in, session refresh, the current user, the navigation,
+ * an empty notifications list and multipart file uploads (kept in memory, tus is not mocked).
  * Enable it with `environment.devMock`. Every other request goes to the network untouched.
  * Delete this folder (and its entry in `withInterceptors`) to drop it.
  */
@@ -90,15 +98,62 @@ function reply<T>(req: HttpRequest<unknown>, payload: T): Observable<HttpEvent<u
 }
 
 function fail(req: HttpRequest<unknown>, path: string, status: number, message: string): Observable<never> {
-  const statusText = status === 401 ? 'Unauthorized' : 'Bad Request'
+  const statusText = status === 401 ? 'Unauthorized' : status === 404 ? 'Not Found' : 'Bad Request'
   const error = { statusCode: status, error: statusText, message, path: `/api/${path}`, timestamp: new Date().toISOString() }
   return timer(LATENCY_MS).pipe(
     mergeMap(() => throwError(() => new HttpErrorResponse({ status, statusText, url: req.url, error }))),
   )
 }
 
+/** Files "uploaded" through the mock, by id (in memory: they are gone after a reload). */
+const mediaFiles = new Map<string, MediaFile>()
+
+function fakeMedia(file: File, usage: string): MediaFile {
+  const id = randomId()
+  const kind = file.type.startsWith('image/')
+    ? 'image'
+    : file.type.startsWith('video/')
+      ? 'video'
+      : file.type.startsWith('audio/')
+        ? 'audio'
+        : file.type === 'application/pdf'
+          ? 'pdf'
+          : 'other'
+  const url = URL.createObjectURL(file)
+  const media: MediaFile = {
+    id, kind, usage, storage: 'local', originalName: file.name, mime: file.type, size: file.size,
+    width: null, height: null, duration: null, used: false, ownerType: null, ownerId: null,
+    uploadedById: USER.id, uploadedByType: 'admin', url, thumbnailUrl: kind === 'image' ? url : null,
+    createdAt: new Date().toISOString(),
+  }
+  mediaFiles.set(id, media)
+  return media
+}
+
+/** `POST admin/files/upload`: progress events, then `201 MediaFile[]`. */
+function upload(req: HttpRequest<unknown>): Observable<HttpEvent<unknown>> {
+  const form = req.body instanceof FormData ? req.body : new FormData()
+  const files = form.getAll('files').filter((f): f is File => f instanceof File)
+  const total = files.reduce((sum, f) => sum + f.size, 0) || 1
+  const usage = req.params.get('usage') ?? 'general'
+  const progress = [0.3, 0.7, 1].map((part) =>
+    timer(LATENCY_MS / 3).pipe(
+      map(() => ({ type: HttpEventType.UploadProgress, loaded: Math.round(total * part), total }) as HttpEvent<unknown>),
+    ),
+  )
+  const done = timer(LATENCY_MS / 3).pipe(
+    map(() => new HttpResponse({ status: 201, statusText: 'Created', url: req.url, body: files.map((f) => fakeMedia(f, usage)) })),
+  )
+  return concat(...progress, done)
+}
+
 function handle(req: HttpRequest<unknown>, path: string): Observable<HttpEvent<unknown>> | null {
   const route = `${req.method} ${path}`
+  const mediaId = /^admin\/files\/([^/]+)$/.exec(path)?.[1]
+  if (req.method === 'GET' && mediaId && mediaId !== 'upload') {
+    const media = mediaFiles.get(mediaId)
+    return media ? reply(req, media) : fail(req, path, 404, 'File not found')
+  }
   switch (route) {
     case 'POST auth/sign-in': {
       const { email, password } = body<{ email: string; password: string }>(req)
@@ -128,6 +183,8 @@ function handle(req: HttpRequest<unknown>, path: string): Observable<HttpEvent<u
     }
     case 'GET auth/me':
       return sessionOf(bearer(req)) ? reply(req, USER) : fail(req, path, 401, 'Unauthorized')
+    case 'POST admin/files/upload':
+      return sessionOf(bearer(req)) ? upload(req) : fail(req, path, 401, 'Unauthorized')
     case 'GET navigation':
       return reply(req, buildNavigation())
     case 'GET notifications':

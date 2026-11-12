@@ -1,102 +1,76 @@
-<div class="flex flex-col gap-2 border rounded-lg p-4 w-full">
-  <!-- Upload input -->
-  @if (!selectedFiles().length) {
-    <div
-      role="button"
-      tabindex="0"
-      (click)="focusFileInput()"
-      (keydown.enter)="onChooseKeydown($event)"
-      (keydown.space)="onChooseKeydown($event)"
-      class="flex items-center gap-4 cursor-pointer w-full"
-    >
-      <div class="flex items-center justify-center w-10 h-10 bg-gray-200 rounded-full">
-        <i class="pi pi-upload text-xl"></i>
+<div class="flex flex-col gap-2 w-full">
+  @for (item of items(); track item.key) {
+    <div class="flex items-center gap-3 border rounded-lg p-2">
+      @if (previewUrl(item); as src) {
+        <img [src]="src" [alt]="item.name" class="w-16 h-16 object-cover rounded shrink-0" />
+      } @else {
+        <div class="flex items-center justify-center w-16 h-16 rounded bg-gray-100 shrink-0">
+          <i class="pi pi-file text-2xl text-gray-500"></i>
+        </div>
+      }
+
+      <div class="flex flex-col min-w-0 grow gap-1">
+        @if (fileUrl(item); as href) {
+          <a [href]="href" target="_blank" rel="noopener" class="truncate text-blue-600 underline">{{ item.name }}</a>
+        } @else {
+          <span class="truncate">{{ item.name }}</span>
+        }
+        @switch (item.status) {
+          @case ('uploading') {
+            <p-progressbar [value]="item.progress" [showValue]="false" styleClass="h-2" />
+            <span class="text-sm text-gray-500">{{ item.progress }}% {{ sizeLabel(item.size) }}</span>
+          }
+          @case ('error') {
+            <span class="text-sm text-red-600" role="alert">{{ item.error }}</span>
+          }
+          @default {
+            <span class="text-sm text-gray-500">{{ sizeLabel(item.size) }}</span>
+          }
+        }
       </div>
-      <div class="flex flex-col text-left">
-        <span class="text-gray-700">Choose file(s)</span>
-        <span class="text-sm text-gray-500">
-          Allowed types: {{ FILE_ALLOWED_MIMES[acceptType()]?.join(', ') || 'image/*' }}
-        </span>
-      </div>
+
+      @if (item.status === 'uploading') {
+        <p-button
+          icon="pi pi-times"
+          severity="secondary"
+          [text]="true"
+          [rounded]="true"
+          type="button"
+          [ariaLabel]="t('upload.cancel', 'Cancel upload')"
+          (onClick)="remove(item)"
+        />
+      } @else if (!disabled()) {
+        <p-button
+          icon="pi pi-trash"
+          severity="danger"
+          [text]="true"
+          [rounded]="true"
+          type="button"
+          [ariaLabel]="t('upload.remove', 'Remove file')"
+          (onClick)="remove(item)"
+        />
+      }
     </div>
   }
+
   <input
     #fileInput
     type="file"
     class="hidden"
     [multiple]="multiple()"
-    [accept]="FILE_ALLOWED_MIMES[acceptType()]?.join(',') || 'image/*'"
-    (change)="onFileChange($event)"
+    [attr.accept]="accept() || null"
+    (change)="onFilesPicked($event)"
   />
 
-  <!-- File preview -->
-  @for (fileItem of selectedFiles(); track $index) {
-    <div class="flex items-center gap-4">
-      @switch (acceptType()) {
-        @case ('image') {
-          @if (getFilePreview(fileItem)) {
-            <img
-              [src]="getFilePreview(fileItem)"
-              [alt]="fileItem.uploadData?.file_orginal_name || 'Preview'"
-              class="w-16 h-16 object-cover rounded"
-            />
-          }
-        }
-        @case ('video') {
-          @if (getFilePreview(fileItem)) {
-            <video [src]="getFilePreview(fileItem)" class="w-32 h-20" controls></video>
-          }
-        }
-        @case ('pdf') {
-          @if (getFilePreview(fileItem)) {
-            <a [href]="getFilePreview(fileItem)" target="_blank" class="text-blue-600 underline">
-              {{ fileItem.uploadData?.file_orginal_name || 'No name' }}
-            </a>
-          }
-        }
-        @case ('word') {
-          @if (getFilePreview(fileItem)) {
-            <a [href]="getFilePreview(fileItem)" download class="text-blue-600 underline">
-              {{ fileItem.uploadData?.file_orginal_name || 'No name' }}
-            </a>
-          }
-        }
-        @default {
-          <span>{{ fileItem.uploadData?.file_orginal_name || 'No name' }}</span>
-        }
-      }
-
-      <span class="text-sm text-gray-500">
-        {{ fileItem.uploadData?.file_orginal_name || 'No name' }}
-        @if (fileItem.file?.size) {
-          {{
-            fileItem.file.size >= 1024 * 1024
-              ? (fileItem.file.size / 1024 / 1024).toFixed(2) + ' MB'
-              : (fileItem.file.size / 1024).toFixed(2) + ' KB'
-          }}
-        }
-      </span>
-      <p-button
-        icon="pi pi-trash"
-        severity="danger"
-        [text]="true"
-        [rounded]="true"
-        type="button"
-        (onClick)="removeFile(fileItem)"
-        class="ml-auto"
-      />
-    </div>
-  }
-
-  <!-- Upload / focus button -->
-  @if (multiple() || !selectedFiles().length) {
-    <div class="flex justify-center mt-2">
+  @if (canAdd()) {
+    <div>
       <p-button
         type="button"
-        (onClick)="focusFileInput()"
-        label="Upload"
         icon="pi pi-upload"
-        styleClass="bg-[#BF9E78]"
+        severity="secondary"
+        [outlined]="true"
+        [label]="t('upload.choose', multiple() ? 'Choose files' : 'Choose file')"
+        (onClick)="choose()"
       />
     </div>
   }
