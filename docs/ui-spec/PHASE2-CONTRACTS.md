@@ -29,7 +29,7 @@ environment.features.notifications  // boolean (default true)
 
 | File | Export | Shape |
 |---|---|---|
-| `app/core/api/api-base-url.ts` | `API_BASE_URL` | `InjectionToken<string>`, factory `() => environment.apiUrl` |
+| `app/core/utils/di-tokens.ts` (exists, owner's file) | `DITokens.API_BASE_URL` | `InjectionToken<string>`, already provided in `app.config.ts` as `environment.apiUrl`. Use it; do not create another token. |
 | `app/core/user/user.types.ts` | `User` | `{ id: string; email: string; name: string; permissions: string[]; avatar?: string; status?: 'online' \| 'away' \| 'busy' \| 'not-visible' }` |
 | `app/core/user/user.service.ts` | `UserService` (root) | `user: Signal<User \| null>`, `set(u)`, `reset()`, `load(): Observable<User>`, `update(patch): Observable<User>`, `hasPermission(p): boolean` |
 | `app/core/auth/auth.service.ts` | `AuthService` (root) | `authenticated: Signal<boolean>`, `signIn({email,password,rememberMe}): Observable<User>`, `signOut(): Observable<void>`, `check(): Observable<boolean>`, `refresh(): Observable<string>`, `forgotPassword(email)`, `resetPassword(token, password)` |

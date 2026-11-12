@@ -22,8 +22,7 @@ import { mockApiServices } from 'app/mock-api'
 import { TranslocoHttpLoader } from './core/transloco/transloco.http-loader'
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async'
 import { providePrimeNG } from 'primeng/config'
-import { FusePrimePreset } from './core/primeng/fuse-primeng.preset'
-import { PrimeNgThemeService } from './core/primeng/primeng-theme.service'
+import { UiPrimePreset } from './core/primeng/ui-primeng.preset'
 import { provideFormlyCore, FORMLY_CONFIG } from '@ngx-formly/core'
 import { withFormlyPrimeNG } from '@ngx-formly/primeng'
 import { registerTranslateExtension } from './shared/ngx-formly/translate.extension'
@@ -61,19 +60,13 @@ export const appConfig: ApplicationConfig = {
     providePrimeNG({
       ripple: true,
       theme: {
-        preset: FusePrimePreset,
+        preset: UiPrimePreset,
         options: {
           prefix: 'p',
-          darkModeSelector: 'html.dark',
+          darkModeSelector: '.dark',
           cssLayer: false, // Disable CSS layers for now
         },
       },
-    }),
-
-    // Initialize PrimeNG Theme Service
-    provideAppInitializer(() => {
-      inject(PrimeNgThemeService)
-      // Service will automatically start listening to theme changes
     }),
 
     // Formly Config
