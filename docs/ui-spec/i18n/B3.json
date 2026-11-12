@@ -1,0 +1,126 @@
+{
+  "en": {
+    "auth": {
+      "logoAlt": "Logo",
+      "emailLabel": "Email address",
+      "passwordLabel": "Password",
+      "passwordConfirmLabel": "Password (Confirm)",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "validation": {
+        "emailRequired": "Email address is required",
+        "emailInvalid": "Please enter a valid email address",
+        "passwordRequired": "Password is required",
+        "passwordMinLength": "Password must be at least {{min}} characters",
+        "passwordConfirmRequired": "Password confirmation is required",
+        "passwordsMustMatch": "Passwords must match"
+      },
+      "errors": {
+        "generic": "Something went wrong, please try again.",
+        "checkForm": "Please check the form"
+      },
+      "signIn": {
+        "title": "Sign in",
+        "rememberMe": "Remember me",
+        "forgotPassword": "Forgot password?",
+        "submit": "Sign in",
+        "wrongCredentials": "Wrong email or password",
+        "tooManyAttempts": "Too many attempts. Please wait a few minutes and try again."
+      },
+      "forgotPassword": {
+        "title": "Forgot password?",
+        "subtitle": "Fill the form to reset your password",
+        "submit": "Send reset link",
+        "sent": "Password reset sent! You'll receive an email if you are registered on our system."
+      },
+      "resetPassword": {
+        "title": "Reset your password",
+        "subtitle": "Create a new password for your account",
+        "submit": "Reset your password",
+        "success": "Your password has been reset.",
+        "invalidToken": "This reset link is invalid or has expired."
+      },
+      "returnTo": "Return to",
+      "signInLink": "sign in",
+      "signOut": {
+        "title": "You have signed out!",
+        "redirectingIn": "Redirecting in {{seconds}} seconds",
+        "redirectingInOne": "Redirecting in 1 second",
+        "redirecting": "You are now being redirected!",
+        "goToSignIn": "Go to sign in"
+      },
+      "panel": {
+        "title1": "Welcome to",
+        "title2": "Admin",
+        "text": "Sign in to manage your application."
+      }
+    },
+    "errors": {
+      "network": "Cannot reach the server",
+      "forbidden": "You don't have permission to do that",
+      "server": "Something went wrong, please try again."
+    }
+  },
+  "tr": {
+    "auth": {
+      "logoAlt": "Logo",
+      "emailLabel": "E-posta adresi",
+      "passwordLabel": "Şifre",
+      "passwordConfirmLabel": "Şifre (Tekrar)",
+      "showPassword": "Şifreyi göster",
+      "hidePassword": "Şifreyi gizle",
+      "validation": {
+        "emailRequired": "E-posta adresi zorunludur",
+        "emailInvalid": "Lütfen geçerli bir e-posta adresi girin",
+        "passwordRequired": "Şifre zorunludur",
+        "passwordMinLength": "Şifre en az {{min}} karakter olmalıdır",
+        "passwordConfirmRequired": "Şifre tekrarı zorunludur",
+        "passwordsMustMatch": "Şifreler eşleşmelidir"
+      },
+      "errors": {
+        "generic": "Bir şeyler ters gitti, lütfen tekrar deneyin.",
+        "checkForm": "Lütfen formu kontrol edin"
+      },
+      "signIn": {
+        "title": "Giriş yap",
+        "rememberMe": "Beni hatırla",
+        "forgotPassword": "Şifrenizi mi unuttunuz?",
+        "submit": "Giriş yap",
+        "wrongCredentials": "E-posta veya şifre hatalı",
+        "tooManyAttempts": "Çok fazla deneme yapıldı. Lütfen birkaç dakika bekleyip tekrar deneyin."
+      },
+      "forgotPassword": {
+        "title": "Şifrenizi mi unuttunuz?",
+        "subtitle": "Şifrenizi sıfırlamak için formu doldurun",
+        "submit": "Sıfırlama bağlantısı gönder",
+        "sent": "Şifre sıfırlama isteği gönderildi! Sistemimizde kayıtlıysanız bir e-posta alacaksınız."
+      },
+      "resetPassword": {
+        "title": "Şifrenizi sıfırlayın",
+        "subtitle": "Hesabınız için yeni bir şifre oluşturun",
+        "submit": "Şifremi sıfırla",
+        "success": "Şifreniz sıfırlandı.",
+        "invalidToken": "Bu sıfırlama bağlantısı geçersiz veya süresi dolmuş."
+      },
+      "returnTo": "Geri dön:",
+      "signInLink": "giriş yap",
+      "signOut": {
+        "title": "Oturumunuz kapatıldı!",
+        "redirectingIn": "{{seconds}} saniye içinde yönlendiriliyorsunuz",
+        "redirectingInOne": "1 saniye içinde yönlendiriliyorsunuz",
+        "redirecting": "Şimdi yönlendiriliyorsunuz!",
+        "goToSignIn": "Giriş sayfasına git"
+      },
+      "panel": {
+        "title1": "Hoş geldiniz",
+        "title2": "Admin",
+        "text": "Uygulamanızı yönetmek için giriş yapın."
+      }
+    },
+    "errors": {
+      "network": "Sunucuya ulaşılamıyor",
+      "forbidden": "Bu işlem için yetkiniz yok",
+      "server": "Bir şeyler ters gitti, lütfen tekrar deneyin."
+    }
+  }
+}

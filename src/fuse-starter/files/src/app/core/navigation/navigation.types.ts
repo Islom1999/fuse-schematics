@@ -1,9 +1,9 @@
-import { FuseNavigationItem } from '@fuse/components/navigation';
+import { UiNavigationItem } from '@ui/navigation/navigation.types'
 
-export interface Navigation
-{
-    compact: FuseNavigationItem[];
-    default: FuseNavigationItem[];
-    futuristic: FuseNavigationItem[];
-    horizontal: FuseNavigationItem[];
+/** The four navigation variants; each layout picks the one it renders. */
+export interface Navigation {
+  default: UiNavigationItem[]
+  compact: UiNavigationItem[]
+  futuristic: UiNavigationItem[]
+  horizontal: UiNavigationItem[]
 }

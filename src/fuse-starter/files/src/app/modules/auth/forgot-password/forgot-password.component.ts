@@ -1,125 +1,73 @@
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core'
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'
+import { RouterLink } from '@angular/router'
+import { TranslocoPipe } from '@jsverse/transloco'
+import { AuthService } from 'app/core/auth/auth.service'
+import { ButtonDirective, ButtonLabel } from 'primeng/button'
+import { InputText } from 'primeng/inputtext'
+import { AuthAlertComponent } from '../shared/auth-alert.component'
+import { AuthAlert, authAlert, firstError, httpStatus } from '../shared/auth-form'
+import { AuthSpinnerComponent } from '../shared/auth-spinner.component'
+import { AuthSplitShellComponent } from '../shared/auth-split-shell.component'
 
-import { ChangeDetectorRef, Component, OnInit, ViewEncapsulation, viewChild, inject } from '@angular/core';
-import {
-    FormsModule,
-    NgForm,
-    ReactiveFormsModule,
-    UntypedFormBuilder,
-    UntypedFormGroup,
-    Validators,
-} from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { fuseAnimations } from '@fuse/animations';
-import { FuseAlertComponent, FuseAlertType } from '@fuse/components/alert';
-import { AuthService } from 'app/core/auth/auth.service';
-import { finalize } from 'rxjs';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
+const EMAIL_MESSAGES = { required: 'auth.validation.emailRequired', email: 'auth.validation.emailInvalid' }
 
 @Component({
-    selector: 'auth-forgot-password',
-    templateUrl: './forgot-password.component.html',
-    encapsulation: ViewEncapsulation.None,
-    animations: fuseAnimations,
-    imports: [
-    FuseAlertComponent,
-    FormsModule,
+  selector: 'app-forgot-password',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
     ReactiveFormsModule,
-    ButtonModule,
-    InputTextModule,
-    ProgressSpinnerModule,
-    RouterLink
-],
+    RouterLink,
+    TranslocoPipe,
+    InputText,
+    ButtonDirective,
+    ButtonLabel,
+    AuthSplitShellComponent,
+    AuthAlertComponent,
+    AuthSpinnerComponent,
+  ],
+  host: { class: 'flex min-w-0 flex-auto flex-col' },
+  templateUrl: './forgot-password.component.html',
 })
-export class AuthForgotPasswordComponent implements OnInit {
-    private _authService = inject(AuthService);
-    private _formBuilder = inject(UntypedFormBuilder);
-    private _changeDetectorRef = inject(ChangeDetectorRef);
+export class ForgotPasswordComponent {
+  private readonly auth = inject(AuthService)
 
-    readonly forgotPasswordNgForm = viewChild<NgForm>('forgotPasswordNgForm');
+  protected readonly form = new FormGroup({
+    email: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
+  })
+  protected readonly busy = signal(false)
+  protected readonly alert = signal<AuthAlert | null>(null)
 
-    alert: { type: FuseAlertType; message: string } = {
-        type: 'success',
-        message: '',
-    };
-    forgotPasswordForm: UntypedFormGroup;
-    showAlert: boolean = false;
+  protected emailError(): string | null {
+    return firstError(this.form.controls.email, EMAIL_MESSAGES)
+  }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * On init
-     */
-    ngOnInit(): void {
-        // Create the form
-        this.forgotPasswordForm = this._formBuilder.group({
-            email: ['', [Validators.required, Validators.email]],
-        });
+  protected submit(): void {
+    if (this.busy()) return
+    if (this.form.invalid) {
+      this.form.markAllAsTouched()
+      return
     }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Public methods
-    // -----------------------------------------------------------------------------------------------------
+    this.busy.set(true)
+    this.alert.set(null)
+    const { email } = this.form.getRawValue()
+    this.form.disable()
 
-    /**
-     * Send the reset link
-     */
-    sendResetLink(): void {
-        // Return if the form is invalid
-        if (this.forgotPasswordForm.invalid) {
-            this.forgotPasswordForm.markAllAsTouched();
-            return;
-        }
+    // The backend answers the same for unknown emails, so the result never reveals an account.
+    this.auth.forgotPassword(email).subscribe({
+      next: () => this.done(authAlert('success', 'auth.forgotPassword.sent')),
+      error: (error: unknown) =>
+        this.done(
+          authAlert('error', httpStatus(error) === 400 ? 'auth.validation.emailInvalid' : 'auth.errors.generic'),
+        ),
+    })
+  }
 
-        // Disable the form
-        this.forgotPasswordForm.disable();
-
-        // Hide the alert
-        this.showAlert = false;
-
-        // Forgot password
-        this._authService
-            .forgotPassword(this.forgotPasswordForm.get('email').value)
-            .pipe(
-                finalize(() => {
-                    // Re-enable the form
-                    this.forgotPasswordForm.enable();
-
-                    // Reset the form
-                    this.forgotPasswordNgForm().resetForm({
-                        email: '',
-                    });
-                    this.forgotPasswordForm.reset({
-                        email: '',
-                    });
-
-                    // Show the alert
-                    this.showAlert = true;
-
-                    // Mark for check (zoneless change detection)
-                    this._changeDetectorRef.markForCheck();
-                })
-            )
-            .subscribe(
-                () => {
-                    // Set the alert
-                    this.alert = {
-                        type: 'success',
-                        message:
-                            "Password reset sent! You'll receive an email if you are registered on our system.",
-                    };
-                },
-                () => {
-                    // Set the alert
-                    this.alert = {
-                        type: 'error',
-                        message:
-                            'Email does not found! Are you sure you are already a member?',
-                    };
-                }
-            );
-    }
+  private done(alert: AuthAlert): void {
+    this.busy.set(false)
+    this.form.enable()
+    this.form.reset()
+    this.alert.set(alert)
+  }
 }
