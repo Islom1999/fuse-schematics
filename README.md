@@ -227,6 +227,13 @@ Vergul bilan ajratilgan `nom:tur` juftliklari. Oxiridagi `?` maydonni ixtiyoriy 
 | `date` | `Date` | `datepicker` | sana |
 | `text` | `string` | `textarea` | matn |
 | `enum(a\|b)` | `'a' \| 'b'` | `select` | select |
+| `int`, `decimal(p,s)` | `number` | `input-number` (kasr xonalari `decimal` ga ko'ra) | son |
+| `json` | `Record<string, unknown>` | `json` (matn maydoni) | — |
+| `relation(Kategoriya)` | `categoryId: string` | `relation-select` (`p-select`, `admin/kategoriya/options` dan qidiruv bilan yuklanadi) | ustun: bog'langan qator yorlig'i (`row.category.name`, bo'lmasa id), filtr yo'q |
+| `relation(Tag[])` | `tagIds: string[]` | `relation-select` (`p-multiselect`) | ustun va filtr yo'q (ro'yxat endpointi ManyToMany'ni qaytarmaydi) |
+| `file(image)`, `file(pdf)[]` | `imageId: string`, `docIds: string[]` | `upload` (`kind`, `multiple` propslari bilan) | ustun va filtr yo'q |
+
+Modifikatorlar: `string(32)`, `:min(n)`, `:max(n)` (`minLength`/`maxLength`, `min`/`max`), `:default(x)` (`defaultValue`), `:label(field)` (relation yorlig'i ustuni), `:unique`, `:index`, `:cascade`, `:set-null` (faqat backend uchun, UI'ga ta'sir qilmaydi). Barcha backend sintaksisi xatosiz o'qiladi.
 
 ```bash
 schematics fuse-schematics:crud mahsulot \
@@ -246,6 +253,8 @@ schematics fuse-schematics:crud mahsulot \
 | `string` + `maxLength > 255` yoki `format: textarea` | `text` |
 | boshqa `string` | `string` |
 | `integer` / `number` | `number` |
+| `x-relation` (`categoryId`, `tagIds`) | `relation(Entity)` / `relation(Entity[])`, `label(...)` |
+| `x-file` (`imageId`, `docIds`) | `file(kind)` / `file(kind)[]` |
 | `boolean` | `boolean` |
 | obyekt, massiv, binary, `$ref` obyektga | o'tkazib yuboriladi (logda ko'rsatiladi) |
 
@@ -413,7 +422,7 @@ ng g fuse-schematics:crud product
 
 The generated app is **zoneless** (`provideZonelessChangeDetection()`, no zone.js) and uses signal inputs/outputs/queries and the new control flow.
 
-**`--fields`**: comma-separated `name:type`, types `string | number | boolean | date | text | enum(a|b)`, trailing `?` = optional. Generates model interfaces, formly fields, grid columns and table filters.
+**`--fields`**: comma-separated `name:type`, types `string | int | number | decimal(p,s) | boolean | date | text | json | enum(a|b) | relation(Entity) | relation(Entity[]) | file(kind) | file(kind)[]`, modifiers `unique | index | default(x) | min(n) | max(n) | label(f) | cascade | set-null`, trailing `?` = optional (same syntax as nest-schematics). Generates model interfaces, formly fields (`relation-select` / `upload` / `json` types), grid columns and table filters. OpenAPI `x-relation` / `x-file` give the same result.
 
 **Config file**: `fuse-schematics.json` at the workspace root, `{ "fuse-feature": { "path": "...", "prefix": "..." } }`; CLI flags win.
 

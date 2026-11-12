@@ -49,7 +49,7 @@ describe("openapi: loading", () => {
       "        name: { type: string }",
     ].join("\n");
     const doc = loadOpenApiDocument(parseOpenApiText(yaml));
-    expect(schemaToFields(doc, "Tag").fields).toEqual([{ name: "name", type: "string", required: true }]);
+    expect(schemaToFields(doc, "Tag").fields).toEqual([{ name: "name", type: "string", nullable: false }]);
   });
 
   it("gives clear errors for empty, HTML and malformed input", () => {
@@ -75,7 +75,7 @@ describe("openapi: schemaToFields", () => {
             day: { type: "string", format: "date" },
             at: { type: "string", format: "date-time" },
             body: { type: "string", maxLength: 256 },
-            kind: { type: "string", enum: ["a", "b-c", "in progress"] },
+            kind: { type: "string", enum: ["a", "b-c", "in_progress"] },
             summary: { type: "string", format: "textarea" },
             email: { type: "string", format: "email" },
             level: { type: "integer", enum: [1, 2, 3] },
@@ -85,17 +85,17 @@ describe("openapi: schemaToFields", () => {
     );
     expect(schemaToFields(doc, "All")).toEqual({
       fields: [
-        { name: "title", type: "string", required: true },
-        { name: "count", type: "number", required: true },
-        { name: "ratio", type: "number", required: true },
-        { name: "enabled", type: "boolean", required: true },
-        { name: "day", type: "date", required: true },
-        { name: "at", type: "date", required: true },
-        { name: "body", type: "text", required: true },
-        { name: "kind", type: "enum", required: true, enumValues: ["a", "b-c", "in progress"] },
-        { name: "summary", type: "text", required: true },
-        { name: "email", type: "string", required: false },
-        { name: "level", type: "number", required: false },
+        { name: "title", type: "string", nullable: false },
+        { name: "count", type: "number", nullable: false },
+        { name: "ratio", type: "number", nullable: false },
+        { name: "enabled", type: "boolean", nullable: false },
+        { name: "day", type: "date", nullable: false },
+        { name: "at", type: "date", nullable: false },
+        { name: "body", type: "text", nullable: false },
+        { name: "kind", type: "enum", nullable: false, enumValues: ["a", "b-c", "in_progress"] },
+        { name: "summary", type: "text", nullable: false },
+        { name: "email", type: "string", nullable: true },
+        { name: "level", type: "number", nullable: true },
       ],
       skipped: [],
       warnings: [],
@@ -120,12 +120,12 @@ describe("openapi: schemaToFields", () => {
       })
     );
     expect(schemaToFields(doc, "X").fields).toEqual([
-      { name: "a", type: "string", required: true },
-      { name: "b", type: "string", required: false },
-      { name: "c", type: "string", required: false },
-      { name: "d", type: "date", required: false },
-      { name: "e", type: "string", required: false },
-      { name: "f", type: "string", required: false },
+      { name: "a", type: "string", nullable: false },
+      { name: "b", type: "string", nullable: true },
+      { name: "c", type: "string", nullable: true },
+      { name: "d", type: "date", nullable: true },
+      { name: "e", type: "string", nullable: true },
+      { name: "f", type: "string", nullable: true },
     ]);
   });
 
@@ -153,7 +153,7 @@ describe("openapi: schemaToFields", () => {
       })
     );
     const result = schemaToFields(doc, "X");
-    expect(result.fields).toEqual([{ name: "name", type: "string", required: false }]);
+    expect(result.fields).toEqual([{ name: "name", type: "string", nullable: true }]);
     expect(result.skipped).toEqual([
       { name: "id", reason: "system field" },
       { name: "createdAt", reason: "system field" },
@@ -185,9 +185,9 @@ describe("openapi: schemaToFields", () => {
       })
     );
     expect(schemaToFields(doc, "Post").fields).toEqual([
-      { name: "status", type: "enum", required: true, enumValues: ["draft", "published"] },
-      { name: "previous", type: "enum", required: false, enumValues: ["draft", "published"] },
-      { name: "next", type: "enum", required: false, enumValues: ["draft", "published"] },
+      { name: "status", type: "enum", nullable: false, enumValues: ["draft", "published"] },
+      { name: "previous", type: "enum", nullable: true, enumValues: ["draft", "published"] },
+      { name: "next", type: "enum", nullable: true, enumValues: ["draft", "published"] },
     ]);
   });
 
@@ -212,10 +212,10 @@ describe("openapi: schemaToFields", () => {
       })
     );
     expect(schemaToFields(doc, "Item").fields).toEqual([
-      { name: "code", type: "string", required: true },
-      { name: "name", type: "string", required: true },
-      { name: "qty", type: "number", required: true },
-      { name: "note", type: "text", required: false },
+      { name: "code", type: "string", nullable: false },
+      { name: "name", type: "string", nullable: false },
+      { name: "qty", type: "number", nullable: false },
+      { name: "note", type: "text", nullable: true },
     ]);
   });
 
@@ -223,13 +223,13 @@ describe("openapi: schemaToFields", () => {
     const doc = loadOpenApiDocument(swagger2Doc());
     const result = schemaToFields(doc, "Product");
     expect(result.fields).toEqual([
-      { name: "title", type: "string", required: true },
-      { name: "price", type: "number", required: true },
-      { name: "stock", type: "number", required: false },
-      { name: "kind", type: "enum", required: true, enumValues: ["physical", "digital"] },
-      { name: "available", type: "boolean", required: false },
-      { name: "releasedOn", type: "date", required: false },
-      { name: "body", type: "text", required: false },
+      { name: "title", type: "string", nullable: false },
+      { name: "price", type: "number", nullable: false },
+      { name: "stock", type: "number", nullable: true },
+      { name: "kind", type: "enum", nullable: false, enumValues: ["physical", "digital"] },
+      { name: "available", type: "boolean", nullable: true },
+      { name: "releasedOn", type: "date", nullable: true },
+      { name: "body", type: "text", nullable: true },
     ]);
     expect(result.skipped.map((s) => s.name)).toEqual(["id", "createdAt", "tags", "supplier"]);
   });
@@ -275,7 +275,7 @@ describe("openapi: schemaToFields", () => {
       oas3({ X: { type: "object", properties: { mode: { type: "string", enum: ["a,b", "c"] } } } })
     );
     const result = schemaToFields(doc, "X");
-    expect(result.fields).toEqual([{ name: "mode", type: "string", required: false }]);
+    expect(result.fields).toEqual([{ name: "mode", type: "string", nullable: true }]);
     expect(result.warnings.length).toBe(1);
   });
 
@@ -315,10 +315,10 @@ describe("openapi: discoverResources", () => {
     // `description: text?` and `sortOrder: number?` are `{ type: object, nullable: true }`
     // in the NestJS output: inferred as string, with a warning each.
     expect(resources[0].fields).toEqual([
-      { name: "name", type: "string", required: true },
-      { name: "description", type: "string", required: false },
-      { name: "sortOrder", type: "string", required: false },
-      { name: "active", type: "boolean", required: false },
+      { name: "name", type: "string", nullable: false },
+      { name: "description", type: "string", nullable: true },
+      { name: "sortOrder", type: "string", nullable: true },
+      { name: "active", type: "boolean", nullable: true },
     ]);
     expect(resources[0].warnings.length).toBe(2);
     expect(resources[0].warnings[0]).toMatch(/Property "description" declared as "type: object"/);
@@ -350,7 +350,7 @@ describe("openapi: discoverResources", () => {
     expect(byName("mahsulot").fields.find((f) => f.name === "active")).toEqual({
       name: "active",
       type: "boolean",
-      required: true,
+      nullable: false,
     });
     expect(byName("mahsulot").skipped.map((s) => s.name)).toEqual(["id", "createdAt", "updatedAt", "deletedAt"]);
     expect(byName("kategoriya").sourceSchema).toBe("CreateKategoriyaDto");
@@ -386,7 +386,7 @@ describe("openapi: discoverResources", () => {
     );
     const [tag] = discoverResources(doc);
     expect(tag.sourceSchema).toBe("POST /admin/tag (inline)");
-    expect(tag.fields).toEqual([{ name: "label", type: "string", required: true }]);
+    expect(tag.fields).toEqual([{ name: "label", type: "string", nullable: false }]);
   });
 
   it("detects collection + item paths in a Swagger 2.0 document without /admin", () => {

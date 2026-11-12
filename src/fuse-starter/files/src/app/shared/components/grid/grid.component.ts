@@ -207,6 +207,25 @@ export class GridComponent<T> implements AfterViewInit, OnChanges, OnDestroy {
     this.onRowSelect.emit(row)
   }
 
+  /**
+   * Text of a `relation` column: the label of the joined row (`row.category.name`), or the id
+   * (`row.categoryId`) when the list endpoint did not join it.
+   */
+  relationLabel(row: T, column: IColumn): string {
+    const record = row as Record<string, unknown>
+    const joined = record[column.field]
+    if (joined !== null && typeof joined === 'object') {
+      const item = joined as Record<string, unknown>
+      const label = [column.labelField, 'name', 'title', 'id']
+        .filter((key): key is string => !!key)
+        .map((key) => item[key])
+        .find((value) => value !== undefined && value !== null && value !== '')
+      return label === undefined ? '' : String(label)
+    }
+    const value = joined ?? record[`${column.field}Id`]
+    return value === undefined || value === null ? '' : String(value)
+  }
+
   exportToExcel(): void {
     // Export logic if needed
   }

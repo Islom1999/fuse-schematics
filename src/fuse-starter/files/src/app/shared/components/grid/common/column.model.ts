@@ -1,4 +1,4 @@
-export type TemplateType = 'custom' | 'id' | 'translate' | 'date'
+export type TemplateType = 'custom' | 'id' | 'translate' | 'date' | 'relation'
 export type ColumnFilterType = 'text' | 'select' | 'boolean' | 'date'
 
 export interface ColumnFilterOption {
@@ -12,6 +12,10 @@ export interface IColumn {
   headerFunction?: () => string
   template?: TemplateType
   width?: string
+  /** `false` turns the sort header off (e.g. relation columns, which the backend cannot sort by). */
+  sortable?: boolean
+  /** `template: 'relation'`: property of the joined row to show (default `name`, `title`, then `id`). */
+  labelField?: string
   is_filter?: boolean
   filterType?: ColumnFilterType
   filterOptions?: ColumnFilterOption[]
@@ -29,6 +33,8 @@ export class Column implements IColumn {
     public filterType?: ColumnFilterType,
     public filterOptions?: ColumnFilterOption[],
     public filterPlaceholder?: string,
+    public sortable?: boolean,
+    public labelField?: string,
   ) {}
 }
 
@@ -42,6 +48,8 @@ export function createColumn({
   filterType,
   filterOptions,
   filterPlaceholder,
+  sortable,
+  labelField,
 }: IColumn): Column {
   return new Column(
     field,
@@ -53,5 +61,7 @@ export function createColumn({
     filterType,
     filterOptions,
     filterPlaceholder,
+    sortable,
+    labelField,
   )
 }
