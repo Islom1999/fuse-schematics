@@ -1,0 +1,94 @@
+{
+  "en": {
+    "layout": {
+      "logoAlt": "Logo",
+      "mainNavigation": "Main navigation",
+      "toggleNavigation": "Toggle navigation",
+      "fullscreen": "Toggle fullscreen",
+      "footer": {
+        "copyright": "Admin © {{year}}"
+      }
+    },
+    "settings": {
+      "open": "Settings",
+      "title": "Settings",
+      "close": "Close settings",
+      "theme": "Theme",
+      "scheme": "Scheme",
+      "layout": "Layout",
+      "themes": {
+        "default": "Default",
+        "brand": "Brand",
+        "teal": "Teal",
+        "rose": "Rose",
+        "purple": "Purple",
+        "amber": "Amber"
+      },
+      "schemes": {
+        "auto": "Auto",
+        "dark": "Dark",
+        "light": "Light",
+        "autoTooltip": "Automatically sets the scheme based on user's operating system's color scheme preference using 'prefers-color-scheme' media query."
+      },
+      "layouts": {
+        "empty": "Empty",
+        "classic": "Classic",
+        "classy": "Classy",
+        "compact": "Compact",
+        "dense": "Dense",
+        "futuristic": "Futuristic",
+        "thin": "Thin",
+        "centered": "Centered",
+        "enterprise": "Enterprise",
+        "material": "Material",
+        "modern": "Modern"
+      }
+    }
+  },
+  "tr": {
+    "layout": {
+      "logoAlt": "Logo",
+      "mainNavigation": "Ana gezinme",
+      "toggleNavigation": "Gezinmeyi aç/kapat",
+      "fullscreen": "Tam ekranı aç/kapat",
+      "footer": {
+        "copyright": "Admin © {{year}}"
+      }
+    },
+    "settings": {
+      "open": "Ayarlar",
+      "title": "Ayarlar",
+      "close": "Ayarları kapat",
+      "theme": "Tema",
+      "scheme": "Renk şeması",
+      "layout": "Yerleşim",
+      "themes": {
+        "default": "Varsayılan",
+        "brand": "Marka",
+        "teal": "Camgöbeği",
+        "rose": "Gül",
+        "purple": "Mor",
+        "amber": "Kehribar"
+      },
+      "schemes": {
+        "auto": "Otomatik",
+        "dark": "Koyu",
+        "light": "Açık",
+        "autoTooltip": "Şemayı, 'prefers-color-scheme' medya sorgusunu kullanarak işletim sisteminin renk şeması tercihine göre otomatik olarak ayarlar."
+      },
+      "layouts": {
+        "empty": "Boş",
+        "classic": "Klasik",
+        "classy": "Şık",
+        "compact": "Kompakt",
+        "dense": "Yoğun",
+        "futuristic": "Fütüristik",
+        "thin": "İnce",
+        "centered": "Ortalanmış",
+        "enterprise": "Kurumsal",
+        "material": "Material",
+        "modern": "Modern"
+      }
+    }
+  }
+}
