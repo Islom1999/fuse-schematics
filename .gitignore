@@ -6,7 +6,7 @@
 *.js.map
 *.d.ts
 !src/**/*.d.ts
-# Starter shablonidagi JS fayllar (tailwind.config.js, @fuse/tailwind) generatsiya uchun kerak
+# Starter shablonidagi JS fayllar (tailwind.config.js, @ui/tailwind) generatsiya uchun kerak
 !src/*/files/**/*.js
 
 # Node
