@@ -1,0 +1,11 @@
+// UI kit global styles: Tailwind preflight and the theme/scheme variables (`uiTheming` plugin),
+// then the kit's base rules. Utilities are emitted last, from `src/styles/tailwind.scss`.
+@use 'sass:meta';
+
+@tailwind base;
+@tailwind components;
+
+@include meta.load-css('base');
+@include meta.load-css('forms');
+@include meta.load-css('scrollbars');
+@include meta.load-css('print');

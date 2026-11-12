@@ -1,0 +1,13 @@
+// Print: smaller root size, no page backgrounds. Bars hide themselves with `print:hidden`.
+
+@media print {
+  html {
+    font-size: 12px !important;
+  }
+
+  body,
+  .dark,
+  .light {
+    background: none !important;
+  }
+}

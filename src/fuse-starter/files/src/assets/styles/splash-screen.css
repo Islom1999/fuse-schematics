@@ -1,80 +1,72 @@
-body fuse-splash-screen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #111827;
-    color: #F9FAFB;
-    z-index: 999999;
-    pointer-events: none;
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 400ms cubic-bezier(0.4, 0, 0.2, 1);
+/*
+ * Splash screen: a full-viewport overlay shown until the app's first navigation, when
+ * UiSplashScreenService adds `ui-splash-screen-hidden` to <body>. Plain CSS, loaded before the app.
+ */
+body:not(.ui-splash-screen-hidden) {
+  overflow: hidden;
 }
 
-body fuse-splash-screen img {
-    width: 120px;
-    max-width: 120px;
+ui-splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background-color: #111827;
+  color: #f9fafb;
+  opacity: 1;
+  visibility: visible;
+  transition-property: opacity, visibility;
+  transition-duration: 400ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-body fuse-splash-screen .spinner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 40px;
-    width: 56px;
+body.ui-splash-screen-hidden ui-splash-screen {
+  opacity: 0;
+  visibility: hidden;
 }
 
-body fuse-splash-screen .spinner > div {
-    width: 12px;
-    height: 12px;
-    background-color: #1E96F7;
-    border-radius: 100%;
-    display: inline-block;
-    -webkit-animation: fuse-bouncedelay 1s infinite ease-in-out both;
-    animation: fuse-bouncedelay 1s infinite ease-in-out both;
+ui-splash-screen img {
+  width: 120px;
+  max-width: 120px;
 }
 
-body fuse-splash-screen .spinner .bounce1 {
-    -webkit-animation-delay: -0.32s;
-    animation-delay: -0.32s;
+ui-splash-screen .ui-splash-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 56px;
+  margin-top: 40px;
 }
 
-body fuse-splash-screen .spinner .bounce2 {
-    -webkit-animation-delay: -0.16s;
-    animation-delay: -0.16s;
+ui-splash-screen .ui-splash-spinner > span {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #1e96f7;
+  animation: ui-bounce-delay 1s ease-in-out infinite both;
 }
 
-@-webkit-keyframes fuse-bouncedelay {
-    0%, 80%, 100% {
-        -webkit-transform: scale(0)
-    }
-    40% {
-        -webkit-transform: scale(1.0)
-    }
+ui-splash-screen .ui-splash-spinner > span:nth-child(1) {
+  animation-delay: -0.32s;
 }
 
-@keyframes fuse-bouncedelay {
-    0%, 80%, 100% {
-        -webkit-transform: scale(0);
-        transform: scale(0);
-    }
-    40% {
-        -webkit-transform: scale(1.0);
-        transform: scale(1.0);
-    }
+ui-splash-screen .ui-splash-spinner > span:nth-child(2) {
+  animation-delay: -0.16s;
 }
 
-body:not(.fuse-splash-screen-hidden) {
-    overflow: hidden;
-}
+@keyframes ui-bounce-delay {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
 
-body.fuse-splash-screen-hidden fuse-splash-screen {
-    visibility: hidden;
-    opacity: 0;
+  40% {
+    transform: scale(1);
+  }
 }

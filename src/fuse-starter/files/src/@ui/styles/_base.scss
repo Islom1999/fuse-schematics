@@ -1,0 +1,67 @@
+// Root, typography and element defaults. Loaded right after Tailwind's preflight.
+
+html {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 100%;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  font-size: 0.875rem;
+  // Inter stylistic alternates (single-storey "a" and others).
+  font-feature-settings: 'salt';
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+}
+
+* {
+  text-rendering: optimizeLegibility;
+}
+
+// Scheme scopes paint their own text and surface colors. Utilities on the same element still win
+// (they come later and are also !important).
+body,
+.light,
+.dark {
+  color: var(--ui-text-default) !important;
+  background-color: var(--ui-bg-default) !important;
+}
+
+// Keyboard focus ring; pointer focus stays without a ring.
+:where(:focus-visible) {
+  outline: 2px solid var(--ui-primary);
+  outline-offset: 2px;
+}
+
+:where(:focus:not(:focus-visible)) {
+  outline: none;
+}
+
+img {
+  width: 100%;
+  vertical-align: middle;
+}
+
+hr {
+  height: 0;
+  margin: 32px 0;
+  border-top-width: 1px;
+  border-bottom-width: 1px;
+}
+
+[disabled] * {
+  color: var(--ui-text-disabled) !important;
+}
