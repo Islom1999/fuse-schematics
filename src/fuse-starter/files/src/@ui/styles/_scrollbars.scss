@@ -1,0 +1,92 @@
+// Native scrollbars. macOS and iOS keep their overlay scrollbars; elsewhere (from 960px) a slim pill.
+// WebKit rules for Chromium/Safari; the standard properties only where `::-webkit-scrollbar` is unknown,
+// because Chromium ignores the WebKit rules once the standard ones are set.
+
+$thumb: rgba(0, 0, 0, 0.24);
+$thumb-active: rgba(0, 0, 0, 0.37);
+$thumb-dark: rgba(255, 255, 255, 0.24);
+$thumb-dark-active: rgba(255, 255, 255, 0.37);
+
+@media (min-width: 960px) {
+  body:not(.os-mac):not(.os-ios) {
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+      background-color: transparent;
+    }
+
+    ::-webkit-scrollbar:hover {
+      background-color: rgba(0, 0, 0, 0.06);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      border: 2px solid transparent;
+      border-radius: 20px;
+      box-shadow: inset 0 0 0 20px $thumb;
+    }
+
+    ::-webkit-scrollbar-thumb:active {
+      box-shadow: inset 0 0 0 20px $thumb-active;
+    }
+
+    &.dark {
+      ::-webkit-scrollbar-thumb {
+        box-shadow: inset 0 0 0 20px $thumb-dark;
+      }
+
+      ::-webkit-scrollbar-thumb:active {
+        box-shadow: inset 0 0 0 20px $thumb-dark-active;
+      }
+    }
+  }
+
+  @supports not selector(::-webkit-scrollbar) {
+    body:not(.os-mac):not(.os-ios) * {
+      scrollbar-width: thin;
+      scrollbar-color: $thumb transparent;
+    }
+
+    body.dark:not(.os-mac):not(.os-ios) * {
+      scrollbar-color: $thumb-dark transparent;
+    }
+  }
+}
+
+// `ui-scrollbar-thin`: a scroll area with a thin thumb shown only while hovered or focused.
+// Touch devices keep the platform's scrolling.
+.ui-scrollbar-thin {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+body:not(.os-ios):not(.os-android) .ui-scrollbar-thin {
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+    background-color: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border: 0;
+    border-radius: 6px;
+    background-color: transparent;
+    box-shadow: none;
+  }
+
+  &:hover::-webkit-scrollbar-thumb,
+  &:focus-within::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.5);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  }
+
+  @supports not selector(::-webkit-scrollbar) {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+
+    &:hover,
+    &:focus-within {
+      scrollbar-color: rgba(0, 0, 0, 0.5) transparent;
+    }
+  }
+}
