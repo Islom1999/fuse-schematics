@@ -4,16 +4,30 @@ import { UserService } from 'app/core/user/user.service'
 import { DITokens } from 'app/core/utils/di-tokens'
 import { environment } from 'environments/environment'
 import { catchError, map, Observable, of, tap, throwError } from 'rxjs'
-import { AppNotification } from './notifications.types'
+import { AdminNotificationDto, AppNotification } from './notifications.types'
+
+function toNotification(dto: AdminNotificationDto): AppNotification {
+  return {
+    id: dto.id,
+    title: dto.title,
+    description: dto.description ?? undefined,
+    icon: dto.icon ?? undefined,
+    link: dto.link ?? undefined,
+    useRouter: true,
+    time: dto.time,
+    read: dto.read,
+  }
+}
 
 /**
- * The user's notifications (`/notifications` endpoints). Every method updates `notifications`
- * from the server response.
+ * The signed-in admin's notifications: `GET admin/me/notifications` (newest first, at most 50) and
+ * `POST admin/me/notifications/:id/read`. The backend has no delete, mark-unread, mark-all-read or
+ * create route, so the service offers none of them. Every method updates `notifications`.
  */
 @Injectable({ providedIn: 'root' })
 export class NotificationsService {
   private readonly http = inject(HttpClient)
-  private readonly url = `${inject(DITokens.API_BASE_URL)}/notifications`
+  private readonly url = `${inject(DITokens.API_BASE_URL)}/admin/me/notifications`
   private readonly _notifications = signal<AppNotification[]>([])
   private readonly _available = signal(environment.features.notifications)
 
@@ -21,8 +35,8 @@ export class NotificationsService {
   readonly notifications = this._notifications.asReadonly()
   readonly unreadCount = computed(() => this._notifications().filter((item) => !item.read).length)
   /**
-   * False when `features.notifications` is off, or after `/notifications` answered 404 in this
-   * session. The bell hides itself then.
+   * False when `features.notifications` is off, or after `admin/me/notifications` answered 404 in
+   * this session. The bell hides itself then.
    */
   readonly available = this._available.asReadonly()
 
@@ -37,7 +51,8 @@ export class NotificationsService {
   /** Loads the list. A 404 marks the feature unavailable; errors still reach the caller. */
   getAll(): Observable<AppNotification[]> {
     if (!this._available()) return of(this._notifications())
-    return this.http.get<AppNotification[]>(this.url).pipe(
+    return this.http.get<AdminNotificationDto[]>(this.url).pipe(
+      map((list) => list.map(toNotification)),
       tap((list) => this._notifications.set(list)),
       catchError((error: unknown) => {
         if (error instanceof HttpErrorResponse && error.status === 404) this._available.set(false)
@@ -46,36 +61,11 @@ export class NotificationsService {
     )
   }
 
-  /** Sets the read flag of one notification. */
-  markRead(id: string, read: boolean): Observable<AppNotification> {
-    return this.http
-      .patch<AppNotification>(`${this.url}/${encodeURIComponent(id)}`, { read })
-      .pipe(tap((updated) => this.replace(updated)))
-  }
-
-  /** Deletes one notification. */
-  remove(id: string): Observable<void> {
-    return this.http.delete<unknown>(`${this.url}/${encodeURIComponent(id)}`).pipe(
-      tap(() => this._notifications.update((list) => list.filter((item) => item.id !== id))),
-      map(() => undefined),
+  /** Marks one notification as read (`POST :id/read`); calling it again is harmless. */
+  markRead(id: string): Observable<AppNotification> {
+    return this.http.post<AdminNotificationDto>(`${this.url}/${encodeURIComponent(id)}/read`, {}).pipe(
+      map(toNotification),
+      tap((updated) => this._notifications.update((list) => list.map((item) => (item.id === updated.id ? updated : item)))),
     )
-  }
-
-  /** Marks every notification as read. */
-  markAllRead(): Observable<AppNotification[]> {
-    return this.http
-      .post<AppNotification[]>(`${this.url}/mark-all-read`, {})
-      .pipe(tap((list) => this._notifications.set(list)))
-  }
-
-  /** Creates a notification (for other features) and puts it first. */
-  create(notification: Omit<AppNotification, 'id'>): Observable<AppNotification> {
-    return this.http
-      .post<AppNotification>(this.url, notification)
-      .pipe(tap((created) => this._notifications.update((list) => [created, ...list])))
-  }
-
-  private replace(updated: AppNotification): void {
-    this._notifications.update((list) => list.map((item) => (item.id === updated.id ? updated : item)))
   }
 }

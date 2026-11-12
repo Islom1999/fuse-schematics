@@ -68,15 +68,9 @@ export class NotificationsComponent {
     this.popover()?.hide()
   }
 
-  protected toggleRead(notification: AppNotification): void {
-    this.service.markRead(notification.id, !notification.read).subscribe({ error: noop })
-  }
-
-  protected remove(notification: AppNotification): void {
-    this.service.remove(notification.id).subscribe({ error: noop })
-  }
-
-  protected markAllRead(): void {
-    this.service.markAllRead().subscribe({ error: noop })
+  /** Marks the notification read; a no-op when it already is. */
+  protected markRead(notification: AppNotification): void {
+    if (notification.read) return
+    this.service.markRead(notification.id).subscribe({ error: noop })
   }
 }

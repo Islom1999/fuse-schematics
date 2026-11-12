@@ -63,7 +63,7 @@ All owner questions were answered on 2026-11-12.
 | W2 | User status and avatar | Option (a): hide the status section and the dot behind `features.userStatus` (default `false`). The avatar falls back to initials. |
 | W3 | Settings cog on auth pages | Keep it, as today (visual parity). |
 | W4 | Profile/Settings menu items | Keep them as placeholders that only close the menu (visual parity). |
-| W5 | Notifications backend | Show the bell only when `features.notifications` is `true` (default `true`). On a 404 from `/notifications`, hide the bell for the session. |
+| W5 | Notifications backend | Show the bell only when `features.notifications` is `true` (default `true`). On a 404 from `admin/me/notifications`, hide the bell for the session. The backend offers only `GET admin/me/notifications` and `POST admin/me/notifications/:id/read`, so the widget has no mark-unread, remove or mark-all-read. |
 | W6 | Dropped widgets | quick-chat, messages and shortcuts are not rewritten (owner decision Q2 in the plan). |
 | W7 | Settings drawer close icon (primary on primary, invisible) | Fix it: a white icon. |
 
@@ -72,7 +72,7 @@ All owner questions were answered on 2026-11-12.
 | # | Question | Decision |
 |---|---|---|
 | A1 | Remember-me | As specified: `localStorage` when checked, `sessionStorage` when not. Unchecked by default. |
-| A2 | Forgot/reset password without a backend | Ship the pages against the contract in section 2.2. The nest-schematics backend gets these endpoints in its own plan. |
+| A2 | Forgot/reset password | Ship the pages against section 2.2. The nest-schematics backend now implements `POST auth/forgot-password` and `POST auth/reset-password` (204, body `{email}` and `{token, password}`); mail delivery needs the backend's mail add-on, otherwise the reset link only appears in the server log outside production. |
 | A3 | Password policy on reset | At least 8 characters, plus a match check with `mustMatch`. |
 | A4 | Landing route | Redirect `/` to `/example`. There is no `home` route. |
 | A5 | Token refresh | Design `AuthService` around an access token and a refresh token. On a 401, try the refresh once, then sign out. The exact endpoint is aligned with the nest-schematics auth work in phase 2 (B3). Until then, keep it behind one method, `refresh()`. |

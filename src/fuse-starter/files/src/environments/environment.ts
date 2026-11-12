@@ -10,8 +10,11 @@ export const environment = {
   features: {
     /** 'client' searches the navigation; 'backend' calls POST /search. */
     search: 'client' as 'client' | 'backend',
+    /** 'static' builds the menu from navigation.ts; 'backend' loads GET /navigation and appends static items it lacks. */
+    navigation: 'static' as 'static' | 'backend',
     /** Online/away/busy status in the user menu (needs backend support). */
     userStatus: false,
+    /** Header bell: GET /admin/me/notifications. Turn off if the backend has no admin notifications. */
     notifications: true,
   },
 }

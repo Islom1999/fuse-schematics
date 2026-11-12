@@ -53,20 +53,6 @@
         </button>
       }
       <div class="text-lg font-medium leading-10" [class.ml-3]="mobile()">{{ 'notifications.title' | transloco }}</div>
-      <button
-        type="button"
-        pButton
-        class="p-button-icon-only ml-auto h-10 w-10 rounded-full p-0 text-on-primary hover:bg-white/10"
-        [text]="true"
-        [rounded]="true"
-        [disabled]="unreadCount() === 0"
-        [pTooltip]="'notifications.markAllAsRead' | transloco"
-        tooltipPosition="bottom"
-        [attr.aria-label]="'notifications.markAllAsRead' | transloco"
-        (click)="markAllRead()"
-      >
-        <ui-icon svgIcon="heroicons_outline:envelope-open" />
-      </button>
     </div>
 
     <!-- List -->
@@ -74,11 +60,11 @@
       @for (notification of notifications(); track notification.id) {
         <div class="group relative flex hover:bg-gray-50 dark:hover:bg-black/5" [class.unread]="!notification.read">
           @if (notification.link && notification.useRouter) {
-            <a class="flex flex-auto py-5 pl-6" [routerLink]="notification.link" (click)="close()">
+            <a class="flex flex-auto py-5 pl-6" [routerLink]="notification.link" (click)="markRead(notification); close()">
               <ng-container *ngTemplateOutlet="body; context: { $implicit: notification }" />
             </a>
           } @else if (notification.link) {
-            <a class="flex flex-auto py-5 pl-6" target="_blank" rel="noopener" [href]="notification.link" (click)="close()">
+            <a class="flex flex-auto py-5 pl-6" target="_blank" rel="noopener" [href]="notification.link" (click)="markRead(notification); close()">
               <ng-container *ngTemplateOutlet="body; context: { $implicit: notification }" />
             </a>
           } @else {
@@ -87,33 +73,20 @@
             </div>
           }
 
-          <!-- Actions -->
-          <div class="relative my-5 ml-2 mr-6 flex flex-col">
-            <button
-              type="button"
-              class="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full hover:bg-hover"
-              [class]="notification.read ? 'sm:opacity-0 sm:focus-visible:opacity-100 sm:group-hover:opacity-100' : ''"
-              [pTooltip]="(notification.read ? 'notifications.markAsUnread' : 'notifications.markAsRead') | transloco"
-              tooltipPosition="left"
-              [attr.aria-label]="(notification.read ? 'notifications.markAsUnread' : 'notifications.markAsRead') | transloco"
-              (click)="toggleRead(notification)"
-            >
-              <span
-                class="h-2 w-2 rounded-full"
-                [class.bg-primary]="!notification.read"
-                [class.bg-gray-400]="notification.read"
-              ></span>
-            </button>
-            <button
-              type="button"
-              class="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full text-primary hover:bg-hover sm:opacity-0 sm:focus-visible:opacity-100 sm:group-hover:opacity-100"
-              [pTooltip]="'notifications.remove' | transloco"
-              tooltipPosition="left"
-              [attr.aria-label]="'notifications.remove' | transloco"
-              (click)="remove(notification)"
-            >
-              <ui-icon class="size-4" svgIcon="heroicons_outline:x-mark" />
-            </button>
+          <!-- Mark as read (the backend has no mark-unread or delete) -->
+          <div class="relative my-5 ml-2 mr-6 flex w-6 flex-col">
+            @if (!notification.read) {
+              <button
+                type="button"
+                class="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full hover:bg-hover"
+                [pTooltip]="'notifications.markAsRead' | transloco"
+                tooltipPosition="left"
+                [attr.aria-label]="'notifications.markAsRead' | transloco"
+                (click)="markRead(notification)"
+              >
+                <span class="h-2 w-2 rounded-full bg-primary"></span>
+              </button>
+            }
           </div>
         </div>
       } @empty {

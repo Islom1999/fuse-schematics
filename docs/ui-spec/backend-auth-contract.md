@@ -30,6 +30,3 @@ interface Session {
 
 ## Device headers (optional)
 The web client may send `x-device-id` (a stable random id kept in localStorage), `x-device-name`, `x-platform` (`web`) and `x-app-version`. The OS is parsed from the user-agent.
-
-## Not implemented yet
-Forgot and reset password, `GET navigation`, notifications and `POST search`. Ship the forgot/reset pages against `auth.md` section 2.2 (DECISIONS A2).
