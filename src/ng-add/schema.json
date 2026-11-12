@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "FuseSchematicsNgAddSchema",
+  "title": "fuse-schematics ng-add schema",
+  "type": "object",
+  "properties": {
+    "project": {
+      "type": "string",
+      "description": "Project in angular.json to check. Defaults to the first application project.",
+      "$default": {
+        "$source": "projectName"
+      }
+    }
+  }
+}

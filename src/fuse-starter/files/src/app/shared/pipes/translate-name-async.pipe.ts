@@ -1,5 +1,5 @@
 import { inject, Pipe, type PipeTransform } from '@angular/core'
-import { TranslocoService } from '@ngneat/transloco'
+import { TranslocoService } from '@jsverse/transloco'
 import { map, of } from 'rxjs'
 
 interface TranslateName {

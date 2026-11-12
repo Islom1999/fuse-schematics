@@ -1,7 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
-import { DatePipe, NgClass, NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { DatePipe, NgClass, NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewContainerRef, ViewEncapsulation, viewChild, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MessagesService } from 'app/layout/common/messages/messages.service';
 import { Message } from 'app/layout/common/messages/messages.types';
@@ -17,29 +17,22 @@ import { ElementRef } from '@angular/core';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     exportAs: 'messages',
-    imports: [ButtonModule, NgIf, TooltipModule, NgFor, NgClass, NgTemplateOutlet, RouterLink, DatePipe, FuseIconComponent]
+    imports: [ButtonModule, TooltipModule, NgClass, NgTemplateOutlet, RouterLink, DatePipe, FuseIconComponent]
 })
 export class MessagesComponent implements OnInit, OnDestroy
 {
-    @ViewChild('messagesOrigin', {read: ElementRef}) private _messagesOrigin: ElementRef<HTMLElement>;
-    @ViewChild('messagesPanel') private _messagesPanel: TemplateRef<any>;
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+    private _messagesService = inject(MessagesService);
+    private _overlay = inject(Overlay);
+    private _viewContainerRef = inject(ViewContainerRef);
+
+    private readonly _messagesOrigin = viewChild('messagesOrigin', { read: ElementRef });
+    private readonly _messagesPanel = viewChild<TemplateRef<any>>('messagesPanel');
 
     messages: Message[];
     unreadCount: number = 0;
     private _overlayRef: OverlayRef;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
-
-    /**
-     * Constructor
-     */
-    constructor(
-        private _changeDetectorRef: ChangeDetectorRef,
-        private _messagesService: MessagesService,
-        private _overlay: Overlay,
-        private _viewContainerRef: ViewContainerRef,
-    )
-    {
-    }
 
     // -----------------------------------------------------------------------------------------------------
     // @ Lifecycle hooks
@@ -92,7 +85,8 @@ export class MessagesComponent implements OnInit, OnDestroy
     openPanel(): void
     {
         // Return if the messages panel or its origin is not defined
-        if ( !this._messagesPanel || !this._messagesOrigin )
+        const _messagesPanel = this._messagesPanel();
+        if ( !_messagesPanel || !this._messagesOrigin() )
         {
             return;
         }
@@ -104,7 +98,7 @@ export class MessagesComponent implements OnInit, OnDestroy
         }
 
         // Attach the portal to the overlay
-        this._overlayRef.attach(new TemplatePortal(this._messagesPanel, this._viewContainerRef));
+        this._overlayRef.attach(new TemplatePortal(_messagesPanel, this._viewContainerRef));
     }
 
     /**
@@ -171,7 +165,7 @@ export class MessagesComponent implements OnInit, OnDestroy
             backdropClass   : 'fuse-backdrop-on-mobile',
             scrollStrategy  : this._overlay.scrollStrategies.block(),
             positionStrategy: this._overlay.position()
-                .flexibleConnectedTo(this._messagesOrigin.nativeElement)
+                .flexibleConnectedTo(this._messagesOrigin().nativeElement)
                 .withLockedPosition(true)
                 .withPush(true)
                 .withPositions([

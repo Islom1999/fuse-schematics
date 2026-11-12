@@ -5,6 +5,50 @@ Barcha muhim o'zgarishlar ushbu faylda hujjatlashtiriladi.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) ga asoslangan,
 va bu loyiha [Semantic Versioning](https://semver.org/spec/v2.0.0.html) dan foydalanadi.
 
+## [2.0.0] - 2026-11-12
+
+### Qo'shildi
+
+- `fuse-feature --fields "name:string,price:number,active:boolean,note:text?,status:enum(a|b)"` — model interfeyslari, formly maydonlari, grid ustunlari va filtrlar maydonlar ta'rifidan generatsiya qilinadi (parser: `src/utils/fields.ts`)
+- `fuse-feature` route'ni `app.routes.ts` ga, menyu bandini `navigation.ts` ga va tarjima kalitlarini `assets/i18n/*.json` ga avtomatik qo'shadi (idempotent; `--skipRoute`, `--skipNav`, `--skipI18n`)
+- `fuse-feature --project`; `sourceRoot` endi `angular.json` dan o'qiladi
+- `fuse-schematics.json` konfiguratsiya fayli (`fuse-feature.path`, `fuse-feature.prefix`)
+- `ng-add` schematic (`ng add @islom1999/fuse-schematics`)
+- `fuse-starter --skipInstall` (default: `npm install` ishga tushadi) va `--skipGit` (default: `git init` + boshlang'ich commit)
+- Unit testlar (`SchematicTestRunner`) va GitHub Actions CI (unit testlar + loyiha yaratib `ng build` smoke test)
+- Inglizcha README bo'limi
+- `fuse-openapi` (alias `openapi`) schematic: OpenAPI 3 / Swagger 2 hujjatidagi (JSON/YAML, fayl yoki URL) har bir `admin/<nom>` resursi uchun CRUD modul (`--include`, `--exclude`, `--force`)
+- `fuse-feature --openapi <fayl|url> [--schema <Nom>]`: maydonlar OpenAPI sxemasidan olinadi
+- Starter shabloni **zoneless**: `provideZonelessChangeDetection()`, `zone.js` olib tashlandi, zone'ga bog'liq joylar `markForCheck`/signallar bilan tuzatildi; karma testlari zoneless TestBed bilan
+- Starter shabloni signal API'lariga o'tkazildi (`input()`, `output()`, `viewChild()`/`contentChild()`, `computed`, `linkedSignal`) va yangi control flow (`@if`/`@for`); `<app-grid>`, `<app-table-filter>`, `<form-action-buttons>` binding nomlari o'zgarmadi
+
+### O'zgartirildi
+
+- **Private paket**: nomi `fuse-schematics` → `@islom1999/fuse-schematics`, endi faqat GitHub Packages (`npm.pkg.github.com`) orqali tarqatiladi; o'rnatish uchun `.npmrc` va `read:packages` token kerak (README → O'rnatish)
+- Litsenziya MIT'dan proprietary'ga o'zgartirildi; Fuse Admin shabloni uchun uchinchi tomon eslatmasi qo'shildi (har bir foydalanuvchida o'z Fuse litsenziyasi bo'lishi shart)
+- CI: `v*` tegi push qilinganda testlar va smoke build'dan keyin GitHub Packages'ga avtomatik publish
+- Angular 20 ga o'tkazildi: `peerDependencies` endi `@angular/core ^20.0.0`
+- Node.js talabi `>=20.19.0` ga ko'tarildi (Angular 20 talabi)
+- `fuse-starter` shabloni Angular 20.3 bog'liqliklari bilan
+- Shablon: `@ngneat/transloco` → `@jsverse/transloco` 8, `@primeng/themes` → `@primeuix/themes`
+- Shablon: ESLint 9 flat config (`eslint.config.js`, `angular-eslint` 20.7), `.eslintrc.json`/`.eslintignore` olib tashlandi
+- Shablon: ishlatilmaydigan `@angular/platform-browser-dynamic`, `apexcharts`, `ng-apexcharts`, `@types/highlight.js` olib tashlandi; takroriy `provideAnimations()` olib tashlandi
+- Shablon: barcha lint xatolari tuzatildi (`any` o'rniga aniq turlar, a11y), yaratilgan loyiha `ng lint` dan toza o'tadi
+- Formada `templateOptions` o'rniga `props` ishlatiladi
+- Yaratilgan loyihaning `package.json` nomi endi loyiha nomiga teng (avval doim `fuse-angular` edi)
+
+### Tuzatildi
+
+- `fuse-starter`: `app.routes.ts` dagi mavjud bo'lmagan `foydalanuvchi-boshqaruvi` moduliga ishora qiluvchi `test` route olib tashlandi (yaratilgan loyiha build bo'lmas edi)
+- `fuse-starter`: yaratilgan loyihada `.gitignore` bo'lmas edi (npm nashrda `.gitignore` fayllarini olib tashlaydi). Endi shablon `gitignore` nomi bilan saqlanadi va generatsiyada `.gitignore` ga qayta nomlanadi
+- `fuse-feature`: `--skipForm` parametri e'tiborga olinmas edi. Endi form komponenti yaratilmaydi, `routes.ts`, `pages/index.ts` va list komponenti unga ishora qilmaydi (qo'shish tugmasi yashiriladi)
+- `fuse-feature`: `--prefix` parametri e'tiborga olinmas edi — list va form komponentlari selectorlari endi `<prefix>-` bilan boshlanadi
+- `fuse-starter`: `tailwind.config.js` va `src/@fuse/tailwind/*` plaginlari paketga tushmagan edi (root `.gitignore` dagi `*.js` sabab) — Tailwind utility klasslari generatsiya bo'lmas edi
+- `fuse-starter`: `angular.json` da muallifning analytics ID si har bir yaratilgan loyihaga o'tib ketardi — endi `analytics: false`
+- `fuse-starter`: `inter.css` va `splash-screen.css` uchun "Unable to locate stylesheet" build ogohlantirishlari
+- `fuse-starter`: `StorageService` va `find-by-key` dagi mavjud bo'lmagan importlar (to'liq `tsc` tekshiruvini buzardi)
+- `fuse-feature`: yo'lni normallashtirish Node `path` o'rniga `@angular-devkit/core` `normalize` bilan (Windows'dagi teskari slash muammosi)
+
 ## [1.0.2] - 2025-11-10
 
 ### O'zgartirildi

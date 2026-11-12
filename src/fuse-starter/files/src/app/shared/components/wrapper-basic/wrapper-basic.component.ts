@@ -1,6 +1,5 @@
-import { CommonModule } from '@angular/common'
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core'
-import { TranslocoPipe } from '@ngneat/transloco'
+import { Component, ChangeDetectionStrategy, input } from '@angular/core'
+import { TranslocoPipe } from '@jsverse/transloco'
 
 export interface IBreadcrumb {
   label: string
@@ -12,15 +11,15 @@ export interface IBreadcrumb {
 @Component({
   selector: 'app-wrapper-basic',
   standalone: true,
-  imports: [CommonModule, TranslocoPipe],
+  imports: [TranslocoPipe],
   template: `
     <div class="wrapper-container">
       <!-- Header section -->
       <div class="toolbar-left">
-        @if (showBc) {
+        @if (showBc()) {
           <app-breadcrumb></app-breadcrumb>
         } @else {
-          @if (breadcrumbs) {
+          @if (breadcrumbs(); as breadcrumbs) {
             <breadcrumb-basic [bc]="breadcrumbs"></breadcrumb-basic>
           }
         }
@@ -29,7 +28,7 @@ export interface IBreadcrumb {
       <!-- Title and actions -->
       <div class="wrapper-title px-6 py-4 flex justify-between items-center">
         <div class="title-left flex items-center gap-4">
-          @if (title) {
+          @if (title(); as title) {
             <h1 class="text-3xl font-bold">{{ title | transloco }}</h1>
           }
           <ng-content select="[titleLeft]"></ng-content>
@@ -64,7 +63,7 @@ export interface IBreadcrumb {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WrapperBasicComponent {
-  @Input() title?: string
-  @Input() showBc = false
-  @Input() breadcrumbs?: IBreadcrumb[]
+  readonly title = input<string>()
+  readonly showBc = input(false)
+  readonly breadcrumbs = input<IBreadcrumb[]>()
 }

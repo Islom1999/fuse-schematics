@@ -1,0 +1,10 @@
+<div class="app-card-inner">
+  <div class="app-card-face app-card-front">
+    <div class="app-card-header empty:hidden"><ng-content select="[card-header]" /></div>
+    <div class="app-card-body"><ng-content /></div>
+    <div class="app-card-footer empty:hidden"><ng-content select="[card-footer]" /></div>
+  </div>
+  <div class="app-card-face app-card-back" [attr.aria-hidden]="!flipped()">
+    <ng-content select="[card-back]" />
+  </div>
+</div>

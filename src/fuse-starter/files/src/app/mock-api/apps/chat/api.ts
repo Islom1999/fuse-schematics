@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { FuseMockApiService } from '@fuse/lib/mock-api';
 import { chats as chatsData, contacts as contactsData, messages as messagesData, profile as profileData } from 'app/mock-api/apps/chat/data';
 import { assign, cloneDeep, omit } from 'lodash-es';
@@ -6,6 +6,8 @@ import { assign, cloneDeep, omit } from 'lodash-es';
 @Injectable({providedIn: 'root'})
 export class ChatMockApi
 {
+    private _fuseMockApiService = inject(FuseMockApiService);
+
     private _chats: any[] = chatsData;
     private _contacts: any[] = contactsData;
     private _messages: any[] = messagesData;
@@ -14,7 +16,7 @@ export class ChatMockApi
     /**
      * Constructor
      */
-    constructor(private _fuseMockApiService: FuseMockApiService)
+    constructor()
     {
         // Register Mock API handlers
         this.registerHandlers();

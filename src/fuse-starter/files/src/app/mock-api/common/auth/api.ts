@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { FuseMockApiService } from '@fuse/lib/mock-api';
 import { user as userData } from 'app/mock-api/common/user/data';
 import Base64 from 'crypto-js/enc-base64';
@@ -9,13 +9,15 @@ import { cloneDeep } from 'lodash-es';
 @Injectable({providedIn: 'root'})
 export class AuthMockApi
 {
+    private _fuseMockApiService = inject(FuseMockApiService);
+
     private readonly _secret: any;
     private _user: any = userData;
 
     /**
      * Constructor
      */
-    constructor(private _fuseMockApiService: FuseMockApiService)
+    constructor()
     {
         // Set the mock-api
         this._secret = 'YOUR_VERY_CONFIDENTIAL_SECRET_FOR_SIGNING_JWT_TOKENS!!!';

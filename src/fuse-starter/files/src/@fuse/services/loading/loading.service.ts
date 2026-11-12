@@ -1,22 +1,17 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 @Injectable({providedIn: 'root'})
 export class FuseLoadingService
 {
+    private _httpClient = inject(HttpClient);
+
     private _auto$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
     private _mode$: BehaviorSubject<'determinate' | 'indeterminate'> = new BehaviorSubject<'determinate' | 'indeterminate'>('indeterminate');
     private _progress$: BehaviorSubject<number | null> = new BehaviorSubject<number | null>(0);
     private _show$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     private _urlMap: Map<string, boolean> = new Map<string, boolean>();
-
-    /**
-     * Constructor
-     */
-    constructor(private _httpClient: HttpClient)
-    {
-    }
 
     // -----------------------------------------------------------------------------------------------------
     // @ Accessors

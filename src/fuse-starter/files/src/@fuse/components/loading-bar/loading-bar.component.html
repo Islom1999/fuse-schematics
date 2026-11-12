@@ -1,5 +1,3 @@
-<ng-container *ngIf="show">
-    <p-progressBar
-        [mode]="mode"
-        [value]="progress"></p-progressBar>
-</ng-container>
+@if (show()) {
+    <p-progressBar [mode]="mode()" [value]="progress()"></p-progressBar>
+}

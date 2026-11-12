@@ -13,8 +13,28 @@ interface PageEvent {
   sortOrder?: number
 }
 
+/** Normalized (PrimeNG-style) filter entry stored in `filterSort.filters`. */
+export interface GridFilterMeta {
+  value: unknown
+  matchMode: unknown
+}
+
+/**
+ * Reads the `value` of a stored filter entry (same semantics as `filter?.value`).
+ */
+export function getFilterValue(filter: unknown): unknown {
+  if (filter === null || filter === undefined) return undefined
+  return (filter as Record<string, unknown>)['value']
+}
+
+function isFilterMeta(filter: unknown): filter is GridFilterMeta {
+  if (filter === null || filter === undefined) return false
+  const candidate = filter as Record<string, unknown>
+  return candidate['value'] !== undefined && !!candidate['matchMode']
+}
+
 @Injectable()
-export abstract class GridService<T = any> {
+export abstract class GridService<T = unknown> {
   public data = signal<T[]>([])
   public totalRecords = signal(0)
   public isLoading = signal(false)
@@ -35,8 +55,8 @@ export abstract class GridService<T = any> {
   protected $router = inject(Router)
   protected _fuseProgressBarService = inject(FuseLoadingService)
 
-  routes: any[] = []
-  params: { [key: string]: any } = {}
+  routes: unknown[] = []
+  params: Record<string, unknown> = {}
 
   constructor() {
     this.makeFiltersFromQueryParams()
@@ -73,10 +93,12 @@ export abstract class GridService<T = any> {
     this.filterSort.filters = this.sanitizeFilters(rest)
   }
 
-  private sanitizeFilters(filters: Record<string, any> | undefined) {
+  private sanitizeFilters(
+    filters: Record<string, unknown> | null | undefined,
+  ): Record<string, GridFilterMeta> {
     if (!filters) return {}
 
-    return Object.entries(filters).reduce<Record<string, any>>((acc, [key, value]) => {
+    return Object.entries(filters).reduce<Record<string, GridFilterMeta>>((acc, [key, value]) => {
       if (value === undefined || value === null || value === '') {
         return acc
       }
@@ -88,7 +110,7 @@ export abstract class GridService<T = any> {
       }
 
       // Agar allaqachon PrimeNG formatida bo‘lsa → o‘zgartirmay yuboriladi ✅
-      if (value?.value !== undefined && value?.matchMode) {
+      if (isFilterMeta(value)) {
         acc[key] = value
         return acc
       }
@@ -99,7 +121,7 @@ export abstract class GridService<T = any> {
     }, {})
   }
 
-  private areFiltersEqual(a: Record<string, any>, b: Record<string, any>) {
+  private areFiltersEqual(a: Record<string, unknown>, b: Record<string, unknown>) {
     const aEntries = Object.entries(a)
     const bEntries = Object.entries(b)
     if (aEntries.length !== bEntries.length) {
@@ -190,7 +212,7 @@ export abstract class GridService<T = any> {
     this.navigateWithFilters()
   }
 
-  applyFilters(filters: Record<string, any>) {
+  applyFilters(filters: Record<string, unknown>) {
     const sanitized = this.sanitizeFilters(filters)
 
     // if (this.areFiltersEqual(this.filterSort.filters, sanitized)) {
@@ -214,14 +236,15 @@ export abstract class GridService<T = any> {
   }
 
   public navigateWithFilters() {
-    const queryParams: Record<string, any> = {
+    const queryParams: Record<string, unknown> = {
       page: this.pageEvent.pageIndex + 1,
       limit: this.pageEvent.pageSize,
     }
 
     Object.entries(this.filterSort.filters).forEach(([key, filterObj]) => {
-      if (filterObj?.value !== undefined && filterObj?.value !== null) {
-        queryParams[key] = filterObj.value
+      const value = getFilterValue(filterObj)
+      if (value !== undefined && value !== null) {
+        queryParams[key] = value
       }
     })
 

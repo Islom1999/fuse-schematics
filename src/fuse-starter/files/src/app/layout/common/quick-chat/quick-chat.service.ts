@@ -1,20 +1,15 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Chat } from 'app/layout/common/quick-chat/quick-chat.types';
 import { BehaviorSubject, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 
 @Injectable({providedIn: 'root'})
 export class QuickChatService
 {
+    private _httpClient = inject(HttpClient);
+
     private _chat: BehaviorSubject<Chat> = new BehaviorSubject(null);
     private _chats: BehaviorSubject<Chat[]> = new BehaviorSubject<Chat[]>(null);
-
-    /**
-     * Constructor
-     */
-    constructor(private _httpClient: HttpClient)
-    {
-    }
 
     // -----------------------------------------------------------------------------------------------------
     // @ Accessors

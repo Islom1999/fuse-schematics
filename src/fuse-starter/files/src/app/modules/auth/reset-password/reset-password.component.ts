@@ -1,5 +1,5 @@
-import { NgIf } from '@angular/common';
-import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+
+import { ChangeDetectorRef, Component, OnInit, ViewEncapsulation, viewChild, inject } from '@angular/core';
 import {
     FormsModule,
     NgForm,
@@ -25,19 +25,22 @@ import { FuseIconComponent } from '@fuse/components/icon';
     encapsulation: ViewEncapsulation.None,
     animations: fuseAnimations,
     imports: [
-        NgIf,
-        FuseAlertComponent,
-        FormsModule,
-        ReactiveFormsModule,
-        ButtonModule,
-        InputTextModule,
-        ProgressSpinnerModule,
-        RouterLink,
-        FuseIconComponent,
-    ],
+    FuseAlertComponent,
+    FormsModule,
+    ReactiveFormsModule,
+    ButtonModule,
+    InputTextModule,
+    ProgressSpinnerModule,
+    RouterLink,
+    FuseIconComponent
+],
 })
 export class AuthResetPasswordComponent implements OnInit {
-    @ViewChild('resetPasswordNgForm') resetPasswordNgForm: NgForm;
+    private _authService = inject(AuthService);
+    private _formBuilder = inject(UntypedFormBuilder);
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+
+    readonly resetPasswordNgForm = viewChild<NgForm>('resetPasswordNgForm');
 
     alert: { type: FuseAlertType; message: string } = {
         type: 'success',
@@ -47,14 +50,6 @@ export class AuthResetPasswordComponent implements OnInit {
     showAlert: boolean = false;
     hidePassword: boolean = true;
     hidePasswordConfirm: boolean = true;
-
-    /**
-     * Constructor
-     */
-    constructor(
-        private _authService: AuthService,
-        private _formBuilder: UntypedFormBuilder
-    ) {}
 
     // -----------------------------------------------------------------------------------------------------
     // @ Lifecycle hooks
@@ -108,7 +103,7 @@ export class AuthResetPasswordComponent implements OnInit {
                     this.resetPasswordForm.enable();
 
                     // Reset the form
-                    this.resetPasswordNgForm.resetForm();
+                    this.resetPasswordNgForm().resetForm();
                     this.resetPasswordForm.reset({
                         password: '',
                         passwordConfirm: '',
@@ -120,6 +115,9 @@ export class AuthResetPasswordComponent implements OnInit {
 
                     // Show the alert
                     this.showAlert = true;
+
+                    // Mark for check (zoneless change detection)
+                    this._changeDetectorRef.markForCheck();
                 })
             )
             .subscribe(

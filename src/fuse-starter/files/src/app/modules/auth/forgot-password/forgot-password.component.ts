@@ -1,5 +1,5 @@
-import { NgIf } from '@angular/common';
-import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+
+import { ChangeDetectorRef, Component, OnInit, ViewEncapsulation, viewChild, inject } from '@angular/core';
 import {
     FormsModule,
     NgForm,
@@ -23,18 +23,21 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
     encapsulation: ViewEncapsulation.None,
     animations: fuseAnimations,
     imports: [
-        NgIf,
-        FuseAlertComponent,
-        FormsModule,
-        ReactiveFormsModule,
-        ButtonModule,
-        InputTextModule,
-        ProgressSpinnerModule,
-        RouterLink,
-    ],
+    FuseAlertComponent,
+    FormsModule,
+    ReactiveFormsModule,
+    ButtonModule,
+    InputTextModule,
+    ProgressSpinnerModule,
+    RouterLink
+],
 })
 export class AuthForgotPasswordComponent implements OnInit {
-    @ViewChild('forgotPasswordNgForm') forgotPasswordNgForm: NgForm;
+    private _authService = inject(AuthService);
+    private _formBuilder = inject(UntypedFormBuilder);
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+
+    readonly forgotPasswordNgForm = viewChild<NgForm>('forgotPasswordNgForm');
 
     alert: { type: FuseAlertType; message: string } = {
         type: 'success',
@@ -42,14 +45,6 @@ export class AuthForgotPasswordComponent implements OnInit {
     };
     forgotPasswordForm: UntypedFormGroup;
     showAlert: boolean = false;
-
-    /**
-     * Constructor
-     */
-    constructor(
-        private _authService: AuthService,
-        private _formBuilder: UntypedFormBuilder
-    ) {}
 
     // -----------------------------------------------------------------------------------------------------
     // @ Lifecycle hooks
@@ -94,7 +89,7 @@ export class AuthForgotPasswordComponent implements OnInit {
                     this.forgotPasswordForm.enable();
 
                     // Reset the form
-                    this.forgotPasswordNgForm.resetForm({
+                    this.forgotPasswordNgForm().resetForm({
                         email: '',
                     });
                     this.forgotPasswordForm.reset({
@@ -103,6 +98,9 @@ export class AuthForgotPasswordComponent implements OnInit {
 
                     // Show the alert
                     this.showAlert = true;
+
+                    // Mark for check (zoneless change detection)
+                    this._changeDetectorRef.markForCheck();
                 })
             )
             .subscribe(

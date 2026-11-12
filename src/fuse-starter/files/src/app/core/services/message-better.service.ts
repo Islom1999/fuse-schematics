@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core'
 import { MessageService, ToastMessageOptions } from 'primeng/api'
 import { StorageService } from './storage.service'
-import { TranslocoService } from '@ngneat/transloco'
+import { TranslocoService } from '@jsverse/transloco'
 
 @Injectable()
 export class MessageBetterService extends MessageService {

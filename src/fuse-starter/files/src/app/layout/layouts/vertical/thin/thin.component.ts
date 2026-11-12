@@ -1,5 +1,5 @@
-import { NgIf } from '@angular/common';
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { FuseFullscreenComponent } from '@fuse/components/fullscreen';
 import { FuseLoadingBarComponent } from '@fuse/components/loading-bar';
@@ -22,26 +22,20 @@ import { FuseIconComponent } from '@fuse/components/icon';
     selector: 'thin-layout',
     templateUrl: './thin.component.html',
     encapsulation: ViewEncapsulation.None,
-    imports: [FuseLoadingBarComponent, FuseVerticalNavigationComponent, ButtonModule, LanguagesComponent, FuseFullscreenComponent, SearchComponent, ShortcutsComponent, MessagesComponent, NotificationsComponent, UserComponent, NgIf, RouterOutlet, QuickChatComponent, FuseIconComponent]
+    imports: [FuseLoadingBarComponent, FuseVerticalNavigationComponent, ButtonModule, LanguagesComponent, FuseFullscreenComponent, SearchComponent, ShortcutsComponent, MessagesComponent, NotificationsComponent, UserComponent, RouterOutlet, QuickChatComponent, FuseIconComponent]
 })
 export class ThinLayoutComponent implements OnInit, OnDestroy
 {
+    private _activatedRoute = inject(ActivatedRoute);
+    private _router = inject(Router);
+    private _navigationService = inject(NavigationService);
+    private _fuseMediaWatcherService = inject(FuseMediaWatcherService);
+    private _fuseNavigationService = inject(FuseNavigationService);
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+
     isScreenSmall: boolean;
     navigation: Navigation;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
-
-    /**
-     * Constructor
-     */
-    constructor(
-        private _activatedRoute: ActivatedRoute,
-        private _router: Router,
-        private _navigationService: NavigationService,
-        private _fuseMediaWatcherService: FuseMediaWatcherService,
-        private _fuseNavigationService: FuseNavigationService,
-    )
-    {
-    }
 
     // -----------------------------------------------------------------------------------------------------
     // @ Accessors
@@ -70,6 +64,9 @@ export class ThinLayoutComponent implements OnInit, OnDestroy
             .subscribe((navigation: Navigation) =>
             {
                 this.navigation = navigation;
+
+                // Mark for check (zoneless change detection)
+                this._changeDetectorRef.markForCheck();
             });
 
         // Subscribe to media changes
@@ -79,6 +76,9 @@ export class ThinLayoutComponent implements OnInit, OnDestroy
             {
                 // Check if the screen is small
                 this.isScreenSmall = !matchingAliases.includes('md');
+
+                // Mark for check (zoneless change detection)
+                this._changeDetectorRef.markForCheck();
             });
     }
 

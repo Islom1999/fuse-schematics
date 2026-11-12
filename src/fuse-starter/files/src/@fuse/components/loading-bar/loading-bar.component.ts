@@ -1,32 +1,28 @@
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { NgIf } from '@angular/common';
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnChanges, SimpleChanges, ViewEncapsulation, inject, input } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FuseLoadingService } from '@fuse/services/loading';
 import { ProgressBarModule } from 'primeng/progressbar';
-import { Subject, takeUntil } from 'rxjs';
 
 @Component({
-    selector: 'fuse-loading-bar',
-    templateUrl: './loading-bar.component.html',
-    styleUrls: ['./loading-bar.component.scss'],
-    encapsulation: ViewEncapsulation.None,
-    exportAs: 'fuseLoadingBar',
-    imports: [NgIf, ProgressBarModule]
+    selector       : 'fuse-loading-bar',
+    templateUrl    : './loading-bar.component.html',
+    styleUrls      : ['./loading-bar.component.scss'],
+    encapsulation  : ViewEncapsulation.None,
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    exportAs       : 'fuseLoadingBar',
+    imports        : [ProgressBarModule],
 })
-export class FuseLoadingBarComponent implements OnChanges, OnInit, OnDestroy
+export class FuseLoadingBarComponent implements OnChanges
 {
-    @Input() autoMode: boolean = true;
-    mode: 'determinate' | 'indeterminate';
-    progress: number = 0;
-    show: boolean = false;
-    private _unsubscribeAll: Subject<any> = new Subject<any>();
+    private _fuseLoadingService = inject(FuseLoadingService);
 
-    /**
-     * Constructor
-     */
-    constructor(private _fuseLoadingService: FuseLoadingService)
-    {
-    }
+    readonly autoMode = input<boolean>(true);
+
+    // Service state exposed as signals (zoneless-friendly, no manual subscriptions)
+    readonly mode = toSignal(this._fuseLoadingService.mode$, {initialValue: 'indeterminate' as const});
+    readonly progress = toSignal(this._fuseLoadingService.progress$, {initialValue: 0});
+    readonly show = toSignal(this._fuseLoadingService.show$, {initialValue: false});
 
     // -----------------------------------------------------------------------------------------------------
     // @ Lifecycle hooks
@@ -45,44 +41,5 @@ export class FuseLoadingBarComponent implements OnChanges, OnInit, OnDestroy
             // Set the auto mode in the service
             this._fuseLoadingService.setAutoMode(coerceBooleanProperty(changes.autoMode.currentValue));
         }
-    }
-
-    /**
-     * On init
-     */
-    ngOnInit(): void
-    {
-        // Subscribe to the service
-        this._fuseLoadingService.mode$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((value) =>
-            {
-                this.mode = value;
-            });
-
-        this._fuseLoadingService.progress$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((value) =>
-            {
-                this.progress = value;
-            });
-
-        this._fuseLoadingService.show$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((value) =>
-            {
-                this.show = value;
-            });
-
-    }
-
-    /**
-     * On destroy
-     */
-    ngOnDestroy(): void
-    {
-        // Unsubscribe from all subscriptions
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
     }
 }

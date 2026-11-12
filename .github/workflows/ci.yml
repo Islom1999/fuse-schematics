@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  smoke:
+    name: Generate and build
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      COLLECTION: ${{ github.workspace }}/src/collection.json
+      NG_CLI_ANALYTICS: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Build schematics
+        run: |
+          npm ci
+          npm run build
+
+      # A local collection path makes schematics-cli default to --dry-run, so turn it off explicitly.
+      - name: Generate starter project
+        run: |
+          mkdir -p "$RUNNER_TEMP/smoke"
+          cd "$RUNNER_TEMP/smoke"
+          npx -y @angular-devkit/schematics-cli@20 "$COLLECTION:fuse-starter" demo --dry-run=false
+
+      - name: Install starter dependencies
+        working-directory: ${{ runner.temp }}/smoke/demo
+        run: npm install --no-audit --no-fund
+
+      - name: Build starter project
+        working-directory: ${{ runner.temp }}/smoke/demo
+        run: npx ng build
+
+      - name: Generate CRUD feature
+        working-directory: ${{ runner.temp }}/smoke/demo
+        run: npx -y @angular-devkit/schematics-cli@20 "$COLLECTION:crud" mahsulot --dry-run=false
+
+      - name: Check route registration
+        working-directory: ${{ runner.temp }}/smoke/demo
+        run: grep -n "mahsulot" src/app/app.routes.ts src/app/core/navigation/navigation.ts
+
+      - name: Build project with CRUD feature
+        working-directory: ${{ runner.temp }}/smoke/demo
+        run: npx ng build
+
+  publish:
+    name: Publish to GitHub Packages
+    needs: [test, smoke]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com
+          scope: '@islom1999'
+      - run: npm ci
+      - name: Check tag matches package.json version
+        run: test "v$(node -p 'require("./package.json").version')" = "$GITHUB_REF_NAME"
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

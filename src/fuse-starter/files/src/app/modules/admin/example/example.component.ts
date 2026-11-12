@@ -4,7 +4,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 
 @Component({
-    selector: 'example',
+    selector: 'app-example',
     standalone: true,
     templateUrl: './example.component.html',
     encapsulation: ViewEncapsulation.None,

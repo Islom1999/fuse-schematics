@@ -18,8 +18,8 @@ export abstract class BaseTableComponent<T> implements OnInit {
   abstract gridService: GridService<T>
   abstract columns: IColumn[]
   abstract filterConfig: ITableFilterConfig
-  abstract formComponent: Type<any>
-  private filters: unknown = null
+  abstract formComponent: Type<unknown>
+  private filters: Record<string, unknown> = {}
 
   ngOnInit(): void {
     this.initializeTable()
@@ -29,7 +29,7 @@ export abstract class BaseTableComponent<T> implements OnInit {
     // Override this method for custom initialization
   }
 
-  onFilterChange(filters: unknown): void {
+  onFilterChange(filters: Record<string, unknown>): void {
     this.filters = filters
     this.gridService.applyFilters(filters)
   }

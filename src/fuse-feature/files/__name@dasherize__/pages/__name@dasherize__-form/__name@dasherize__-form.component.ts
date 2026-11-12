@@ -8,7 +8,7 @@ import { Observable } from 'rxjs'
 import { I<%= classify(name) %>, <%= classify(name) %>Service } from '../../common'
 
 @Component({
-  selector: 'app-<%= dasherize(name) %>-form',
+  selector: '<%= prefix %>-<%= dasherize(name) %>-form',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormlyModule, FormActionButtonsComponent],
   templateUrl: './<%= dasherize(name) %>-form.component.html',
@@ -19,16 +19,7 @@ export class <%= classify(name) %>FormComponent extends BaseFormComponent<I<%= c
   private crudService = inject(<%= classify(name) %>Service)
 
   protected initFormFields(): void {
-    this.fields = [
-      {
-        key: 'name',
-        type: 'input',
-        templateOptions: {
-          label: 'admin.<%= camelize(name) %>.fields.name',
-          required: true,
-        },
-      },
-    ]
+    this.fields = <%= formFieldsCode %>
   }
 
   protected getById(id: string, isArchiveView: boolean): Observable<I<%= classify(name) %>> {
@@ -51,7 +42,7 @@ export class <%= classify(name) %>FormComponent extends BaseFormComponent<I<%= c
   }
 
   protected mapToModel(data: I<%= classify(name) %>): Partial<I<%= classify(name) %>> {
-    return {}
+    return <%= mapToModelCode %>
   }
 
   protected getDeleteTitle(): string {

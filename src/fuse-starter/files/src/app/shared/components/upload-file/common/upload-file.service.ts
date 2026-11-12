@@ -1,8 +1,19 @@
 import { Injectable, inject } from '@angular/core'
-import { HttpClient, HttpEvent, HttpRequest } from '@angular/common/http'
+import { HttpClient } from '@angular/common/http'
 import { Observable } from 'rxjs'
 import { IUploadFile } from './upload-file.model'
 import { DITokens } from 'app/core/utils/di-tokens'
+
+/** Extra multipart fields; non-Blob values are sent as strings (same as FormData coercion). */
+export type UploadExtraData = Record<string, string | number | boolean | Blob>
+
+function appendExtraData(formData: FormData, extraData?: UploadExtraData): void {
+  if (!extraData) return
+  Object.keys(extraData).forEach((key) => {
+    const value = extraData[key]
+    formData.append(key, value instanceof Blob ? value : String(value))
+  })
+}
 
 @Injectable({
   providedIn: 'root',
@@ -13,6 +24,7 @@ export class UploadFileService {
 
   public baseFileUrl = `${this.apiBaseUrl}/files`
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- placeholder keeps its public signature until implemented
   deleteFile(id: string) {
     throw new Error('Method not implemented.')
   }
@@ -26,16 +38,12 @@ export class UploadFileService {
   uploadFile(
     uploadUrl: string,
     file: File,
-    extraData?: { [key: string]: any },
+    extraData?: UploadExtraData,
   ): Observable<IUploadFile> {
     const formData = new FormData()
     formData.append('file', file, file?.name)
 
-    if (extraData) {
-      Object.keys(extraData).forEach((key) => {
-        formData.append(key, extraData[key])
-      })
-    }
+    appendExtraData(formData, extraData)
 
     // Oddiy POST
     return this.http.post<IUploadFile>(uploadUrl, formData)
@@ -50,7 +58,7 @@ export class UploadFileService {
   uploadFiles(
     uploadUrl: string,
     files: File[],
-    extraData?: { [key: string]: any },
+    extraData?: UploadExtraData,
   ): Observable<IUploadFile[]> {
     const formData = new FormData()
 
@@ -58,11 +66,7 @@ export class UploadFileService {
       formData.append('files', file, file?.name)
     })
 
-    if (extraData) {
-      Object.keys(extraData).forEach((key) => {
-        formData.append(key, extraData[key])
-      })
-    }
+    appendExtraData(formData, extraData)
 
     // Oddiy POST → faqat backend javobini qaytaradi
     return this.http.post<IUploadFile[]>(uploadUrl, formData)

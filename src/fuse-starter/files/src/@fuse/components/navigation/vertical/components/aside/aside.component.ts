@@ -1,6 +1,6 @@
 import { BooleanInput } from '@angular/cdk/coercion';
-import { NgClass, NgFor, NgIf } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, input, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { FuseIconComponent } from '@fuse/components/icon';
 import { FuseNavigationService } from '@fuse/components/navigation/navigation.service';
@@ -18,35 +18,28 @@ import { TooltipModule } from 'primeng/tooltip';
     selector: 'fuse-vertical-navigation-aside-item',
     templateUrl: './aside.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [NgClass, TooltipModule, NgIf, FuseIconComponent, NgFor, FuseVerticalNavigationBasicItemComponent, FuseVerticalNavigationCollapsableItemComponent, FuseVerticalNavigationDividerItemComponent, FuseVerticalNavigationGroupItemComponent, FuseVerticalNavigationSpacerItemComponent]
+    imports: [NgClass, TooltipModule, FuseIconComponent, FuseVerticalNavigationBasicItemComponent, FuseVerticalNavigationCollapsableItemComponent, FuseVerticalNavigationDividerItemComponent, FuseVerticalNavigationGroupItemComponent, FuseVerticalNavigationSpacerItemComponent]
 })
 export class FuseVerticalNavigationAsideItemComponent implements OnChanges, OnInit, OnDestroy
 {
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+    private _router = inject(Router);
+    private _fuseNavigationService = inject(FuseNavigationService);
+
     /* eslint-disable @typescript-eslint/naming-convention */
     static ngAcceptInputType_autoCollapse: BooleanInput;
     static ngAcceptInputType_skipChildren: BooleanInput;
     /* eslint-enable @typescript-eslint/naming-convention */
 
-    @Input() activeItemId: string;
-    @Input() autoCollapse: boolean;
+    readonly activeItemId = input<string>(undefined);
+    readonly autoCollapse = input<boolean>(undefined);
     @Input() item: FuseNavigationItem;
-    @Input() name: string;
-    @Input() skipChildren: boolean;
+    readonly name = input<string>(undefined);
+    readonly skipChildren = input<boolean>(undefined);
 
     active: boolean = false;
     private _fuseVerticalNavigationComponent: FuseVerticalNavigationComponent;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
-
-    /**
-     * Constructor
-     */
-    constructor(
-        private _changeDetectorRef: ChangeDetectorRef,
-        private _router: Router,
-        private _fuseNavigationService: FuseNavigationService,
-    )
-    {
-    }
 
     // -----------------------------------------------------------------------------------------------------
     // @ Lifecycle hooks
@@ -88,7 +81,7 @@ export class FuseVerticalNavigationAsideItemComponent implements OnChanges, OnIn
             });
 
         // Get the parent navigation component
-        this._fuseVerticalNavigationComponent = this._fuseNavigationService.getComponent(this.name);
+        this._fuseVerticalNavigationComponent = this._fuseNavigationService.getComponent(this.name());
 
         // Subscribe to onRefreshed on the navigation component
         this._fuseVerticalNavigationComponent.onRefreshed.pipe(
@@ -180,7 +173,7 @@ export class FuseVerticalNavigationAsideItemComponent implements OnChanges, OnIn
     private _markIfActive(currentUrl: string): void
     {
         // Check if the activeItemId is equals to this item id
-        this.active = this.activeItemId === this.item.id;
+        this.active = this.activeItemId() === this.item.id;
 
         // If the aside has a children that is active,
         // always mark it as active

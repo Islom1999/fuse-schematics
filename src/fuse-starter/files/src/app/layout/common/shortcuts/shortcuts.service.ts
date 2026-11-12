@@ -1,19 +1,14 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Shortcut } from 'app/layout/common/shortcuts/shortcuts.types';
 import { map, Observable, ReplaySubject, switchMap, take, tap } from 'rxjs';
 
 @Injectable({providedIn: 'root'})
 export class ShortcutsService
 {
-    private _shortcuts: ReplaySubject<Shortcut[]> = new ReplaySubject<Shortcut[]>(1);
+    private _httpClient = inject(HttpClient);
 
-    /**
-     * Constructor
-     */
-    constructor(private _httpClient: HttpClient)
-    {
-    }
+    private _shortcuts: ReplaySubject<Shortcut[]> = new ReplaySubject<Shortcut[]>(1);
 
     // -----------------------------------------------------------------------------------------------------
     // @ Accessors

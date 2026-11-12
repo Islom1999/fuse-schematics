@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Inject, Input, OnInit, TemplateRef, ViewEncapsulation, DOCUMENT } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, TemplateRef, ViewEncapsulation, DOCUMENT, input, inject } from '@angular/core';
 import { FuseIconComponent } from '@fuse/components/icon';
 import { PrimeIcons } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -16,8 +16,10 @@ import { FSDocument, FSDocumentElement } from '@fuse/components/fullscreen/fulls
 })
 export class FuseFullscreenComponent implements OnInit
 {
-    @Input() iconTpl: TemplateRef<any>;
-    @Input() tooltip: string;
+    private _document = inject<Document>(DOCUMENT);
+
+    readonly iconTpl = input<TemplateRef<any>>(undefined);
+    readonly tooltip = input<string>(undefined);
     protected readonly defaultIcon: string = PrimeIcons.EXPAND;
     private _fsDoc: FSDocument;
     private _fsDocEl: FSDocumentElement;
@@ -26,8 +28,10 @@ export class FuseFullscreenComponent implements OnInit
     /**
      * Constructor
      */
-    constructor(@Inject(DOCUMENT) private _document: Document)
+    constructor()
     {
+        const _document = this._document;
+
         this._fsDoc = _document as FSDocument;
     }
 

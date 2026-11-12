@@ -1,20 +1,17 @@
-﻿import {
+import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
-  ContentChild,
-  DestroyRef,
-  EventEmitter,
-  Input,
   OnChanges,
   OnDestroy,
-  Output,
   SimpleChanges,
   TemplateRef,
-  ViewChild,
-  effect,
+  computed,
+  contentChild,
   inject,
+  input,
+  output,
+  viewChild,
 } from '@angular/core'
 import { CommonModule, NgTemplateOutlet } from '@angular/common'
 import {
@@ -27,19 +24,25 @@ import {
 import { debounceTime } from 'rxjs/operators'
 import { Subscription } from 'rxjs'
 
-import { GridService } from './common/grid.service'
+import { GridService, getFilterValue } from './common/grid.service'
 import { IColumn } from './common/column.model'
 import { WrapperBasicComponent } from '../wrapper-basic/wrapper-basic.component'
-import { TranslocoPipe } from '@ngneat/transloco'
+import { TranslocoPipe } from '@jsverse/transloco'
 
 // PrimeNG imports
-import { TableModule, Table } from 'primeng/table'
+import { TableModule, Table, TableLazyLoadEvent } from 'primeng/table'
 import { ButtonModule } from 'primeng/button'
 import { InputTextModule } from 'primeng/inputtext'
 import { SelectModule } from 'primeng/select'
 import { PaginatorModule } from 'primeng/paginator'
 import { SkeletonModule } from 'primeng/skeleton'
-import { SelectButtonModule } from 'primeng/selectbutton'
+import { SelectButtonChangeEvent, SelectButtonModule } from 'primeng/selectbutton'
+
+/** Payload emitted by p-table (onSort) in single sort mode. */
+interface TableSortEvent {
+  field?: string
+  order?: number
+}
 
 @Component({
   selector: 'app-grid',
@@ -100,84 +103,77 @@ import { SelectButtonModule } from 'primeng/selectbutton'
   `,
 })
 export class GridComponent<T> implements AfterViewInit, OnChanges, OnDestroy {
-  @Input() titleTemplate?: TemplateRef<any>
-  @Input() templateFilters?: TemplateRef<any>
-  @Input() templateCostumFields?: TemplateRef<any>
+  readonly titleTemplate = input<TemplateRef<unknown>>()
+  readonly templateFilters = input<TemplateRef<unknown>>()
+  readonly templateCostumFields = input<TemplateRef<unknown>>()
 
-  @Input() title: string | TemplateRef<any>
-  @Input() columns: IColumn[] = []
-  @Input() selectionMode: 'single' | 'multiple' = 'single'
-  @Input() addButtonText = "Qo'shish"
-  @Input() addButtonIcon?: string
-  @Input() showAddButton = true
-  @Input() showExportButton = false
-  @Input() showExportButtons = false
-  @Input() showArchiveSplitButton = false
-  @Input({ required: true }) $data!: GridService<T>
+  readonly title = input<string | TemplateRef<unknown>>()
+  readonly columns = input<IColumn[]>([])
+  readonly selectionMode = input<'single' | 'multiple'>('single')
+  readonly addButtonText = input("Qo'shish")
+  readonly addButtonIcon = input<string>()
+  readonly showAddButton = input(true)
+  readonly showExportButton = input(false)
+  readonly showExportButtons = input(false)
+  readonly showArchiveSplitButton = input(false)
+  readonly $data = input.required<GridService<T>>()
 
-  @Output() onClickAdd = new EventEmitter<void>()
-  @Output() onRowSelect = new EventEmitter<T>()
+  // eslint-disable-next-line @angular-eslint/no-output-on-prefix -- public output (onClickAdd) bound by fuse-feature generated list templates
+  readonly onClickAdd = output<void>()
+  // eslint-disable-next-line @angular-eslint/no-output-on-prefix -- public output (onRowSelect) bound by fuse-feature generated list templates
+  readonly onRowSelect = output<T>()
 
-  @ViewChild('dt') table?: Table
-  @ContentChild('costumTableFilter', { static: false })
-  customTableFilterTemplate?: TemplateRef<unknown>
+  readonly table = viewChild<Table>('dt')
+  /** Optional filter template projected by the parent: `<ng-template #costumTableFilter>` */
+  readonly customTableFilterTemplate = contentChild<TemplateRef<unknown>>('costumTableFilter')
 
-  dataSource: T[] = []
+  /** Rows of the current page (derived from the grid service signals). */
+  readonly dataSource = computed(() => this.$data().data())
+  readonly isLoading = computed(() => this.$data().isLoading())
+  readonly filterableColumns = computed(() =>
+    (this.columns() || []).filter((column) => column.is_filter === true && !!column.field),
+  )
+
   sortField?: string
   sortOrder: number = 1
-  isLoading = false
 
   private readonly fb = inject(FormBuilder)
-  private readonly destroyRef = inject(DestroyRef)
-  private readonly cdr = inject(ChangeDetectorRef)
 
   filterForm: FormGroup = this.fb.group({})
-  filterableColumns: IColumn[] = []
   private filterChangesSub?: Subscription
-
-  constructor() {
-    effect(() => {
-      if (this.$data) {
-        this.dataSource = this.$data.data()
-        this.isLoading = this.$data.isLoading()
-        this.cdr.markForCheck()
-      }
-    })
-  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['columns']) {
-      this.filterableColumns = (this.columns || []).filter(
-        (column) => column.is_filter === true && !!column.field,
-      )
       this.buildFilterForm()
     }
   }
 
   ngAfterViewInit(): void {
-    this.$data.onLoadPage({
-      pageIndex: this.$data.pageEvent.pageIndex,
-      pageSize: this.$data.pageEvent.pageSize,
-      length: this.$data.totalRecords(),
+    const data = this.$data()
+    data.onLoadPage({
+      pageIndex: data.pageEvent.pageIndex,
+      pageSize: data.pageEvent.pageSize,
+      length: data.totalRecords(),
     })
   }
 
-  onPageChange(event: any): void {
+  onPageChange(event: TableLazyLoadEvent): void {
     // PrimeNG onLazyLoad event.first ni beradi (offset), event.page emas
     // first = pageIndex * pageSize
     const pageIndex = Math.floor(event.first / event.rows)
 
-    this.$data.onLoadPage({
+    this.$data().onLoadPage({
       pageIndex: pageIndex,
       pageSize: event.rows,
-      length: this.$data.totalRecords(),
-      sortField: event.sortField,
+      length: this.$data().totalRecords(),
+      // Grid uses single sort mode, so sortField is never a string[] here
+      sortField: event.sortField as string | undefined,
       sortOrder: event.sortOrder,
     })
   }
 
-  onSort(event: any): void {
-    this.$data.onLoadPage({
+  onSort(event: TableSortEvent): void {
+    this.$data().onLoadPage({
       sortField: event.field,
       sortOrder: event.order,
     })
@@ -188,16 +184,17 @@ export class GridComponent<T> implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   get displayedColumns(): string[] {
-    return this.columns.map((column) => column.field)
+    return this.columns().map((column) => column.field)
   }
 
   get hasActiveFilters(): boolean {
-    if (!this.filterableColumns.length) {
+    const filterableColumns = this.filterableColumns()
+    if (!filterableColumns.length) {
       return false
     }
 
-    const activeFilters = this.$data.filterSort.filters || {}
-    return this.filterableColumns.some((column) => {
+    const activeFilters = this.$data().filterSort.filters || {}
+    return filterableColumns.some((column) => {
       const value = activeFilters[column.field]
       if (Array.isArray(value)) {
         return value.length > 0
@@ -214,7 +211,7 @@ export class GridComponent<T> implements AfterViewInit, OnChanges, OnDestroy {
     // Export logic if needed
   }
 
-  isTemplateRef(value: any): value is TemplateRef<any> {
+  isTemplateRef(value: unknown): value is TemplateRef<unknown> {
     return value instanceof TemplateRef
   }
 
@@ -234,32 +231,34 @@ export class GridComponent<T> implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   resetFilters(): void {
-    if (!this.filterableColumns.length) {
+    const filterableColumns = this.filterableColumns()
+    if (!filterableColumns.length) {
       return
     }
 
-    const resetPayload: Record<string, any> = {}
-    this.filterableColumns.forEach((column) => {
+    const resetPayload: Record<string, string> = {}
+    filterableColumns.forEach((column) => {
       resetPayload[column.field] = ''
     })
 
     this.filterForm.patchValue(resetPayload, { emitEvent: false })
-    this.$data.clearFilters()
+    this.$data().clearFilters()
   }
 
   private buildFilterForm(): void {
     this.filterChangesSub?.unsubscribe()
 
-    if (!this.filterableColumns.length) {
+    const filterableColumns = this.filterableColumns()
+    if (!filterableColumns.length) {
       this.filterForm = this.fb.group({})
       return
     }
 
-    const controls: Record<string, FormControl<any>> = {}
-    const activeFilters = this.$data.filterSort.filters || {}
+    const controls: Record<string, FormControl<unknown>> = {}
+    const activeFilters = this.$data().filterSort.filters || {}
 
-    this.filterableColumns.forEach((column) => {
-      const initialValue = activeFilters[column.field]?.['value'] ?? ''
+    filterableColumns.forEach((column) => {
+      const initialValue = getFilterValue(activeFilters[column.field]) ?? ''
       controls[column.field] = this.fb.control(initialValue)
     })
 
@@ -267,16 +266,16 @@ export class GridComponent<T> implements AfterViewInit, OnChanges, OnDestroy {
 
     this.filterChangesSub = this.filterForm.valueChanges
       .pipe(debounceTime(300))
-      .subscribe((value) => this.$data.applyFilters(value))
+      .subscribe((value) => this.$data().applyFilters(value))
   }
 
-  onArchiveViewChange(event: any): void {
-    this.$data.isArchiveView.set(event.value)
-    console.log(event)
-    this.$data.onLoadPage({
+  onArchiveViewChange(event: SelectButtonChangeEvent): void {
+    const data = this.$data()
+    data.isArchiveView.set(event.value)
+    data.onLoadPage({
       pageIndex: 0,
-      pageSize: this.$data.pageEvent.pageSize,
-      length: this.$data.totalRecords(),
+      pageSize: data.pageEvent.pageSize,
+      length: data.totalRecords(),
     })
   }
 }

@@ -1,14 +1,16 @@
-﻿<app-wrapper-basic [title]="title">
+<app-wrapper-basic [title]="title()">
   <ng-container titleLeft>
-    <ng-container *ngIf="titleTemplate">
-      <ng-container *ngTemplateOutlet="titleTemplate; context: { $implicit: table }"></ng-container>
-    </ng-container>
+    @if (titleTemplate(); as titleTemplate) {
+      <ng-container
+        *ngTemplateOutlet="titleTemplate; context: { $implicit: table() }"
+      ></ng-container>
+    }
   </ng-container>
 
   <ng-container titleRight>
     <ng-content select="[titleRight]"></ng-content>
     <div class="flex justify-end items-center gap-4">
-      @if (showExportButtons) {
+      @if (showExportButtons()) {
         <p-button
           icon="pi pi-download"
           severity="primary"
@@ -30,18 +32,18 @@
   </ng-container>
 
   <div body>
-    <ng-container *ngIf="templateFilters">
+    @if (templateFilters(); as templateFilters) {
       <ng-container
-        *ngTemplateOutlet="templateFilters; context: { $implicit: table }"
+        *ngTemplateOutlet="templateFilters; context: { $implicit: table() }"
       ></ng-container>
-    </ng-container>
+    }
 
-    @if (filterableColumns.length) {
+    @if (filterableColumns().length) {
       <form
         [formGroup]="filterForm"
         class="grid gap-3 mb-6 md:grid-cols-2 xl:grid-cols-3 bg-white border border-gray-200 rounded-2xl p-4"
       >
-        @for (column of filterableColumns; track column.field) {
+        @for (column of filterableColumns(); track column.field) {
           <div class="flex flex-col gap-2">
             <label [for]="column.field" class="text-sm font-medium">
               {{ getFilterLabel(column) | transloco }}
@@ -119,7 +121,7 @@
 
     <div class="grid-container">
       <!-- Add filter section -->
-      @if (customTableFilterTemplate) {
+      @if (customTableFilterTemplate(); as customTableFilterTemplate) {
         <div class="filter-section mb-4">
           <ng-container *ngTemplateOutlet="customTableFilterTemplate"></ng-container>
         </div>
@@ -129,13 +131,13 @@
       <div>
         <div class="header flex justify-between items-center my-2">
           <div>
-            @if (showArchiveSplitButton) {
+            @if (showArchiveSplitButton()) {
               <p-selectbutton
                 [options]="[
                   { label: 'active.data' | transloco, value: false },
                   { label: 'archive.data' | transloco, value: true },
                 ]"
-                [value]="this.$data.isArchiveView()"
+                [value]="$data().isArchiveView()"
                 (onChange)="onArchiveViewChange($event)"
                 optionLabel="label"
                 optionValue="value"
@@ -144,10 +146,10 @@
             }
           </div>
 
-          @if (showAddButton) {
+          @if (showAddButton()) {
             <p-button
-              label="{{ addButtonText | transloco }}"
-              [icon]="addButtonIcon || 'pi pi-plus'"
+              label="{{ addButtonText() | transloco }}"
+              [icon]="addButtonIcon() || 'pi pi-plus'"
               (onClick)="onClickAdd.emit()"
             />
           }
@@ -156,16 +158,16 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <p-table
             #dt
-            [value]="dataSource"
-            [totalRecords]="$data.totalRecords()"
+            [value]="dataSource()"
+            [totalRecords]="$data().totalRecords()"
             [lazy]="true"
             [paginator]="true"
-            [rows]="$data.pageEvent.pageSize"
-            [first]="$data.pageEvent.pageIndex * $data.pageEvent.pageSize"
+            [rows]="$data().pageEvent.pageSize"
+            [first]="$data().pageEvent.pageIndex * $data().pageEvent.pageSize"
             [rowsPerPageOptions]="[10, 20, 50, 100]"
             [showCurrentPageReport]="true"
             currentPageReportTemplate="{{
-              'admin.grid.total' | transloco: { count: $data.totalRecords() }
+              'admin.grid.total' | transloco: { count: $data().totalRecords() }
             }}"
             (onLazyLoad)="onPageChange($event)"
             (onSort)="onSort($event)"
@@ -176,7 +178,7 @@
           >
             <ng-template pTemplate="header">
               <tr class="bg-gray-50">
-                @for (col of columns; track col.field) {
+                @for (col of columns(); track col.field) {
                   <th [pSortableColumn]="col.field" class="font-semibold text-gray-700 py-4 px-4">
                     <div class="flex items-center gap-2">
                       {{ col.header | transloco }}
@@ -188,11 +190,11 @@
             </ng-template>
 
             <!-- Loading Skeleton -->
-            @if (isLoading) {
+            @if (isLoading()) {
               <ng-template pTemplate="body">
                 @for (item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track item) {
                   <tr>
-                    @for (col of columns; track col.field) {
+                    @for (col of columns(); track col.field) {
                       <td class="py-4 px-4">
                         <p-skeleton height="1.5rem" styleClass="mb-2"></p-skeleton>
                       </td>
@@ -208,12 +210,12 @@
                   class="cursor-pointer hover:bg-blue-50 transition-colors duration-150"
                   [class.bg-gray-50]="rowIndex % 2 === 1"
                 >
-                  @for (col of columns; track col.field) {
+                  @for (col of columns(); track col.field) {
                     <td class="py-3 px-4">
-                      @if (col.template === 'custom' && templateCostumFields) {
+                      @if (col.template === 'custom' && templateCostumFields()) {
                         <ng-container
                           *ngTemplateOutlet="
-                            templateCostumFields;
+                            templateCostumFields();
                             context: { column: col, row: row }
                           "
                         />
@@ -234,7 +236,7 @@
               <!-- Empty Message -->
               <ng-template pTemplate="emptymessage">
                 <tr>
-                  <td [attr.colspan]="columns.length" class="text-center py-8">
+                  <td [attr.colspan]="columns().length" class="text-center py-8">
                     <div class="flex flex-col items-center gap-3">
                       <i class="pi pi-inbox text-gray-400 text-4xl"></i>
                       <p class="text-gray-500 text-lg">

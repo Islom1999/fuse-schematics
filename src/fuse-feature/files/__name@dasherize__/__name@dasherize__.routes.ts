@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router'
-import { <%= classify(name) %>ListComponent, <%= classify(name) %>FormComponent } from './pages'
+import { <%= classify(name) %>ListComponent<% if (!skipForm) { %>, <%= classify(name) %>FormComponent<% } %> } from './pages'
 
 export const <%= camelize(name) %>Routes: Routes = [
   {
@@ -8,7 +8,7 @@ export const <%= camelize(name) %>Routes: Routes = [
       {
         path: '',
         component: <%= classify(name) %>ListComponent,
-      },
+      },<% if (!skipForm) { %>
       {
         path: 'create',
         component: <%= classify(name) %>FormComponent,
@@ -16,7 +16,7 @@ export const <%= camelize(name) %>Routes: Routes = [
       {
         path: 'edit/:id',
         component: <%= classify(name) %>FormComponent,
-      },
+      },<% } %>
     ],
   },
 ]

@@ -1,65 +1,65 @@
 <div class="flex flex-col gap-2 border rounded-lg p-4 w-full">
   <!-- Upload input -->
-  @if (!selectedFiles?.length) {
-    <label (click)="focusFileInput()" class="flex items-center gap-4 cursor-pointer w-full">
+  @if (!selectedFiles().length) {
+    <div
+      role="button"
+      tabindex="0"
+      (click)="focusFileInput()"
+      (keydown.enter)="onChooseKeydown($event)"
+      (keydown.space)="onChooseKeydown($event)"
+      class="flex items-center gap-4 cursor-pointer w-full"
+    >
       <div class="flex items-center justify-center w-10 h-10 bg-gray-200 rounded-full">
         <i class="pi pi-upload text-xl"></i>
       </div>
       <div class="flex flex-col text-left">
         <span class="text-gray-700">Choose file(s)</span>
         <span class="text-sm text-gray-500">
-          Allowed types: {{ FILE_ALLOWED_MIMES[acceptType]?.join(', ') || 'image/*' }}
+          Allowed types: {{ FILE_ALLOWED_MIMES[acceptType()]?.join(', ') || 'image/*' }}
         </span>
       </div>
-    </label>
+    </div>
   }
   <input
     #fileInput
     type="file"
     class="hidden"
-    [multiple]="multiple"
-    [accept]="FILE_ALLOWED_MIMES[acceptType]?.join(',') || 'image/*'"
+    [multiple]="multiple()"
+    [accept]="FILE_ALLOWED_MIMES[acceptType()]?.join(',') || 'image/*'"
     (change)="onFileChange($event)"
   />
 
   <!-- File preview -->
-  @for (fileItem of selectedFiles; track $index) {
+  @for (fileItem of selectedFiles(); track $index) {
     <div class="flex items-center gap-4">
-      @switch (acceptType) {
+      @switch (acceptType()) {
         @case ('image') {
-          <img
-            *ngIf="getFilePreview(fileItem)"
-            [src]="getFilePreview(fileItem)"
-            class="w-16 h-16 object-cover rounded"
-          />
+          @if (getFilePreview(fileItem)) {
+            <img
+              [src]="getFilePreview(fileItem)"
+              [alt]="fileItem.uploadData?.file_orginal_name || 'Preview'"
+              class="w-16 h-16 object-cover rounded"
+            />
+          }
         }
         @case ('video') {
-          <video
-            *ngIf="getFilePreview(fileItem)"
-            [src]="getFilePreview(fileItem)"
-            class="w-32 h-20"
-            controls
-          ></video>
+          @if (getFilePreview(fileItem)) {
+            <video [src]="getFilePreview(fileItem)" class="w-32 h-20" controls></video>
+          }
         }
         @case ('pdf') {
-          <a
-            *ngIf="getFilePreview(fileItem)"
-            [href]="getFilePreview(fileItem)"
-            target="_blank"
-            class="text-blue-600 underline"
-          >
-            {{ fileItem.uploadData?.file_orginal_name || 'No name' }}
-          </a>
+          @if (getFilePreview(fileItem)) {
+            <a [href]="getFilePreview(fileItem)" target="_blank" class="text-blue-600 underline">
+              {{ fileItem.uploadData?.file_orginal_name || 'No name' }}
+            </a>
+          }
         }
         @case ('word') {
-          <a
-            *ngIf="getFilePreview(fileItem)"
-            [href]="getFilePreview(fileItem)"
-            download
-            class="text-blue-600 underline"
-          >
-            {{ fileItem.uploadData?.file_orginal_name || 'No name' }}
-          </a>
+          @if (getFilePreview(fileItem)) {
+            <a [href]="getFilePreview(fileItem)" download class="text-blue-600 underline">
+              {{ fileItem.uploadData?.file_orginal_name || 'No name' }}
+            </a>
+          }
         }
         @default {
           <span>{{ fileItem.uploadData?.file_orginal_name || 'No name' }}</span>
@@ -89,7 +89,7 @@
   }
 
   <!-- Upload / focus button -->
-  @if (multiple || !selectedFiles?.length) {
+  @if (multiple() || !selectedFiles().length) {
     <div class="flex justify-center mt-2">
       <p-button
         type="button"

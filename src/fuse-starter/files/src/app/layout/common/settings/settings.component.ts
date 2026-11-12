@@ -1,5 +1,5 @@
-import { NgClass, NgFor } from '@angular/common';
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FuseDrawerComponent } from '@fuse/components/drawer';
 import {
@@ -37,30 +37,25 @@ import { PrimeNgThemeService } from 'app/core/primeng/primeng-theme.service';
     ],
     encapsulation: ViewEncapsulation.None,
     imports: [
-        FuseIconComponent,
-        FuseDrawerComponent,
-        ButtonModule,
-        NgFor,
-        NgClass,
-        TooltipModule,
-    ],
+    FuseIconComponent,
+    FuseDrawerComponent,
+    ButtonModule,
+    NgClass,
+    TooltipModule
+],
 })
 export class SettingsComponent implements OnInit, OnDestroy {
+    private _router = inject(Router);
+    private _fuseConfigService = inject(FuseConfigService);
+    private _primeNgThemeService = inject(PrimeNgThemeService);
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+
     config: FuseConfig;
     layout: string;
     scheme: 'dark' | 'light';
     theme: string;
     themes: Themes;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
-
-    /**
-     * Constructor
-     */
-    constructor(
-        private _router: Router,
-        private _fuseConfigService: FuseConfigService,
-        private _primeNgThemeService: PrimeNgThemeService
-    ) {}
 
     // -----------------------------------------------------------------------------------------------------
     // @ Lifecycle hooks
@@ -76,6 +71,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
             .subscribe((config: FuseConfig) => {
                 // Store the config
                 this.config = config;
+
+                // Mark for check (zoneless change detection)
+                this._changeDetectorRef.markForCheck();
             });
     }
 

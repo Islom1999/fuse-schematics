@@ -1,274 +1,277 @@
 # Fuse Schematics
 
-[![npm version](https://badge.fury.io/js/fuse-schematics.svg)](https://www.npmjs.com/package/fuse-schematics)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/Islom1999/fuse-schematics/actions/workflows/ci.yml/badge.svg)](https://github.com/Islom1999/fuse-schematics/actions/workflows/ci.yml)
+![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)
+![Registry: GitHub Packages](https://img.shields.io/badge/registry-GitHub%20Packages-blue.svg)
 
-Fuse Admin v19.0.0 loyihalarini va CRUD feature modullarini avtomatik generatsiya qiluvchi Angular schematics to'plami.
+Fuse Admin (Angular 20) loyihalarini va CRUD feature modullarini avtomatik generatsiya qiluvchi Angular schematics to'plami.
+
+> **Private paket.** Faqat GitHub Packages orqali, ruxsat berilgan foydalanuvchilar uchun tarqatiladi. Yaratilgan loyiha Fuse Admin shabloniga asoslangan, shuning uchun har bir foydalanuvchida (jamoada) o'zining amaldagi [Fuse litsenziyasi](https://themeforest.net/licenses/standard) bo'lishi shart. Batafsil: [LICENSE](LICENSE).
+
+> English version: [see below](#english)
 
 ## Xususiyatlari
 
-- **Tez Loyiha Yaratish** - Fuse Admin Angular loyihalarini soniyalar ichida yarating  
-- **CRUD Modul Generatori** - Grid, form va servislar bilan feature modullarni avtomatik yaratadi  
-- **PrimeNG Integratsiyasi** - PrimeNG komponentlari oldindan sozlangan  
-- **i18n Tayyor** - Transloco integratsiyasi tayyor holda  
-⚡ **TypeScript & Tailwind** - Zamonaviy texnologiyalar va eng yaxshi amaliyotlar  
--️ **Enterprise Patternlar** - BaseTableComponent, BaseCrudService va boshqalar
+- **Tez loyiha yaratish** — to'liq sozlangan Fuse Admin Angular 20 loyihasi bitta buyruq bilan (`npm install` va `git init` ham avtomatik)
+- **CRUD generatori** — grid, forma, model va servislar bilan feature modul
+- **`--fields` bilan maydonlardan generatsiya** — model, formly maydonlari, grid ustunlari va filtrlar bitta ta'rifdan
+- **OpenAPI/Swagger'dan generatsiya** — backend Swagger hujjatidagi barcha resurslar uchun CRUD modullar bitta buyruq bilan
+- **Zoneless va signallar** — zone.js'siz change detection, `input()`/`output()`/`viewChild()` signal API'lari
+- **Avtomatik ro'yxatdan o'tkazish** — route `app.routes.ts` ga, menyu bandi `navigation.ts` ga, tarjima kalitlari `i18n/*.json` ga qo'shiladi (qayta ishga tushirilganda takrorlanmaydi)
+- **PrimeNG 20, Tailwind 3, Transloco, ngx-formly** — oldindan sozlangan
+- **Enterprise patternlar** — `BaseTableComponent`, `BaseFormComponent`, `BaseCrudService`, `GridService`
+- **ESLint 9 (flat config) va Prettier** — yaratilgan loyiha lint'dan toza o'tadi
 
 ## Mundarija
 
 - [O'rnatish](#ornatish)
-- [Tezkor Boshlash](#tezkor-boshlash)
+- [Tezkor boshlash](#tezkor-boshlash)
 - [Schematicslar](#schematicslar)
-  - [Fuse Starter](#1-fuse-starter)
-  - [Fuse Feature](#2-fuse-feature)
-- [Misollar](#misollar)
-- [API Ma'lumotlari](#api-malumotlari)
+  - [fuse-starter](#1-fuse-starter)
+  - [fuse-feature (crud)](#2-fuse-feature-crud)
+  - [fuse-openapi (openapi)](#3-fuse-openapi-openapi)
+  - [ng-add](#4-ng-add)
+- [`--fields` sintaksisi](#--fields-sintaksisi)
+- [OpenAPI tur moslamalari](#openapi-tur-moslamalari)
+- [Konfiguratsiya fayli](#konfiguratsiya-fayli)
+- [API ma'lumotlari](#api-malumotlari)
 - [Rivojlantirish](#rivojlantirish)
-- [Hissa Qo'shish](#hissa-qoshish)
-- [Litsenziya](#litsenziya)
+- [Talablar va moslik](#talablar-va-moslik)
+- [Muammolarni hal qilish](#muammolarni-hal-qilish)
+- [English](#english)
 
 ## O'rnatish
 
-### Global O'rnatish (Tavsiya etiladi)
+### 1. GitHub Packages'ga ulanish (bir marta)
+
+Paket GitHub Packages'da turadi, shuning uchun `read:packages` huquqli GitHub token kerak ([Settings → Developer settings → Personal access tokens (classic)](https://github.com/settings/tokens)). Repozitoriyaga ham o'qish ruxsatingiz bo'lishi kerak.
+
+`~/.npmrc` (yoki loyiha ildizidagi `.npmrc`) fayliga qo'shing:
+
+```ini
+@islom1999:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
+
+va tokenni muhit o'zgaruvchisiga yozing (tokenni `.npmrc` ichiga to'g'ridan-to'g'ri yozib, git'ga commit qilmang):
+
+```bash
+export GITHUB_TOKEN=ghp_xxxxxxxxxxxx
+```
+
+### 2. Global o'rnatish (tavsiya etiladi)
 
 ```bash
 npm install -g @angular-devkit/schematics-cli
-npm install -g fuse-schematics
+npm install -g @islom1999/fuse-schematics
 ```
 
-### Lokal O'rnatish
+### 3. Mavjud Angular loyihaga qo'shish
 
 ```bash
-npm install --save-dev fuse-schematics
+ng add @islom1999/fuse-schematics
 ```
 
-## Tezkor Boshlash
-
-### Yangi Loyiha Yaratish
+## Tezkor boshlash
 
 ```bash
-# Yangi Fuse Admin loyiha yaratish
-schematics fuse-schematics:fuse-starter mening-admin-loyiham
+# 1. Yangi loyiha (npm install va git init avtomatik bajariladi)
+schematics @islom1999/fuse-schematics:new elektron-tijorat-admin
+cd elektron-tijorat-admin
 
-# Loyihaga o'tish va bog'liqliklarni o'rnatish
-cd mening-admin-loyiham
-npm install
+# 2. CRUD modullar — route, menyu va tarjimalar avtomatik qo'shiladi
+schematics @islom1999/fuse-schematics:crud mahsulot --fields "name:string,price:number,active:boolean,status:enum(active|blocked)"
+schematics @islom1999/fuse-schematics:crud kategoriya
 
-# Development serverini ishga tushirish
+# 3. Ishga tushirish
 npm start
 ```
 
-### CRUD Feature Moduli Qo'shish
+Angular CLI orqali ham ishlaydi:
 
 ```bash
-# Fuse loyihangiz ichida
-schematics fuse-schematics:fuse-feature mahsulot-boshqaruvi
-
-# Yoki qisqa alias orqali
-schematics fuse-schematics:crud foydalanuvchi-boshqaruvi
+ng g @islom1999/fuse-schematics:crud mahsulot --fields "name:string,price:number"
 ```
 
 ## Schematicslar
 
-### 1. Fuse Starter
+### 1. fuse-starter
 
-300+ oldindan sozlangan fayl bilan to'liq Fuse Admin Angular v19.0.0 starter loyihasini yaratadi.
-
-#### Buyruq
+To'liq Fuse Admin Angular 20 starter loyihasini yaratadi.
 
 ```bash
-schematics fuse-schematics:fuse-starter <loyiha-nomi>
+schematics @islom1999/fuse-schematics:fuse-starter <loyiha-nomi> [opsiyalar]
 ```
 
-#### Aliaslar
+**Aliaslar:** `fuse-starter`, `starter`, `new`
 
-- `fuse-starter`
-- `starter`
-- `new`
+| Opsiya | Turi | Default | Ta'rif |
+|--------|------|---------|--------|
+| `name` | `string` | *majburiy* | Loyiha nomi (papka va `package.json` nomi sifatida dasherize qilinadi) |
+| `--directory`, `--dir` | `string` | — | Loyiha yaratiladigan ota papka |
+| `--skipInstall` | `boolean` | `false` | `npm install` ni ishga tushirmaslik |
+| `--skipGit` | `boolean` | `false` | git repozitoriy yaratmaslik (va boshlang'ich commit qilmaslik) |
 
-#### Misol
+#### Nima kiradi
 
-```bash
-schematics fuse-schematics:new mening-dashboard
-```
+- ✅ Angular 20.3 standalone komponentlar bilan
+- ✅ **Zoneless** change detection (`provideZonelessChangeDetection()`, zone.js yo'q)
+- ✅ Signal API'lari: `input()`, `output()`, `viewChild()`/`contentChild()`, `computed`, yangi control flow (`@if`, `@for`)
+- ✅ To'liq `@fuse` kutubxonasi (layoutlar, komponentlar, servislar)
+- ✅ PrimeNG 20 + `@primeuix/themes`
+- ✅ Tailwind CSS 3 (`tailwind.config.js` va Fuse plaginlari bilan)
+- ✅ `@jsverse/transloco` i18n (en, tr)
+- ✅ ngx-formly 7 + PrimeNG maxsus turlari (input-number, textarea, datepicker, select, upload, ...)
+- ✅ Autentifikatsiya guardlari va interceptorlari
+- ✅ Qorong'u/yorug' tema
+- ✅ ESLint 9 (flat config), Prettier, Husky + lint-staged
 
-#### Nima Kiradi
-
-Yaratilgan loyihada quyidagilar mavjud:
-
-- ✅ Angular 19.0.0 standalone komponentlar bilan
-- ✅ To'liq @fuse kutubxonasi (layoutlar, komponentlar, servislar)
-- ✅ PrimeNG UI komponentlari
-- ✅ Tailwind CSS 3.x
-- ✅ Transloco i18n freymvorki
-- ✅ Admin modul strukturasi
-- ✅ Autentifikatsiya guardlari va servislari
-- ✅ Responsive layoutlar (Classic, Material va boshqalar)
-- ✅ Qorong'u/Yorug' tema qo'llab-quvvatlash
-- ✅ TypeScript strict rejimi
-- ✅ ESLint konfiguratsiyasi
-
-#### Loyiha Strukturasi
+#### Loyiha strukturasi
 
 ```
 mening-admin-loyiham/
 ├── src/
-│   ├── @fuse/                    # Fuse kutubxonasi
-│   │   ├── components/           # Qayta ishlatiladigan komponentlar
-│   │   ├── directives/           # Maxsus direktivalar
-│   │   ├── services/             # Asosiy servislar
-│   │   └── tailwind/             # Tailwind plaginlari
+│   ├── @fuse/                    # Fuse kutubxonasi (+ tailwind plaginlari)
 │   ├── app/
-│   │   ├── core/                 # Core modul
+│   │   ├── core/                 # Auth, navigatsiya, servislar
 │   │   ├── layout/               # Layout komponentlari
-│   │   ├── modules/              # Feature modullari
-│   │   │   └── admin/            # Admin features
-│   │   └── shared/               # Umumiy komponentlar
-│   ├── assets/                   # Statik fayllar
+│   │   ├── modules/admin/        # Feature modullari
+│   │   └── shared/               # Grid, table-filter, base klasslar
+│   ├── assets/                   # Fontlar, rasmlar, i18n
 │   └── styles/                   # Global stillar
 ├── angular.json
-├── package.json
+├── eslint.config.js
 ├── tailwind.config.js
-└── tsconfig.json
+└── package.json
 ```
 
-### 2. Fuse Feature
+### 2. fuse-feature (crud)
 
-Grid ko'rinishi, forma ishlov berish va API integratsiyasi bilan to'liq CRUD feature modulini enterprise patternlar asosida yaratadi.
-
-#### Buyruq
+Grid, forma, model va servislar bilan to'liq CRUD feature modulini yaratadi va uni loyihaga ulaydi.
 
 ```bash
-schematics fuse-schematics:fuse-feature <feature-nomi> [opsiyalar]
+schematics @islom1999/fuse-schematics:crud <feature-nomi> [opsiyalar]
 ```
 
-#### Aliaslar
-
-- `fuse-feature`
-- `feature`
-- `crud`
-
-#### Opsiyalar
+**Aliaslar:** `fuse-feature`, `feature`, `crud`
 
 | Opsiya | Turi | Default | Ta'rif |
 |--------|------|---------|--------|
-| `name` | `string` | *majburiy* | Feature modul nomi (masalan: mahsulot-kategoriyasi) |
-| `--path` | `string` | `src/app/modules/admin` | Feature yaratilish yo'li |
-| `--prefix` | `string` | `app` | Komponent selector prefiksi |
-| `--skipForm` | `boolean` | `false` | Form komponentini o'tkazib yuborish |
+| `name` | `string` | *majburiy* | Feature nomi (masalan: `mahsulot-kategoriyasi`) |
+| `--fields` | `string` | `name:string` | Maydonlar ro'yxati, [sintaksisi pastda](#--fields-sintaksisi) |
+| `--openapi` | `string` | — | OpenAPI 3 / Swagger 2 hujjati (JSON yoki YAML; fayl yo'li yoki URL). Maydonlar shu yerdan olinadi (`--fields` berilsa u ustun) |
+| `--schema` | `string` | — | `--openapi` dagi sxema nomi (masalan `CreateMahsulotDto`). Berilmasa feature nomiga mos resurs topiladi |
+| `--path` | `string` | `<sourceRoot>/app/modules/admin` | Feature yaratiladigan papka (`sourceRoot` `angular.json` dan o'qiladi) |
+| `--project` | `string` | birinchi application | `angular.json` dagi loyiha nomi |
+| `--prefix`, `-p` | `string` | `app` | Komponent selector prefiksi |
+| `--skipForm` | `boolean` | `false` | Form komponentini yaratmaslik (qo'shish tugmasi ham yashiriladi) |
+| `--skipRoute` | `boolean` | `false` | `app.routes.ts` ga route qo'shmaslik |
+| `--skipNav` | `boolean` | `false` | `navigation.ts` ga menyu bandi qo'shmaslik |
+| `--skipI18n` | `boolean` | `false` | `assets/i18n/*.json` ga tarjima kalitlarini qo'shmaslik |
 
-#### Misollar
+#### Avtomatik ro'yxatdan o'tkazish
 
-```bash
-# Oddiy ishlatish - default joyda yaratadi
-schematics fuse-schematics:feature mahsulot
+`crud mahsulot` quyidagilarni ham bajaradi (har biri idempotent — qayta ishga tushirilsa takrorlanmaydi):
 
-# Maxsus yo'l
-schematics fuse-schematics:crud inventar --path=src/app/features
+- **Route:** admin route `children` massiviga `{ path: 'mahsulot', loadChildren: () => import('app/modules/admin/mahsulot/mahsulot.routes') }` qo'shiladi (TypeScript AST orqali)
+- **Menyu:** `defaultNavigation`, `compactNavigation`, `futuristicNavigation`, `horizontalNavigation` ga `/mahsulot` bandi qo'shiladi
+- **Tarjimalar:** `admin.mahsulot.*` kalitlari (`title`, `addNew`, `create`, `edit`, `fields.<maydon>` ...) har bir `assets/i18n/*.json` ga birlashtiriladi, mavjud kalitlar o'zgarmaydi
 
-# Maxsus prefiks
-schematics fuse-schematics:feature kompaniya --prefix=mening-app
+Fayl topilmasa ogohlantirish chiqariladi va generatsiya davom etadi.
 
-# Form komponentisiz
-schematics fuse-schematics:feature hisobot --skipForm
-```
-
-#### Yaratilgan Struktura
+#### Yaratilgan struktura
 
 ```
 src/app/modules/admin/<feature-nomi>/
-├── <feature-nomi>.component.ts        # Asosiy grid komponenti
-├── <feature-nomi>.component.html      # Grid shabloni
-├── <feature-nomi>.component.scss      # Komponent stillari
-├── <feature-nomi>.routes.ts           # Feature marshrutlari
-├── <feature-nomi>-form/
-│   ├── <feature-nomi>-form.component.ts    # Form komponenti
-│   ├── <feature-nomi>-form.component.html  # Form shabloni
-│   └── <feature-nomi>-form.component.scss  # Form stillari
-└── common/
-    ├── <feature-nomi>.model.ts             # TypeScript interfeyslari
-    ├── <feature-nomi>.service.ts           # CRUD servisi
-    └── <feature-nomi>-grid.service.ts      # Grid ma'lumot servisi
+├── <feature-nomi>.routes.ts
+├── common/
+│   ├── index.ts
+│   ├── models/<feature-nomi>.model.ts            # I<Nom>, I<Nom>Create, I<Nom>Update
+│   └── services/
+│       ├── <feature-nomi>.service.ts             # BaseCrudService ('admin/<feature-nomi>')
+│       └── <feature-nomi>-grid.service.ts        # GridService
+├── components/
+│   └── index.ts
+└── pages/
+    ├── index.ts
+    ├── <feature-nomi>-list/                      # BaseTableComponent: grid + filtr
+    └── <feature-nomi>-form/                      # BaseFormComponent: formly forma (--skipForm bilan yo'q)
 ```
 
-#### Yaratilgan Fayllar Tafsiloti
+### 3. fuse-openapi (openapi)
 
-##### Asosiy Komponent (`mahsulot.component.ts`)
-```typescript
-export class MahsulotComponent extends BaseTableComponent<IMahsulot> {
-  gridService = inject(GridService<IMahsulot>)
-  formComponent = MahsulotFormComponent
-  
-  filterConfig: ITableFilterConfig = { /* ... */ }
-  columns: IColumn[] = []
-}
-```
-
-##### Form Komponenti (`mahsulot-form.component.ts`)
-```typescript
-export class MahsulotFormComponent extends BaseFormComponent<IMahsulot> {
-  // Create, update, delete operatsiyalarini amalga oshiradi
-  // Forma validatsiyasi va xatolarni boshqarishni o'z ichiga oladi
-}
-```
-
-##### Marshrutlar (`mahsulot.routes.ts`)
-```typescript
-export const mahsulotRoutes: Routes = [
-  { path: '', component: MahsulotComponent },
-  { path: 'create', component: MahsulotFormComponent },
-  { path: 'edit/:id', component: MahsulotFormComponent }
-]
-```
-
-##### Servis (`mahsulot.service.ts`)
-```typescript
-export class MahsulotService extends BaseCrudService<IMahsulot> {
-  constructor() {
-    super('admin/mahsulot') // API endpoint
-  }
-}
-```
-
-##### Modellar (`mahsulot.model.ts`)
-```typescript
-export interface IMahsulot extends IBaseModel { /* ... */ }
-export interface IMahsulotCreate { /* ... */ }
-export interface IMahsulotUpdate { /* ... */ }
-```
-
-## Misollar
-
-### To'liq Ish Jarayoni
+OpenAPI/Swagger hujjatidagi har bir `admin/<nom>` resursi uchun CRUD modul yaratadi (har biri `fuse-feature` orqali: route, menyu va tarjimalar bilan).
 
 ```bash
-# 1. Yangi Fuse loyiha yaratish
-schematics fuse-schematics:new elektron-tijorat-admin
-cd elektron-tijorat-admin
-npm install
+# fuse-nest-schematics backend uchun
+schematics @islom1999/fuse-schematics:openapi --openapi http://localhost:3000/docs-json
 
-# 2. Feature modullarini yaratish
-schematics fuse-schematics:crud mahsulot
-schematics fuse-schematics:crud kategoriya
-schematics fuse-schematics:crud mijoz --path=src/app/modules/admin
-schematics fuse-schematics:crud buyurtma-elementi
+# Fayldan, faqat tanlangan resurslar
+schematics @islom1999/fuse-schematics:openapi --openapi ./swagger.json --include mahsulot,kategoriya
 
-# 3. Rivojlantirishni boshlash
-npm start
+# Bitta modul, aniq sxemadan
+schematics @islom1999/fuse-schematics:crud buyurtma --openapi ./swagger.json --schema CreateBuyurtmaDto
 ```
 
-### Angular CLI bilan Integratsiya
+**Alias:** `openapi`
 
-Siz bu schematicslarni Angular CLI bilan ham ishlatishingiz mumkin:
+| Opsiya | Turi | Default | Ta'rif |
+|--------|------|---------|--------|
+| `--openapi` | `string` | *majburiy* | Hujjat yo'li yoki URL (birinchi pozitsion argument sifatida ham beriladi) |
+| `--include` | `string` | — | Faqat shu resurslar (vergul bilan) |
+| `--exclude` | `string` | — | Bu resurslarni o'tkazib yuborish |
+| `--force` | `boolean` | `false` | Mavjud feature papkasini qayta yaratish (default: o'tkazib yuboriladi) |
+| `--path`, `--project`, `--prefix`, `--skipForm`, `--skipRoute`, `--skipNav`, `--skipI18n` | | | `fuse-feature` dagi kabi |
+
+Resurslar yo'llardan topiladi: `/admin/<nom>` va `/admin/<nom>/{id}` (global prefiks, masalan `/api`, e'tiborga olinmaydi). Sxema tartibi: POST so'rov tanasi (Create DTO) → GET-by-id javobi → nomi mos sxema. `$ref` va `allOf` hal qilinadi; tashqi (boshqa fayldagi) `$ref` qo'llab-quvvatlanmaydi.
+
+### 4. ng-add
 
 ```bash
-ng add fuse-schematics
-ng generate fuse-schematics:feature mahsulot
+ng add @islom1999/fuse-schematics
 ```
 
-### Maxsus Konfiguratsiya
+Paketni `devDependencies` ga qo'shadi, workspace Angular (va Fuse) loyihasi ekanini tekshiradi va foydalanish bo'yicha yo'riqnoma chiqaradi. Hech qanday faylni o'zgartirmaydi.
 
-Loyihangiz root papkasida `schematics.json` yarating:
+## `--fields` sintaksisi
+
+Vergul bilan ajratilgan `nom:tur` juftliklari. Oxiridagi `?` maydonni ixtiyoriy qiladi.
+
+| Tur | TypeScript | Forma (formly) | Grid / filtr |
+|-----|------------|----------------|--------------|
+| `string` | `string` | `input` | matn |
+| `number` | `number` | `input-number` | son |
+| `boolean` | `boolean` | `checkbox` | ha/yo'q select |
+| `date` | `Date` | `datepicker` | sana |
+| `text` | `string` | `textarea` | matn |
+| `enum(a\|b)` | `'a' \| 'b'` | `select` | select |
+
+```bash
+schematics @islom1999/fuse-schematics:crud mahsulot \
+  --fields "name:string,price:number,active:boolean,note:text?,status:enum(active|blocked),soldAt:date?"
+```
+
+`--fields` berilmasa bitta majburiy `name:string` maydoni bilan yaratiladi.
+
+> Xuddi shu sintaksis backend paketida ham ishlatiladi, shuning uchun bitta ta'rif bilan front va backendni bir xil yaratish mumkin.
+
+## OpenAPI tur moslamalari
+
+| OpenAPI xususiyati | `--fields` turi |
+|---|---|
+| `enum` (string) | `enum(a\|b)` |
+| `string` + `format: date` / `date-time` | `date` |
+| `string` + `maxLength > 255` yoki `format: textarea` | `text` |
+| boshqa `string` | `string` |
+| `integer` / `number` | `number` |
+| `boolean` | `boolean` |
+| obyekt, massiv, binary, `$ref` obyektga | o'tkazib yuboriladi (logda ko'rsatiladi) |
+
+`id`, `createdAt`, `updatedAt`, `deletedAt` va `readOnly` maydonlar o'tkazib yuboriladi. `required` da bo'lmagan yoki `nullable` maydon ixtiyoriy (`?`) bo'ladi.
+
+## Konfiguratsiya fayli
+
+Workspace ildizida `fuse-schematics.json` yarating — `fuse-feature` uchun default qiymatlar shu yerdan olinadi (CLI opsiyalari ustun turadi):
 
 ```json
 {
@@ -279,176 +282,176 @@ Loyihangiz root papkasida `schematics.json` yarating:
 }
 ```
 
-## API Ma'lumotlari
+## API ma'lumotlari
 
-### Bazaviy Klasslar
+### BaseTableComponent
+Sahifalash, filtrlash, saralash, qator tanlash va forma dialogini boshqarish.
 
-#### BaseTableComponent
-Umumiy grid/jadval funksionalligini taqdim etadi:
-- Sahifalash (Pagination)
-- Filtrlash (Filtering)
-- Saralash (Sorting)
-- Qatorni tanlash
-- Formalar uchun dialog boshqaruvi
+### BaseFormComponent
+Yaratish/tahrirlash rejimi, forma validatsiyasi, submit, o'chirishni tasdiqlash, bekor qilish.
 
-#### BaseFormComponent
-Umumiy forma funksionalligini taqdim etadi:
-- Yaratish/Tahrirlash rejimini aniqlash
-- Forma validatsiyasi
-- Submit boshqaruvi
-- O'chirish tasdiqlash
-- Bekor qilish navigatsiyasi
-
-#### BaseCrudService
-CRUD operatsiyalari uchun generic HTTP servisi:
-- `getAll()` - Barcha yozuvlarni olish
-- `getAllPagination()` - Sahifalangan yozuvlarni olish
-- `getById(id)` - Bitta yozuvni olish
-- `create(data)` - Yangi yozuv yaratish
-- `update(id, data)` - Mavjud yozuvni yangilash
-- `delete(id)` - Yozuvni o'chirish
+### BaseCrudService
+| Metod | Ta'rif |
+|-------|--------|
+| `getAll()` | Barcha yozuvlar |
+| `getAllPagination(params, isArchiveView)` | Sahifalangan yozuvlar → `{ count, data }` |
+| `getById(id, isArchiveView)` | Bitta yozuv |
+| `create(data)` | Yangi yozuv |
+| `update(id, data)` | Yozuvni yangilash |
+| `delete(id)` | Yozuvni o'chirish |
 
 ### GridService
-Grid ma'lumotlarini olish va holatni boshqarish:
-- Server-side sahifalash
-- Filtrlash
-- Saralash
-- Yuklash holatlari
+Server-side sahifalash, filtrlash, saralash va yuklanish holati.
 
 ## Rivojlantirish
 
-### Talablar
-
-- Node.js 18.x yoki undan yuqori
-- npm 9.x yoki undan yuqori
-- Angular CLI 19.x yoki undan yuqori
-
-### O'rnatish
-
 ```bash
-# Repositoriyani klonlash
-git clone https://github.com/yourusername/fuse-schematics.git
+git clone https://github.com/Islom1999/fuse-schematics.git
 cd fuse-schematics
-
-# Bog'liqliklarni o'rnatish
 npm install
-
-# Schematicsni build qilish
-npm run build
-
-# Lokal test uchun link qilish
-npm link
+npm run build      # tsc
+npm test           # build + jasmine unit testlar
+npm link           # lokal sinov uchun
 ```
 
-### Lokal Test Qilish
+Lokal sinov:
 
 ```bash
-# Schematicsni build qilish
-npm run build
-
-# fuse-starter testlash
-cd /test-qilinadigan/papka
-schematics fuse-schematics:fuse-starter test-app
-
-# fuse-feature testlash
-cd test-app
-schematics fuse-schematics:feature test-modul
+schematics ./src/collection.json:fuse-starter test-app --skip-install --dry-run=false
+cd test-app && npm install
+schematics ../src/collection.json:crud test-modul --fields "name:string" --dry-run=false
+npx ng build
 ```
 
-### Production uchun Build Qilish
+CI (`.github/workflows/ci.yml`) har bir push va PR'da unit testlarni ishga tushiradi, so'ng loyiha yaratib, CRUD modul qo'shib `ng build` qiladi.
+
+### GitHub Packages'ga yuklash
+
+`write:packages` huquqli token bilan (registry `package.json` dagi `publishConfig` dan olinadi):
 
 ```bash
-npm run build
+export GITHUB_TOKEN=ghp_xxxxxxxxxxxx   # write:packages
+npm test
+npm publish
 ```
 
-### NPM ga Yuklash
+Paket repozitoriya bilan bog'langan: repo private bo'lsa, paket ham private bo'ladi va faqat repo'ga ruxsati borlar o'rnata oladi.
 
-```bash
-# NPM ga kirish
-npm login
+## Talablar va moslik
 
-# Yuklash
-npm publish --access public
-```
-
-## Talablar
-
-- **Node.js**: 18.19.0 yoki undan yuqori
+- **Node.js**: 20.19.0 yoki undan yuqori
 - **npm**: 9.0.0 yoki undan yuqori
-- **Angular**: 19.0.0 yoki undan yuqori
-- **@angular-devkit/schematics-cli**: Eng so'ngi versiya
+- **Angular**: 20.x
 
-## Moslik
-
-| Fuse Schematics | Angular | Fuse Admin Shablon |
+| Fuse Schematics | Angular | Fuse Admin shablon |
 |----------------|---------|---------------------|
+| 2.x.x          | 20.x    | 19.0.0 (Angular 20 ga yangilangan) |
 | 1.x.x          | 19.x    | 19.0.0             |
 
-## Muammolarni Hal Qilish
+## Muammolarni hal qilish
 
-### Umumiy Muammolar
+**`404 Not Found` yoki `401 Unauthorized` (o'rnatishda)** — `.npmrc` da `@islom1999:registry` qatori borligini, `GITHUB_TOKEN` o'rnatilganini va tokenda `read:packages` huquqi hamda repo'ga ruxsat borligini tekshiring.
 
-**Muammo: Buyruq topilmadi**
+**Buyruq topilmadi**
 ```bash
-# Yechim: Global o'rnatish
-npm install -g @angular-devkit/schematics-cli fuse-schematics
+npm install -g @angular-devkit/schematics-cli @islom1999/fuse-schematics
 ```
 
-**Muammo: Ruxsat rad etildi**
+**Ruxsat rad etildi (Linux/Mac)**
 ```bash
-# Yechim: Sudo ishlatish (Linux/Mac) yoki administrator sifatida ishga tushirish (Windows)
-sudo npm install -g fuse-schematics
+sudo npm install -g @islom1999/fuse-schematics
 ```
 
-**Muammo: Shablon fayllari yaratilmayapti**
-```bash
-# Yechim: NPM keshni tozalash va qayta o'rnatish
-npm cache clean --force
-npm install -g fuse-schematics
-```
+**Route/menyu qo'shilmadi** — `app.routes.ts` da `resolve: { initialData }` yoki `example` child route'li admin route, `navigation.ts` da esa `defaultNavigation` kabi eksportlar bo'lishi kerak. Aks holda ogohlantirish chiqadi; route'ni qo'lda qo'shing yoki `--skipRoute`/`--skipNav` ishlating.
 
-## Hissa Qo'shish
+## Hissa qo'shish
 
-Hissangiz xush kelibsiz! Quyidagi qadamlarni bajaring:
+1. Repozitoriyani fork qiling
+2. Branch yarating (`git checkout -b feature/ajoyib-feature`)
+3. `npm test` o'tishiga ishonch hosil qiling
+4. Commit va push qiling, Pull Request oching
 
-1. Repositoriyani fork qiling
-2. Feature branch yarating (`git checkout -b feature/ajoyib-feature`)
-3. O'zgarishlaringizni commit qiling (`git commit -m 'Ajoyib feature qo'shildi'`)
-4. Branch ga push qiling (`git push origin feature/ajoyib-feature`)
-5. Pull Request oching
+## O'zgarishlar tarixi
 
-## O'zgarishlar Tarixi
-
-Batafsil o'zgarishlar ro'yxati uchun [CHANGELOG.md](CHANGELOG.md) ga qarang.
+[CHANGELOG.md](CHANGELOG.md)
 
 ## Qo'llab-quvvatlash
 
-- - Email: support@example.com
-- - Muammolar: [GitHub Issues](https://github.com/yourusername/fuse-schematics/issues)
-- - Muhokamalar: [GitHub Discussions](https://github.com/yourusername/fuse-schematics/discussions)
+- Muammolar: [GitHub Issues](https://github.com/Islom1999/fuse-schematics/issues)
 
-## Yo'l Xaritasi
+## Yo'l xaritasi
 
-- [ ] Schematics uchun unit testlar qo'shish
+- [x] Schematics uchun unit testlar
+- [x] Maydonlardan generatsiya (`--fields`)
+- [x] Route, menyu va i18n ni avtomatik ro'yxatdan o'tkazish
+- [x] `ng add` qo'llab-quvvatlash
+- [x] OpenAPI/Swagger'dan generatsiya
+- [x] Zoneless va signal API'lari
 - [ ] Maxsus shablonlarni qo'llab-quvvatlash
 - [ ] Nx workspace bilan integratsiya
-- [ ] GraphQL servis generatori
-- [ ] Mock ma'lumot generatori
 - [ ] E2E test shablonlari
 
 ## Litsenziya
 
-MIT © [Sizning Ismingiz]
+Proprietary © Islom Karimov. Barcha huquqlar himoyalangan; paketni faqat muallif ruxsati bilan ishlatish mumkin.
 
-Tafsilotlar uchun [LICENSE](LICENSE) fayliga qarang.
+`src/fuse-starter/files/` dagi shablon Withinpixels (srcn) muallifligidagi [Fuse Angular Admin Template](https://themeforest.net/item/fuse-angular-angular-admin-template/9851916) asosida qayta ishlangan. Bu qismlar asl muallifga tegishli va [Envato litsenziyasi](https://themeforest.net/licenses/standard) bo'yicha ishlatiladi: har bir foydalanuvchida o'z Fuse litsenziyasi bo'lishi shart. Tafsilotlar: [LICENSE](LICENSE).
 
 ## Minnatdorchilik
 
-- [Angular Schematics](https://angular.io/guide/schematics) - Rasmiy Angular schematics qo'llanmasi
-- [Fuse Admin Shablon](https://themeforest.net/item/fuse-angular-angular-admin-template/9851916) - Asl Fuse shabloni
-- [PrimeNG](https://primeng.org/) - UI komponentlar kutubxonasi
-- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS freymvorki
+- [Angular Schematics](https://angular.dev/tools/cli/schematics)
+- [Fuse Admin shablon](https://themeforest.net/item/fuse-angular-angular-admin-template/9851916)
+- [PrimeNG](https://primeng.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
 
 ---
 
-**Angular dasturchilari uchun ❤️ bilan yaratildi**
+## English
+
+Angular schematics that scaffold **Fuse Admin (Angular 20)** projects and full **CRUD feature modules**.
+
+> **Private package**, distributed via GitHub Packages to authorized users only. The generated project is based on the Fuse Admin template, so every user/team needs their own valid [Fuse license](https://themeforest.net/licenses/standard). See [LICENSE](LICENSE).
+
+Setup: add to `~/.npmrc`
+
+```ini
+@islom1999:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
+
+and export a GitHub token with `read:packages` (and access to the repository) as `GITHUB_TOKEN`. Then:
+
+```bash
+npm install -g @angular-devkit/schematics-cli @islom1999/fuse-schematics
+
+# New project (runs npm install and git init; use --skip-install / --skip-git to opt out)
+schematics @islom1999/fuse-schematics:new my-admin
+
+# CRUD feature — also registers the route, the menu item and i18n keys (idempotent)
+cd my-admin
+schematics @islom1999/fuse-schematics:crud product --fields "name:string,price:number,active:boolean,status:enum(active|blocked)"
+
+# All CRUD resources from an OpenAPI/Swagger document (file or URL, JSON or YAML)
+schematics @islom1999/fuse-schematics:openapi --openapi http://localhost:3000/docs-json
+
+# Existing Angular workspace
+ng add @islom1999/fuse-schematics
+ng g @islom1999/fuse-schematics:crud product
+```
+
+**Schematics**
+
+- `fuse-starter` (`starter`, `new`): options `--directory`, `--skipInstall`, `--skipGit`.
+- `fuse-feature` (`feature`, `crud`): options `--fields`, `--openapi`, `--schema`, `--path`, `--project`, `--prefix`, `--skipForm`, `--skipRoute`, `--skipNav`, `--skipI18n`.
+- `fuse-openapi` (`openapi`): one CRUD feature per `/admin/<name>` resource of an OpenAPI 3 / Swagger 2 document; options `--openapi`, `--include`, `--exclude`, `--force` plus the `fuse-feature` path/registration options.
+- `ng-add`: validates the workspace and prints usage; changes no files.
+
+The generated app is **zoneless** (`provideZonelessChangeDetection()`, no zone.js) and uses signal inputs/outputs/queries and the new control flow.
+
+**`--fields`**: comma-separated `name:type`, types `string | number | boolean | date | text | enum(a|b)`, trailing `?` = optional. Generates model interfaces, formly fields, grid columns and table filters.
+
+**Config file**: `fuse-schematics.json` at the workspace root, `{ "fuse-feature": { "path": "...", "prefix": "..." } }`; CLI flags win.
+
+**Requirements**: Node.js ≥ 20.19, Angular 20. License: proprietary (see [LICENSE](LICENSE)); the Fuse-derived template requires a Fuse license.
+
+**Publishing**: `npm publish` with a `write:packages` token (the registry comes from `publishConfig`).

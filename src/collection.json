@@ -1,6 +1,11 @@
 {
   "$schema": "../node_modules/@angular-devkit/schematics/collection-schema.json",
   "schematics": {
+    "ng-add": {
+      "description": "Verify the Angular workspace and print fuse-schematics usage",
+      "factory": "./ng-add/index#ngAdd",
+      "schema": "./ng-add/schema.json"
+    },
     "fuse-starter": {
       "description": "Generate a new Fuse starter Angular project",
       "factory": "./fuse-starter/index#fuseStarter",
@@ -12,6 +17,12 @@
       "factory": "./fuse-feature/index#fuseFeature",
       "schema": "./fuse-feature/schema.json",
       "aliases": ["feature", "crud"]
+    },
+    "fuse-openapi": {
+      "description": "Generate a CRUD feature for every resource of an OpenAPI/Swagger document",
+      "factory": "./fuse-openapi/index#fuseOpenapi",
+      "schema": "./fuse-openapi/schema.json",
+      "aliases": ["openapi"]
     }
   }
 }

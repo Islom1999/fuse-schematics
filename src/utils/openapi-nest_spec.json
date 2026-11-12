@@ -1,0 +1,1079 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api": {
+      "get": {
+        "operationId": "ApiController_health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/auth/sign-in": {
+      "post": {
+        "operationId": "AuthController_signIn",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/sign-in-with-token": {
+      "post": {
+        "operationId": "AuthController_signInWithToken",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInWithTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "operationId": "AuthController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/admin/kategoriya/pagination": {
+      "post": {
+        "operationId": "KategoriyaController_findAllPagination",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryKategoriyaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin/kategoriya"
+        ]
+      }
+    },
+    "/api/admin/kategoriya/pagination/archive": {
+      "post": {
+        "operationId": "KategoriyaController_findAllPaginationArchive",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryKategoriyaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin/kategoriya"
+        ]
+      }
+    },
+    "/api/admin/kategoriya": {
+      "get": {
+        "operationId": "KategoriyaController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Kategoriya"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "All rows (unpaged)",
+        "tags": [
+          "admin/kategoriya"
+        ]
+      },
+      "post": {
+        "operationId": "KategoriyaController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateKategoriyaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Kategoriya"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create",
+        "tags": [
+          "admin/kategoriya"
+        ]
+      }
+    },
+    "/api/admin/kategoriya/archive/{id}": {
+      "get": {
+        "operationId": "KategoriyaController_findOneArchive",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Kategoriya"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "One soft-deleted row",
+        "tags": [
+          "admin/kategoriya"
+        ]
+      }
+    },
+    "/api/admin/kategoriya/repair/{id}": {
+      "get": {
+        "operationId": "KategoriyaController_repair",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Kategoriya"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Restore a soft-deleted row",
+        "tags": [
+          "admin/kategoriya"
+        ]
+      }
+    },
+    "/api/admin/kategoriya/{id}": {
+      "get": {
+        "operationId": "KategoriyaController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Kategoriya"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "One row",
+        "tags": [
+          "admin/kategoriya"
+        ]
+      },
+      "put": {
+        "operationId": "KategoriyaController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateKategoriyaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Kategoriya"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update",
+        "tags": [
+          "admin/kategoriya"
+        ]
+      },
+      "delete": {
+        "operationId": "KategoriyaController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteResultDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Soft delete (move to archive)",
+        "tags": [
+          "admin/kategoriya"
+        ]
+      }
+    },
+    "/api/admin/mahsulot/pagination": {
+      "post": {
+        "operationId": "MahsulotController_findAllPagination",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryMahsulotDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin/mahsulot"
+        ]
+      }
+    },
+    "/api/admin/mahsulot/pagination/archive": {
+      "post": {
+        "operationId": "MahsulotController_findAllPaginationArchive",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryMahsulotDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin/mahsulot"
+        ]
+      }
+    },
+    "/api/admin/mahsulot": {
+      "get": {
+        "operationId": "MahsulotController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Mahsulot"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "All rows (unpaged)",
+        "tags": [
+          "admin/mahsulot"
+        ]
+      },
+      "post": {
+        "operationId": "MahsulotController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMahsulotDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mahsulot"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create",
+        "tags": [
+          "admin/mahsulot"
+        ]
+      }
+    },
+    "/api/admin/mahsulot/archive/{id}": {
+      "get": {
+        "operationId": "MahsulotController_findOneArchive",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mahsulot"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "One soft-deleted row",
+        "tags": [
+          "admin/mahsulot"
+        ]
+      }
+    },
+    "/api/admin/mahsulot/repair/{id}": {
+      "get": {
+        "operationId": "MahsulotController_repair",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mahsulot"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Restore a soft-deleted row",
+        "tags": [
+          "admin/mahsulot"
+        ]
+      }
+    },
+    "/api/admin/mahsulot/{id}": {
+      "get": {
+        "operationId": "MahsulotController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mahsulot"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "One row",
+        "tags": [
+          "admin/mahsulot"
+        ]
+      },
+      "put": {
+        "operationId": "MahsulotController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMahsulotDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mahsulot"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update",
+        "tags": [
+          "admin/mahsulot"
+        ]
+      },
+      "delete": {
+        "operationId": "MahsulotController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteResultDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Soft delete (move to archive)",
+        "tags": [
+          "admin/mahsulot"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "ShopApi API",
+    "description": "",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "SignInDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "admin@example.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "change-me"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "SignInWithTokenDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "accessToken"
+        ]
+      },
+      "Kategoriya": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "deletedAt": {
+            "type": "object",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "description": {
+            "type": "object",
+            "nullable": true
+          },
+          "sortOrder": {
+            "type": "object",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "name",
+          "active"
+        ]
+      },
+      "QueryKategoriyaDto": {
+        "type": "object",
+        "properties": {
+          "first": {
+            "type": "number",
+            "example": 0,
+            "description": "Offset (first row index)"
+          },
+          "rows": {
+            "type": "number",
+            "example": 10,
+            "description": "Rows per page (1..100)"
+          },
+          "sortField": {
+            "type": "object",
+            "example": "createdAt",
+            "description": "Column to sort; empty = default sort"
+          },
+          "sortOrder": {
+            "type": "object",
+            "example": -1,
+            "description": "1 = ASC, anything else = DESC"
+          },
+          "filters": {
+            "type": "object",
+            "additionalProperties": true,
+            "example": {
+              "name": {
+                "value": "abc",
+                "matchMode": "contains"
+              }
+            },
+            "description": "PrimeNG filters: { field: { value, matchMode } } or { field: [{ value, matchMode, operator }] }. matchMode: startsWith, contains, notContains, endsWith, equals, notEquals, in, lt, lte, gt, gte, between, dateIs, dateIsNot, dateBefore, dateAfter. Joined relations: \"category.name\"."
+          },
+          "globalFilter": {
+            "type": "object",
+            "example": "search",
+            "description": "Global search over the service searchFields"
+          }
+        }
+      },
+      "CreateKategoriyaDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "description": {
+            "type": "object",
+            "nullable": true
+          },
+          "sortOrder": {
+            "type": "object",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateKategoriyaDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "description": {
+            "type": "object",
+            "nullable": true
+          },
+          "sortOrder": {
+            "type": "object",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "DeleteResultDto": {
+        "type": "object",
+        "properties": {
+          "deleted": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "deleted",
+          "id"
+        ]
+      },
+      "Mahsulot": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "deletedAt": {
+            "type": "object",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "price": {
+            "type": "number"
+          },
+          "active": {
+            "type": "boolean",
+            "default": false
+          },
+          "note": {
+            "type": "object",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "blocked"
+            ]
+          },
+          "soldAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "kategoriyaId": {
+            "type": "object",
+            "maxLength": 255,
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "name",
+          "price",
+          "active",
+          "status"
+        ]
+      },
+      "QueryMahsulotDto": {
+        "type": "object",
+        "properties": {
+          "first": {
+            "type": "number",
+            "example": 0,
+            "description": "Offset (first row index)"
+          },
+          "rows": {
+            "type": "number",
+            "example": 10,
+            "description": "Rows per page (1..100)"
+          },
+          "sortField": {
+            "type": "object",
+            "example": "createdAt",
+            "description": "Column to sort; empty = default sort"
+          },
+          "sortOrder": {
+            "type": "object",
+            "example": -1,
+            "description": "1 = ASC, anything else = DESC"
+          },
+          "filters": {
+            "type": "object",
+            "additionalProperties": true,
+            "example": {
+              "name": {
+                "value": "abc",
+                "matchMode": "contains"
+              }
+            },
+            "description": "PrimeNG filters: { field: { value, matchMode } } or { field: [{ value, matchMode, operator }] }. matchMode: startsWith, contains, notContains, endsWith, equals, notEquals, in, lt, lte, gt, gte, between, dateIs, dateIsNot, dateBefore, dateAfter. Joined relations: \"category.name\"."
+          },
+          "globalFilter": {
+            "type": "object",
+            "example": "search",
+            "description": "Global search over the service searchFields"
+          }
+        }
+      },
+      "CreateMahsulotDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "price": {
+            "type": "number"
+          },
+          "active": {
+            "type": "boolean",
+            "default": false
+          },
+          "note": {
+            "type": "object",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "blocked"
+            ]
+          },
+          "soldAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "kategoriyaId": {
+            "type": "object",
+            "maxLength": 255,
+            "nullable": true
+          }
+        },
+        "required": [
+          "name",
+          "price",
+          "status"
+        ]
+      },
+      "UpdateMahsulotDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "price": {
+            "type": "number"
+          },
+          "active": {
+            "type": "boolean",
+            "default": false
+          },
+          "note": {
+            "type": "object",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "blocked"
+            ]
+          },
+          "soldAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "kategoriyaId": {
+            "type": "object",
+            "maxLength": 255,
+            "nullable": true
+          }
+        }
+      }
+    }
+  }
+}

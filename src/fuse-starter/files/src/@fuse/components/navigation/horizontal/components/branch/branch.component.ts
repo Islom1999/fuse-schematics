@@ -1,15 +1,6 @@
 import { BooleanInput } from '@angular/cdk/coercion';
-import { NgClass, NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
-import {
-    ChangeDetectionStrategy,
-    ChangeDetectorRef,
-    Component,
-    forwardRef,
-    Input,
-    OnDestroy,
-    OnInit,
-    ViewChild,
-} from '@angular/core';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, forwardRef, Input, OnDestroy, OnInit, input, viewChild, inject } from '@angular/core';
 import { FuseHorizontalNavigationBasicItemComponent } from '@fuse/components/navigation/horizontal/components/basic/basic.component';
 import { FuseHorizontalNavigationDividerItemComponent } from '@fuse/components/navigation/horizontal/components/divider/divider.component';
 import { FuseHorizontalNavigationComponent } from '@fuse/components/navigation/horizontal/horizontal.component';
@@ -25,40 +16,33 @@ import { Popover } from 'primeng/popover';
     templateUrl: './branch.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        NgIf,
-        NgClass,
-        NgTemplateOutlet,
-        NgFor,
-        FuseHorizontalNavigationBasicItemComponent,
-        forwardRef(() => FuseHorizontalNavigationBranchItemComponent),
-        FuseHorizontalNavigationDividerItemComponent,
-        TooltipModule,
-        FuseIconComponent,
-    ],
+    NgClass,
+    NgTemplateOutlet,
+    FuseHorizontalNavigationBasicItemComponent,
+    forwardRef(() => FuseHorizontalNavigationBranchItemComponent),
+    FuseHorizontalNavigationDividerItemComponent,
+    TooltipModule,
+    FuseIconComponent
+],
 })
 export class FuseHorizontalNavigationBranchItemComponent
     implements OnInit, OnDestroy
 {
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+    private _fuseNavigationService = inject(FuseNavigationService);
+
     /* eslint-disable @typescript-eslint/naming-convention */
     static ngAcceptInputType_child: BooleanInput;
     /* eslint-enable @typescript-eslint/naming-convention */
 
-    @Input() child: boolean = false;
+    readonly child = input<boolean>(false);
     @Input() item: FuseNavigationItem;
-    @Input() name: string;
-    @ViewChild('overlayPanel') overlayPanel: Popover;
+    readonly name = input<string>(undefined);
+    readonly overlayPanel = viewChild<Popover>('overlayPanel');
 
     menuOpen: boolean = false;
     private _fuseHorizontalNavigationComponent: FuseHorizontalNavigationComponent;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
-
-    /**
-     * Constructor
-     */
-    constructor(
-        private _changeDetectorRef: ChangeDetectorRef,
-        private _fuseNavigationService: FuseNavigationService
-    ) {}
 
     // -----------------------------------------------------------------------------------------------------
     // @ Lifecycle hooks
@@ -70,7 +54,7 @@ export class FuseHorizontalNavigationBranchItemComponent
     ngOnInit(): void {
         // Get the parent navigation component
         this._fuseHorizontalNavigationComponent =
-            this._fuseNavigationService.getComponent(this.name);
+            this._fuseNavigationService.getComponent(this.name());
 
         // Subscribe to onRefreshed on the navigation component
         this._fuseHorizontalNavigationComponent.onRefreshed

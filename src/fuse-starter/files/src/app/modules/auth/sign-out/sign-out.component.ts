@@ -1,5 +1,5 @@
-import { I18nPluralPipe, NgIf } from '@angular/common';
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { I18nPluralPipe } from '@angular/common';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from 'app/core/auth/auth.service';
 import { finalize, Subject, takeUntil, takeWhile, tap, timer } from 'rxjs';
@@ -8,26 +8,20 @@ import { finalize, Subject, takeUntil, takeWhile, tap, timer } from 'rxjs';
     selector: 'auth-sign-out',
     templateUrl: './sign-out.component.html',
     encapsulation: ViewEncapsulation.None,
-    imports: [NgIf, RouterLink, I18nPluralPipe]
+    imports: [RouterLink, I18nPluralPipe]
 })
 export class AuthSignOutComponent implements OnInit, OnDestroy
 {
+    private _authService = inject(AuthService);
+    private _router = inject(Router);
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+
     countdown: number = 5;
     countdownMapping: any = {
         '=1'   : '# second',
         'other': '# seconds',
     };
     private _unsubscribeAll: Subject<any> = new Subject<any>();
-
-    /**
-     * Constructor
-     */
-    constructor(
-        private _authService: AuthService,
-        private _router: Router,
-    )
-    {
-    }
 
     // -----------------------------------------------------------------------------------------------------
     // @ Lifecycle hooks
@@ -50,7 +44,13 @@ export class AuthSignOutComponent implements OnInit, OnDestroy
                 }),
                 takeWhile(() => this.countdown > 0),
                 takeUntil(this._unsubscribeAll),
-                tap(() => this.countdown--),
+                tap(() =>
+                {
+                    this.countdown--;
+
+                    // Mark for check (zoneless change detection)
+                    this._changeDetectorRef.markForCheck();
+                }),
             )
             .subscribe();
     }

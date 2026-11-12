@@ -1,5 +1,5 @@
-import { NgIf } from '@angular/common';
-import { Component, Inject, OnDestroy, OnInit, Renderer2, ViewEncapsulation, DOCUMENT } from '@angular/core';
+
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, Renderer2, ViewEncapsulation, DOCUMENT, inject } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { FuseConfig, FuseConfigService } from '@fuse/services/config';
 import { FuseMediaWatcherService } from '@fuse/services/media-watcher';
@@ -24,30 +24,24 @@ import { ThinLayoutComponent } from './layouts/vertical/thin/thin.component';
     templateUrl: './layout.component.html',
     styleUrls: ['./layout.component.scss'],
     encapsulation: ViewEncapsulation.None,
-    imports: [NgIf, EmptyLayoutComponent, CenteredLayoutComponent, EnterpriseLayoutComponent, MaterialLayoutComponent, ModernLayoutComponent, ClassicLayoutComponent, ClassyLayoutComponent, CompactLayoutComponent, DenseLayoutComponent, FuturisticLayoutComponent, ThinLayoutComponent, SettingsComponent]
+    imports: [EmptyLayoutComponent, CenteredLayoutComponent, EnterpriseLayoutComponent, MaterialLayoutComponent, ModernLayoutComponent, ClassicLayoutComponent, ClassyLayoutComponent, CompactLayoutComponent, DenseLayoutComponent, FuturisticLayoutComponent, ThinLayoutComponent, SettingsComponent]
 })
 export class LayoutComponent implements OnInit, OnDestroy
 {
+    private _activatedRoute = inject(ActivatedRoute);
+    private _document = inject(DOCUMENT);
+    private _renderer2 = inject(Renderer2);
+    private _router = inject(Router);
+    private _fuseConfigService = inject(FuseConfigService);
+    private _fuseMediaWatcherService = inject(FuseMediaWatcherService);
+    private _fusePlatformService = inject(FusePlatformService);
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+
     config: FuseConfig;
     layout: string;
     scheme: 'dark' | 'light';
     theme: string;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
-
-    /**
-     * Constructor
-     */
-    constructor(
-        private _activatedRoute: ActivatedRoute,
-        @Inject(DOCUMENT) private _document: any,
-        private _renderer2: Renderer2,
-        private _router: Router,
-        private _fuseConfigService: FuseConfigService,
-        private _fuseMediaWatcherService: FuseMediaWatcherService,
-        private _fusePlatformService: FusePlatformService,
-    )
-    {
-    }
 
     // -----------------------------------------------------------------------------------------------------
     // @ Lifecycle hooks
@@ -89,6 +83,9 @@ export class LayoutComponent implements OnInit, OnDestroy
             // Update the scheme and theme
             this._updateScheme();
             this._updateTheme();
+
+            // Mark for check (zoneless change detection)
+            this._changeDetectorRef.markForCheck();
         });
 
         // Subscribe to config changes
@@ -101,6 +98,9 @@ export class LayoutComponent implements OnInit, OnDestroy
 
                 // Update the layout
                 this._updateLayout();
+
+                // Mark for check (zoneless change detection)
+                this._changeDetectorRef.markForCheck();
             });
 
         // Subscribe to NavigationEnd event
@@ -111,6 +111,9 @@ export class LayoutComponent implements OnInit, OnDestroy
         {
             // Update the layout
             this._updateLayout();
+
+            // Mark for check (zoneless change detection)
+            this._changeDetectorRef.markForCheck();
         });
 
         // Set the app version

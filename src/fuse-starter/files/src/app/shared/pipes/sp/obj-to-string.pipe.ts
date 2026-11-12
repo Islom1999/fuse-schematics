@@ -7,14 +7,17 @@ import { Pipe, type PipeTransform } from '@angular/core'
 export class ObjToStringPipe implements PipeTransform {
   transform(
     value: number | string,
-    items: any[] | any[] | null,
+    items: readonly object[] | null,
     valueKey: string,
     labelKey = 'label',
-  ) {
+  ): unknown {
     if (!value || !items) {
       return ''
     }
 
-    return items.find((item) => item[valueKey] == value)?.[labelKey] || ''
+    const match = items.find(
+      (item) => (item as Record<string, unknown>)[valueKey] == value,
+    ) as Record<string, unknown> | undefined
+    return match?.[labelKey] || ''
   }
 }

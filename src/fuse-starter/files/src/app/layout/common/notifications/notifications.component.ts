@@ -1,7 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
-import { DatePipe, NgClass, NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { DatePipe, NgClass, NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewContainerRef, ViewEncapsulation, viewChild, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NotificationsService } from 'app/layout/common/notifications/notifications.service';
 import { Notification } from 'app/layout/common/notifications/notifications.types';
@@ -17,29 +17,22 @@ import { ElementRef } from '@angular/core';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     exportAs: 'notifications',
-    imports: [ButtonModule, NgIf, TooltipModule, NgFor, NgClass, NgTemplateOutlet, RouterLink, DatePipe, FuseIconComponent]
+    imports: [ButtonModule, TooltipModule, NgClass, NgTemplateOutlet, RouterLink, DatePipe, FuseIconComponent]
 })
 export class NotificationsComponent implements OnInit, OnDestroy
 {
-    @ViewChild('notificationsOrigin', {read: ElementRef}) private _notificationsOrigin: ElementRef<HTMLElement>;
-    @ViewChild('notificationsPanel') private _notificationsPanel: TemplateRef<any>;
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+    private _notificationsService = inject(NotificationsService);
+    private _overlay = inject(Overlay);
+    private _viewContainerRef = inject(ViewContainerRef);
+
+    private readonly _notificationsOrigin = viewChild('notificationsOrigin', { read: ElementRef });
+    private readonly _notificationsPanel = viewChild<TemplateRef<any>>('notificationsPanel');
 
     notifications: Notification[];
     unreadCount: number = 0;
     private _overlayRef: OverlayRef;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
-
-    /**
-     * Constructor
-     */
-    constructor(
-        private _changeDetectorRef: ChangeDetectorRef,
-        private _notificationsService: NotificationsService,
-        private _overlay: Overlay,
-        private _viewContainerRef: ViewContainerRef,
-    )
-    {
-    }
 
     // -----------------------------------------------------------------------------------------------------
     // @ Lifecycle hooks
@@ -92,7 +85,8 @@ export class NotificationsComponent implements OnInit, OnDestroy
     openPanel(): void
     {
         // Return if the notifications panel or its origin is not defined
-        if ( !this._notificationsPanel || !this._notificationsOrigin )
+        const _notificationsPanel = this._notificationsPanel();
+        if ( !_notificationsPanel || !this._notificationsOrigin() )
         {
             return;
         }
@@ -104,7 +98,7 @@ export class NotificationsComponent implements OnInit, OnDestroy
         }
 
         // Attach the portal to the overlay
-        this._overlayRef.attach(new TemplatePortal(this._notificationsPanel, this._viewContainerRef));
+        this._overlayRef.attach(new TemplatePortal(_notificationsPanel, this._viewContainerRef));
     }
 
     /**
@@ -171,7 +165,7 @@ export class NotificationsComponent implements OnInit, OnDestroy
             backdropClass   : 'fuse-backdrop-on-mobile',
             scrollStrategy  : this._overlay.scrollStrategies.block(),
             positionStrategy: this._overlay.position()
-                .flexibleConnectedTo(this._notificationsOrigin.nativeElement)
+                .flexibleConnectedTo(this._notificationsOrigin().nativeElement)
                 .withLockedPosition(true)
                 .withPush(true)
                 .withPositions([

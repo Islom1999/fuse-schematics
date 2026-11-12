@@ -1,4 +1,4 @@
-import { NgClass, NgIf } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
 
 type IconInput = string | null | undefined;
@@ -10,7 +10,7 @@ type IconInput = string | null | undefined;
     styleUrls: ['./icon.component.scss'],
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [NgIf, NgClass],
+    imports: [NgClass],
 })
 export class FuseIconComponent
 {

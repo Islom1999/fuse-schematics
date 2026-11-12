@@ -21,19 +21,13 @@
               "base": "dist/fuse"
             },
             "index": "src/index.html",
-            "polyfills": [
-              "zone.js"
-            ],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "allowedCommonJsDependencies": [
-              "apexcharts",
-              "highlight.js",
               "crypto-js/enc-utf8",
               "crypto-js/hmac-sha256",
               "crypto-js/enc-base64",
-              "flat",
-              "quill"
+              "flat"
             ],
             "assets": [
               "src/favicon-16x16.png",
@@ -51,6 +45,8 @@
               ]
             },
             "styles": [
+              "src/assets/fonts/inter/inter.css",
+              "src/assets/styles/splash-screen.css",
               "node_modules/primeicons/primeicons.css",
               "src/@fuse/styles/tailwind.scss",
               "src/@fuse/styles/themes.scss",
@@ -116,10 +112,7 @@
         "test": {
           "builder": "@angular/build:karma",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
+            "main": "src/test.ts",
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -147,9 +140,9 @@
     }
   },
   "cli": {
-    "analytics": "951f0916-4e9f-4f2f-abdf-e7e7e3e6dc4d",
+    "analytics": false,
     "schematicCollections": [
-      "@angular-eslint/schematics"
+      "angular-eslint"
     ]
   },
   "schematics": {

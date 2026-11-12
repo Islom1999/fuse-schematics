@@ -1,6 +1,6 @@
 import { BooleanInput, coerceBooleanProperty } from '@angular/cdk/coercion';
-import { NgIf } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, HostBinding, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewEncapsulation } from '@angular/core';
+
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewEncapsulation, input, output, inject } from '@angular/core';
 import { fuseAnimations } from '@fuse/animations';
 import { FuseAlertService } from '@fuse/components/alert/alert.service';
 import { FuseAlertAppearance, FuseAlertType } from '@fuse/components/alert/alert.types';
@@ -18,23 +18,27 @@ import { filter, Subject, takeUntil } from 'rxjs';
     changeDetection: ChangeDetectionStrategy.OnPush,
     animations: fuseAnimations,
     exportAs: 'fuseAlert',
-    imports: [NgIf, FuseIconComponent, ButtonModule]
+    imports: [FuseIconComponent, ButtonModule]
 })
 export class FuseAlertComponent implements OnChanges, OnInit, OnDestroy
 {
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+    private _fuseAlertService = inject(FuseAlertService);
+    private _fuseUtilsService = inject(FuseUtilsService);
+
     /* eslint-disable @typescript-eslint/naming-convention */
     static ngAcceptInputType_dismissible: BooleanInput;
     static ngAcceptInputType_dismissed: BooleanInput;
     static ngAcceptInputType_showIcon: BooleanInput;
     /* eslint-enable @typescript-eslint/naming-convention */
 
-    @Input() appearance: FuseAlertAppearance = 'soft';
+    readonly appearance = input<FuseAlertAppearance>('soft');
     @Input() dismissed: boolean = false;
     @Input() dismissible: boolean = false;
-    @Input() name: string = this._fuseUtilsService.randomId();
+    readonly name = input<string>(this._fuseUtilsService.randomId());
     @Input() showIcon: boolean = true;
-    @Input() type: FuseAlertType = 'primary';
-    @Output() readonly dismissedChanged: EventEmitter<boolean> = new EventEmitter<boolean>();
+    readonly type = input<FuseAlertType>('primary');
+    readonly dismissedChanged = output<boolean>();
 
     protected readonly dismissIcon: string = PrimeIcons.TIMES;
 
@@ -50,17 +54,6 @@ export class FuseAlertComponent implements OnChanges, OnInit, OnDestroy
         error  : PrimeIcons.TIMES_CIRCLE,
     };
 
-    /**
-     * Constructor
-     */
-    constructor(
-        private _changeDetectorRef: ChangeDetectorRef,
-        private _fuseAlertService: FuseAlertService,
-        private _fuseUtilsService: FuseUtilsService,
-    )
-    {
-    }
-
     // -----------------------------------------------------------------------------------------------------
     // @ Accessors
     // -----------------------------------------------------------------------------------------------------
@@ -72,21 +65,21 @@ export class FuseAlertComponent implements OnChanges, OnInit, OnDestroy
     {
         /* eslint-disable @typescript-eslint/naming-convention */
         return {
-            'fuse-alert-appearance-border' : this.appearance === 'border',
-            'fuse-alert-appearance-fill'   : this.appearance === 'fill',
-            'fuse-alert-appearance-outline': this.appearance === 'outline',
-            'fuse-alert-appearance-soft'   : this.appearance === 'soft',
+            'fuse-alert-appearance-border' : this.appearance() === 'border',
+            'fuse-alert-appearance-fill'   : this.appearance() === 'fill',
+            'fuse-alert-appearance-outline': this.appearance() === 'outline',
+            'fuse-alert-appearance-soft'   : this.appearance() === 'soft',
             'fuse-alert-dismissed'         : this.dismissed,
             'fuse-alert-dismissible'       : this.dismissible,
             'fuse-alert-show-icon'         : this.showIcon,
-            'fuse-alert-type-primary'      : this.type === 'primary',
-            'fuse-alert-type-accent'       : this.type === 'accent',
-            'fuse-alert-type-warn'         : this.type === 'warn',
-            'fuse-alert-type-basic'        : this.type === 'basic',
-            'fuse-alert-type-info'         : this.type === 'info',
-            'fuse-alert-type-success'      : this.type === 'success',
-            'fuse-alert-type-warning'      : this.type === 'warning',
-            'fuse-alert-type-error'        : this.type === 'error',
+            'fuse-alert-type-primary'      : this.type() === 'primary',
+            'fuse-alert-type-accent'       : this.type() === 'accent',
+            'fuse-alert-type-warn'         : this.type() === 'warn',
+            'fuse-alert-type-basic'        : this.type() === 'basic',
+            'fuse-alert-type-info'         : this.type() === 'info',
+            'fuse-alert-type-success'      : this.type() === 'success',
+            'fuse-alert-type-warning'      : this.type() === 'warning',
+            'fuse-alert-type-error'        : this.type() === 'error',
         };
         /* eslint-enable @typescript-eslint/naming-convention */
     }
@@ -135,7 +128,7 @@ export class FuseAlertComponent implements OnChanges, OnInit, OnDestroy
         // Subscribe to the dismiss calls
         this._fuseAlertService.onDismiss
             .pipe(
-                filter(name => this.name === name),
+                filter(name => this.name() === name),
                 takeUntil(this._unsubscribeAll),
             )
             .subscribe(() =>
@@ -147,7 +140,7 @@ export class FuseAlertComponent implements OnChanges, OnInit, OnDestroy
         // Subscribe to the show calls
         this._fuseAlertService.onShow
             .pipe(
-                filter(name => this.name === name),
+                filter(name => this.name() === name),
                 takeUntil(this._unsubscribeAll),
             )
             .subscribe(() =>
@@ -223,7 +216,7 @@ export class FuseAlertComponent implements OnChanges, OnInit, OnDestroy
         this.dismissed = dismissed;
 
         // Execute the observable
-        this.dismissedChanged.next(this.dismissed);
+        this.dismissedChanged.emit(this.dismissed);
 
         // Notify the change detector
         this._changeDetectorRef.markForCheck();
@@ -234,6 +227,6 @@ export class FuseAlertComponent implements OnChanges, OnInit, OnDestroy
      */
     protected get defaultIcon(): string
     {
-        return this._defaultIconMap[this.type] ?? PrimeIcons.INFO_CIRCLE;
+        return this._defaultIconMap[this.type()] ?? PrimeIcons.INFO_CIRCLE;
     }
 }

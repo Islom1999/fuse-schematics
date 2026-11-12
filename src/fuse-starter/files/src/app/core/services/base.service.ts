@@ -1,15 +1,14 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http'
-import { Inject, Injectable } from '@angular/core'
+import { Injectable, inject } from '@angular/core'
 import { DITokens } from '../utils/di-tokens'
 
 @Injectable({
   providedIn: 'root',
 })
 export class BaseApiService {
-  constructor(
-    private http: HttpClient,
-    @Inject(DITokens.API_BASE_URL) public apiBaseUrl: string,
-  ) {}
+  private http = inject(HttpClient);
+  apiBaseUrl = inject(DITokens.API_BASE_URL);
+
 
   get<T>(
     path: string,

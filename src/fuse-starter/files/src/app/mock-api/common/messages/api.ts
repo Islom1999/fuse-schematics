@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { FuseMockApiService, FuseMockApiUtils } from '@fuse/lib/mock-api';
 import { messages as messagesData } from 'app/mock-api/common/messages/data';
 import { assign, cloneDeep } from 'lodash-es';
@@ -6,12 +6,14 @@ import { assign, cloneDeep } from 'lodash-es';
 @Injectable({providedIn: 'root'})
 export class MessagesMockApi
 {
+    private _fuseMockApiService = inject(FuseMockApiService);
+
     private _messages: any = messagesData;
 
     /**
      * Constructor
      */
-    constructor(private _fuseMockApiService: FuseMockApiService)
+    constructor()
     {
         // Register Mock API handlers
         this.registerHandlers();

@@ -1,5 +1,5 @@
-import { NgIf } from '@angular/common';
-import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+
+import { ChangeDetectorRef, Component, OnInit, ViewEncapsulation, viewChild, inject } from '@angular/core';
 import {
     FormsModule,
     NgForm,
@@ -24,20 +24,24 @@ import { FuseIconComponent } from '@fuse/components/icon';
     encapsulation: ViewEncapsulation.None,
     animations: fuseAnimations,
     imports: [
-        RouterLink,
-        NgIf,
-        FuseAlertComponent,
-        FormsModule,
-        ReactiveFormsModule,
-        ButtonModule,
-        InputTextModule,
-        CheckboxModule,
-        ProgressSpinnerModule,
-        FuseIconComponent,
-    ],
+    RouterLink,
+    FuseAlertComponent,
+    FormsModule,
+    ReactiveFormsModule,
+    ButtonModule,
+    InputTextModule,
+    CheckboxModule,
+    ProgressSpinnerModule,
+    FuseIconComponent
+],
 })
 export class AuthSignUpComponent implements OnInit {
-    @ViewChild('signUpNgForm') signUpNgForm: NgForm;
+    private _authService = inject(AuthService);
+    private _formBuilder = inject(UntypedFormBuilder);
+    private _router = inject(Router);
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+
+    readonly signUpNgForm = viewChild<NgForm>('signUpNgForm');
 
     alert: { type: FuseAlertType; message: string } = {
         type: 'success',
@@ -46,15 +50,6 @@ export class AuthSignUpComponent implements OnInit {
     signUpForm: UntypedFormGroup;
     showAlert: boolean = false;
     hidePassword: boolean = true;
-
-    /**
-     * Constructor
-     */
-    constructor(
-        private _authService: AuthService,
-        private _formBuilder: UntypedFormBuilder,
-        private _router: Router
-    ) {}
 
     // -----------------------------------------------------------------------------------------------------
     // @ Lifecycle hooks
@@ -107,7 +102,7 @@ export class AuthSignUpComponent implements OnInit {
                 this.signUpForm.enable();
 
                 // Reset the form
-                this.signUpNgForm.resetForm({
+                this.signUpNgForm().resetForm({
                     name      : '',
                     email     : '',
                     password  : '',
@@ -133,6 +128,9 @@ export class AuthSignUpComponent implements OnInit {
 
                 // Show the alert
                 this.showAlert = true;
+
+                // Mark for check (zoneless change detection)
+                this._changeDetectorRef.markForCheck();
             },
         );
     }

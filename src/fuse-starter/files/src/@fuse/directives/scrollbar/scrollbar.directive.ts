@@ -1,6 +1,6 @@
 import { BooleanInput, coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Platform } from '@angular/cdk/platform';
-import { Directive, ElementRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Directive, ElementRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, input, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ScrollbarGeometry, ScrollbarPosition } from '@fuse/directives/scrollbar/scrollbar.types';
 import { merge } from 'lodash-es';
@@ -17,28 +17,21 @@ import { debounceTime, fromEvent, Subject, takeUntil } from 'rxjs';
 })
 export class FuseScrollbarDirective implements OnChanges, OnInit, OnDestroy
 {
+    private _elementRef = inject(ElementRef);
+    private _platform = inject(Platform);
+    private _router = inject(Router);
+
     /* eslint-disable @typescript-eslint/naming-convention */
     static ngAcceptInputType_fuseScrollbar: BooleanInput;
     /* eslint-enable @typescript-eslint/naming-convention */
 
     @Input() fuseScrollbar: boolean = true;
-    @Input() fuseScrollbarOptions: PerfectScrollbar.Options;
+    readonly fuseScrollbarOptions = input<PerfectScrollbar.Options>(undefined);
 
     private _animation: number;
     private _options: PerfectScrollbar.Options;
     private _ps: PerfectScrollbar;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
-
-    /**
-     * Constructor
-     */
-    constructor(
-        private _elementRef: ElementRef,
-        private _platform: Platform,
-        private _router: Router,
-    )
-    {
-    }
 
     // -----------------------------------------------------------------------------------------------------
     // @ Accessors

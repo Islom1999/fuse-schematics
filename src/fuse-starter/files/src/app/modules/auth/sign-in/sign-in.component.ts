@@ -1,5 +1,5 @@
-import { NgIf } from '@angular/common';
-import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+
+import { ChangeDetectorRef, Component, OnInit, ViewEncapsulation, viewChild, inject } from '@angular/core';
 import {
     FormsModule,
     NgForm,
@@ -24,20 +24,25 @@ import { FuseIconComponent } from '@fuse/components/icon';
     encapsulation: ViewEncapsulation.None,
     animations: fuseAnimations,
     imports: [
-        RouterLink,
-        FuseAlertComponent,
-        NgIf,
-        FormsModule,
-        ReactiveFormsModule,
-        ButtonModule,
-        InputTextModule,
-        CheckboxModule,
-        ProgressSpinnerModule,
-        FuseIconComponent,
-    ],
+    RouterLink,
+    FuseAlertComponent,
+    FormsModule,
+    ReactiveFormsModule,
+    ButtonModule,
+    InputTextModule,
+    CheckboxModule,
+    ProgressSpinnerModule,
+    FuseIconComponent
+],
 })
 export class AuthSignInComponent implements OnInit {
-    @ViewChild('signInNgForm') signInNgForm: NgForm;
+    private _activatedRoute = inject(ActivatedRoute);
+    private _authService = inject(AuthService);
+    private _formBuilder = inject(UntypedFormBuilder);
+    private _router = inject(Router);
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+
+    readonly signInNgForm = viewChild<NgForm>('signInNgForm');
 
     alert: { type: FuseAlertType; message: string } = {
         type: 'success',
@@ -46,16 +51,6 @@ export class AuthSignInComponent implements OnInit {
     signInForm: UntypedFormGroup;
     showAlert: boolean = false;
     hidePassword: boolean = true;
-
-    /**
-     * Constructor
-     */
-    constructor(
-        private _activatedRoute: ActivatedRoute,
-        private _authService: AuthService,
-        private _formBuilder: UntypedFormBuilder,
-        private _router: Router
-    ) {}
 
     // -----------------------------------------------------------------------------------------------------
     // @ Lifecycle hooks
@@ -117,7 +112,7 @@ export class AuthSignInComponent implements OnInit {
                 this.signInForm.enable();
 
                 // Reset the form
-                this.signInNgForm.resetForm({
+                this.signInNgForm().resetForm({
                     email     : '',
                     password  : '',
                     rememberMe: false,
@@ -139,6 +134,9 @@ export class AuthSignInComponent implements OnInit {
 
                 // Show the alert
                 this.showAlert = true;
+
+                // Mark for check (zoneless change detection)
+                this._changeDetectorRef.markForCheck();
             },
         );
     }

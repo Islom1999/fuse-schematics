@@ -1,12 +1,12 @@
-import { NgFor, NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation, viewChild, inject } from '@angular/core';
 import { FuseNavigationService, FuseVerticalNavigationComponent } from '@fuse/components/navigation';
-import { AvailableLangs, TranslocoService } from '@ngneat/transloco';
+import { AvailableLangs, TranslocoService } from '@jsverse/transloco';
 import { take } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { PopoverModule } from 'primeng/popover';
 import { Popover } from 'primeng/popover';
-import { ViewChild } from '@angular/core';
+
 
 @Component({
     selector: 'languages',
@@ -14,25 +14,18 @@ import { ViewChild } from '@angular/core';
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     exportAs: 'languages',
-    imports: [ButtonModule, PopoverModule, NgTemplateOutlet, NgFor]
+    imports: [ButtonModule, PopoverModule, NgTemplateOutlet]
 })
 export class LanguagesComponent implements OnInit, OnDestroy
 {
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+    private _fuseNavigationService = inject(FuseNavigationService);
+    private _translocoService = inject(TranslocoService);
+
     availableLangs: AvailableLangs;
     activeLang: string;
     flagCodes: any;
-    @ViewChild('languagesPopover') languagesPopover: Popover;
-
-    /**
-     * Constructor
-     */
-    constructor(
-        private _changeDetectorRef: ChangeDetectorRef,
-        private _fuseNavigationService: FuseNavigationService,
-        private _translocoService: TranslocoService,
-    )
-    {
-    }
+    readonly languagesPopover = viewChild<Popover>('languagesPopover');
 
     // -----------------------------------------------------------------------------------------------------
     // @ Lifecycle hooks
@@ -54,6 +47,9 @@ export class LanguagesComponent implements OnInit, OnDestroy
 
             // Update the navigation
             this._updateNavigation(activeLang);
+
+            // Mark for check (zoneless change detection)
+            this._changeDetectorRef.markForCheck();
         });
 
         // Set the country iso codes for languages for flags
@@ -85,7 +81,7 @@ export class LanguagesComponent implements OnInit, OnDestroy
         this._translocoService.setActiveLang(lang);
 
         // Close the panel
-        this.languagesPopover?.hide();
+        this.languagesPopover()?.hide();
     }
 
     /**
@@ -128,7 +124,7 @@ export class LanguagesComponent implements OnInit, OnDestroy
         }
 
         // Get the flat navigation data
-        const navigation = navComponent.navigation;
+        const navigation = navComponent.navigation();
 
         // Get the Project dashboard item and update its title
         const projectDashboardItem = this._fuseNavigationService.getItem('dashboards.project', navigation);

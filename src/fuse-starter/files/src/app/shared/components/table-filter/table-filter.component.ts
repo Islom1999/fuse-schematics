@@ -1,42 +1,34 @@
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter,
-  OnInit,
-  ChangeDetectionStrategy,
-  inject,
-} from '@angular/core'
-import { CommonModule } from '@angular/common'
+import { Component, OnInit, ChangeDetectionStrategy, input, output, signal } from '@angular/core'
+
 import { FormGroup, ReactiveFormsModule } from '@angular/forms'
 import { FormlyModule, FormlyFieldConfig } from '@ngx-formly/core'
-import { FormlyPrimeNGModule } from '@ngx-formly/primeng'
 import { ButtonModule } from 'primeng/button'
-import { TranslocoPipe } from '@ngneat/transloco'
+import { TranslocoPipe } from '@jsverse/transloco'
 import { ITableFilterConfig, convertToFormlyFields } from './table-filter.model'
 import { debounceTime } from 'rxjs/operators'
 
 @Component({
   selector: 'app-table-filter',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormlyModule, ButtonModule, TranslocoPipe],
+  imports: [ReactiveFormsModule, FormlyModule, ButtonModule, TranslocoPipe],
   templateUrl: './table-filter.component.html',
   styleUrls: ['./table-filter.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TableFilterComponent implements OnInit {
-  @Input() config!: ITableFilterConfig
-  @Input() debounceTime = 500
-  @Output() filterChange = new EventEmitter<any>()
-  @Output() filterReset = new EventEmitter<void>()
+  readonly config = input.required<ITableFilterConfig>()
+  readonly debounceTime = input(500)
+  readonly filterChange = output<Record<string, unknown>>()
+  readonly filterReset = output<void>()
 
   form = new FormGroup({})
-  model: any = {}
+  model: Record<string, unknown> = {}
   fields: FormlyFieldConfig[] = []
-  isExpanded = false
+  readonly isExpanded = signal(false)
 
   ngOnInit(): void {
-    if (!this.config || !this.config.fields) {
+    const config = this.config()
+    if (!config || !config.fields) {
       console.warn('TableFilterComponent: config or fields not provided')
       return
     }
@@ -47,25 +39,25 @@ export class TableFilterComponent implements OnInit {
 
   private initializeFilter(): void {
     // Convert IFilterField to FormlyFieldConfig
-    this.fields = convertToFormlyFields(this.config.fields)
+    this.fields = convertToFormlyFields(this.config().fields)
 
     // Set initial model values
-    this.model = this.config.fields.reduce((acc, field) => {
+    this.model = this.config().fields.reduce<Record<string, unknown>>((acc, field) => {
       acc[field.key] = field.defaultValue ?? null
       return acc
-    }, {} as any)
+    }, {})
   }
 
   private setupFormValueChanges(): void {
-    this.form.valueChanges.pipe(debounceTime(this.debounceTime)).subscribe((values) => {
+    this.form.valueChanges.pipe(debounceTime(this.debounceTime())).subscribe((values) => {
       // Remove null, undefined, empty string values
       const cleanedValues = this.cleanFilterValues(values)
       this.filterChange.emit(cleanedValues)
     })
   }
 
-  private cleanFilterValues(values: any): any {
-    const cleaned: any = {}
+  private cleanFilterValues(values: Record<string, unknown>): Record<string, unknown> {
+    const cleaned: Record<string, unknown> = {}
     Object.keys(values).forEach((key) => {
       const value = values[key]
       if (value !== null && value !== undefined && value !== '') {
@@ -80,7 +72,19 @@ export class TableFilterComponent implements OnInit {
   }
 
   toggleFilter(): void {
-    this.isExpanded = !this.isExpanded
+    this.isExpanded.update((expanded) => !expanded)
+  }
+
+  /**
+   * Keyboard support for the collapsible header (Enter / Space).
+   * Ignores key events bubbling up from nested controls (e.g. the reset button).
+   */
+  onHeaderKeydown(event: Event): void {
+    if (event.target !== event.currentTarget) {
+      return
+    }
+    event.preventDefault()
+    this.toggleFilter()
   }
 
   onReset(): void {
@@ -114,7 +118,7 @@ export class TableFilterComponent implements OnInit {
   }
 
   get gridClass(): string {
-    const columns = this.config.columns || 3
+    const columns = this.config().columns || 3
     return `grid gap-3 md:grid-cols-2 lg:grid-cols-${columns}`
   }
 }

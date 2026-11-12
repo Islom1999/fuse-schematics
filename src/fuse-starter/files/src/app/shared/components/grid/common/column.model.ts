@@ -3,7 +3,7 @@ export type ColumnFilterType = 'text' | 'select' | 'boolean' | 'date'
 
 export interface ColumnFilterOption {
   label: string
-  value: any
+  value: unknown
 }
 
 export interface IColumn {

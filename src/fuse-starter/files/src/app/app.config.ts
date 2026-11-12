@@ -1,6 +1,11 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http'
-import { ApplicationConfig, inject, provideAppInitializer } from '@angular/core'
-import { provideAnimations } from '@angular/platform-browser/animations'
+import {
+  ApplicationConfig,
+  inject,
+  provideAppInitializer,
+  provideBrowserGlobalErrorListeners,
+  provideZonelessChangeDetection,
+} from '@angular/core'
 import {
   PreloadAllModules,
   provideRouter,
@@ -8,7 +13,7 @@ import {
   withPreloading,
 } from '@angular/router'
 import { provideFuse } from '@fuse'
-import { provideTransloco, TranslocoService } from '@ngneat/transloco'
+import { provideTransloco, TranslocoService } from '@jsverse/transloco'
 import { firstValueFrom } from 'rxjs'
 import { appRoutes } from 'app/app.routes'
 import { provideAuth } from 'app/core/auth/auth.provider'
@@ -35,7 +40,11 @@ import { authInterceptor } from './core/auth/auth.interceptor'
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideAnimations(),
+    // Zoneless change detection (zone.js is not loaded). Change detection runs on
+    // signal updates, template/host event listeners, async pipe and markForCheck().
+    provideZonelessChangeDetection(),
+    provideBrowserGlobalErrorListeners(),
+
     provideHttpClient(withInterceptors([authInterceptor])),
     provideRouter(
       appRoutes,

@@ -1,15 +1,17 @@
 import { Platform } from '@angular/cdk/platform';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 
 @Injectable({providedIn: 'root'})
 export class FusePlatformService
 {
+    private _platform = inject(Platform);
+
     osName = 'os-unknown';
 
     /**
      * Constructor
      */
-    constructor(private _platform: Platform)
+    constructor()
     {
         // If the platform is not a browser, return immediately
         if ( !this._platform.isBrowser )

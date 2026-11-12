@@ -1,14 +1,6 @@
 import { BooleanInput } from '@angular/cdk/coercion';
-import { NgClass, NgIf } from '@angular/common';
-import {
-    ChangeDetectionStrategy,
-    ChangeDetectorRef,
-    Component,
-    Input,
-    OnDestroy,
-    OnInit,
-    ViewEncapsulation,
-} from '@angular/core';
+import { NgClass } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation, input, viewChild, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserService } from 'app/core/user/user.service';
 import { User } from 'app/core/user/user.types';
@@ -17,7 +9,7 @@ import { FuseIconComponent } from '@fuse/components/icon';
 import { ButtonModule } from 'primeng/button';
 import { PopoverModule } from 'primeng/popover';
 import { Popover } from 'primeng/popover';
-import { ViewChild } from '@angular/core';
+
 
 @Component({
     selector: 'user',
@@ -26,33 +18,27 @@ import { ViewChild } from '@angular/core';
     changeDetection: ChangeDetectionStrategy.OnPush,
     exportAs: 'user',
     imports: [
-        ButtonModule,
-        PopoverModule,
-        NgIf,
-        NgClass,
-        FuseIconComponent,
-    ],
+    ButtonModule,
+    PopoverModule,
+    NgClass,
+    FuseIconComponent
+],
 })
 export class UserComponent implements OnInit, OnDestroy {
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+    private _router = inject(Router);
+    private _userService = inject(UserService);
+
     /* eslint-disable @typescript-eslint/naming-convention */
     static ngAcceptInputType_showAvatar: BooleanInput;
     /* eslint-enable @typescript-eslint/naming-convention */
 
-    @Input() showAvatar: boolean = true;
+    readonly showAvatar = input<boolean>(true);
     user: User;
     showStatusList: boolean = false;
-    @ViewChild('userPopover') userPopover: Popover;
+    readonly userPopover = viewChild<Popover>('userPopover');
 
     private _unsubscribeAll: Subject<any> = new Subject<any>();
-
-    /**
-     * Constructor
-     */
-    constructor(
-        private _changeDetectorRef: ChangeDetectorRef,
-        private _router: Router,
-        private _userService: UserService
-    ) {}
 
     // -----------------------------------------------------------------------------------------------------
     // @ Lifecycle hooks
@@ -106,7 +92,7 @@ export class UserComponent implements OnInit, OnDestroy {
             .subscribe();
 
         this.showStatusList = false;
-        this.userPopover?.hide();
+        this.userPopover()?.hide();
     }
 
     /**
@@ -114,7 +100,7 @@ export class UserComponent implements OnInit, OnDestroy {
      */
     signOut(): void {
         this._router.navigate(['/sign-out']);
-        this.userPopover?.hide();
+        this.userPopover()?.hide();
     }
 
     toggleStatusList(): void {

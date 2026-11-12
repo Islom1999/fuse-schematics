@@ -1,19 +1,14 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Message } from 'app/layout/common/messages/messages.types';
 import { map, Observable, ReplaySubject, switchMap, take, tap } from 'rxjs';
 
 @Injectable({providedIn: 'root'})
 export class MessagesService
 {
-    private _messages: ReplaySubject<Message[]> = new ReplaySubject<Message[]>(1);
+    private _httpClient = inject(HttpClient);
 
-    /**
-     * Constructor
-     */
-    constructor(private _httpClient: HttpClient)
-    {
-    }
+    private _messages: ReplaySubject<Message[]> = new ReplaySubject<Message[]>(1);
 
     // -----------------------------------------------------------------------------------------------------
     // @ Accessors

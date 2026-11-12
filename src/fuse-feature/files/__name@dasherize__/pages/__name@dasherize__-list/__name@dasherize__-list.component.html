@@ -3,7 +3,7 @@
   [columns]="columns"
   [addButtonText]="'admin.<%= camelize(name) %>.addNew'"
   addButtonIcon="pi pi-plus"
-  [showAddButton]="true"
+  [showAddButton]="<%= !skipForm %>"
   (onClickAdd)="onAddClick()"
   (onRowSelect)="onRowSelect($event)"
   [$data]="gridService"

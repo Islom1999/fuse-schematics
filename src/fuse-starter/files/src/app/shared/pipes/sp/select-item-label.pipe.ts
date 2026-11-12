@@ -6,7 +6,7 @@ import { ObjToStringPipe } from './obj-to-string.pipe'
   standalone: true,
 })
 export class SelectItemLabelPipe extends ObjToStringPipe implements PipeTransform {
-  override transform(value: number | string, items: any[] | any[] | null) {
+  override transform(value: number | string, items: readonly object[] | null): unknown {
     return super.transform(value, items, 'value')
   }
 }

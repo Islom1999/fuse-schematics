@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "FuseOpenapiSchema",
+  "title": "Fuse OpenAPI CRUD Schema",
+  "type": "object",
+  "properties": {
+    "openapi": {
+      "type": "string",
+      "description": "OpenAPI 3.x / Swagger 2.0 document (JSON or YAML): a path relative to the workspace root or an http(s) URL, e.g. ./swagger.json or http://localhost:3000/docs-json.",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "Path or URL of the OpenAPI (Swagger) document?"
+    },
+    "include": {
+      "type": "string",
+      "description": "Comma-separated resource names to generate (default: every resource found), e.g. \"mahsulot,kategoriya\"."
+    },
+    "exclude": {
+      "type": "string",
+      "description": "Comma-separated resource names to leave out."
+    },
+    "path": {
+      "type": "string",
+      "description": "Directory the feature folders are created in. Defaults to `<sourceRoot>/app/modules/admin`, or the `fuse-feature.path` value of fuse-schematics.json."
+    },
+    "project": {
+      "type": "string",
+      "description": "Project in angular.json to read sourceRoot from. Defaults to the first application project."
+    },
+    "prefix": {
+      "type": "string",
+      "description": "Component selector prefix. Defaults to `app`, or the `fuse-feature.prefix` value of fuse-schematics.json.",
+      "alias": "p"
+    },
+    "force": {
+      "type": "boolean",
+      "description": "Regenerate (overwrite) features whose folder already exists. Without it existing features are skipped.",
+      "default": false
+    },
+    "skipForm": {
+      "type": "boolean",
+      "description": "Skip form component generation",
+      "default": false
+    },
+    "skipRoute": {
+      "type": "boolean",
+      "description": "Do not register the lazy routes in <sourceRoot>/app/app.routes.ts",
+      "default": false
+    },
+    "skipNav": {
+      "type": "boolean",
+      "description": "Do not add menu items to <sourceRoot>/app/core/navigation/navigation.ts",
+      "default": false
+    },
+    "skipI18n": {
+      "type": "boolean",
+      "description": "Do not add translation keys to <sourceRoot>/assets/i18n/*.json",
+      "default": false
+    }
+  },
+  "required": ["openapi"]
+}

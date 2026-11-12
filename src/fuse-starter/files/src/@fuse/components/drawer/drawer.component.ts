@@ -1,6 +1,6 @@
 import { animate, AnimationBuilder, AnimationPlayer, style } from '@angular/animations';
 import { BooleanInput, coerceBooleanProperty } from '@angular/cdk/coercion';
-import { Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, OnChanges, OnDestroy, OnInit, Output, Renderer2, SimpleChanges, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostBinding, HostListener, Input, OnChanges, OnDestroy, OnInit, Renderer2, SimpleChanges, ViewEncapsulation, input, output, inject } from '@angular/core';
 import { FuseDrawerService } from '@fuse/components/drawer/drawer.service';
 import { FuseDrawerMode, FuseDrawerPosition } from '@fuse/components/drawer/drawer.types';
 import { FuseUtilsService } from '@fuse/services/utils/utils.service';
@@ -15,6 +15,13 @@ import { FuseUtilsService } from '@fuse/services/utils/utils.service';
 })
 export class FuseDrawerComponent implements OnChanges, OnInit, OnDestroy
 {
+    private _animationBuilder = inject(AnimationBuilder);
+    private _elementRef = inject(ElementRef);
+    private _renderer2 = inject(Renderer2);
+    private _fuseDrawerService = inject(FuseDrawerService);
+    private _fuseUtilsService = inject(FuseUtilsService);
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+
     /* eslint-disable @typescript-eslint/naming-convention */
     static ngAcceptInputType_fixed: BooleanInput;
     static ngAcceptInputType_opened: BooleanInput;
@@ -22,15 +29,15 @@ export class FuseDrawerComponent implements OnChanges, OnInit, OnDestroy
     /* eslint-enable @typescript-eslint/naming-convention */
 
     @Input() fixed: boolean = false;
-    @Input() mode: FuseDrawerMode = 'side';
-    @Input() name: string = this._fuseUtilsService.randomId();
+    readonly mode = input<FuseDrawerMode>('side');
+    readonly name = input<string>(this._fuseUtilsService.randomId());
     @Input() opened: boolean = false;
-    @Input() position: FuseDrawerPosition = 'left';
+    readonly position = input<FuseDrawerPosition>('left');
     @Input() transparentOverlay: boolean = false;
-    @Output() readonly fixedChanged: EventEmitter<boolean> = new EventEmitter<boolean>();
-    @Output() readonly modeChanged: EventEmitter<FuseDrawerMode> = new EventEmitter<FuseDrawerMode>();
-    @Output() readonly openedChanged: EventEmitter<boolean> = new EventEmitter<boolean>();
-    @Output() readonly positionChanged: EventEmitter<FuseDrawerPosition> = new EventEmitter<FuseDrawerPosition>();
+    readonly fixedChanged = output<boolean>();
+    readonly modeChanged = output<FuseDrawerMode>();
+    readonly openedChanged = output<boolean>();
+    readonly positionChanged = output<FuseDrawerPosition>();
 
     private _animationsEnabled: boolean = false;
     private readonly _handleOverlayClick: any;
@@ -41,13 +48,7 @@ export class FuseDrawerComponent implements OnChanges, OnInit, OnDestroy
     /**
      * Constructor
      */
-    constructor(
-        private _animationBuilder: AnimationBuilder,
-        private _elementRef: ElementRef,
-        private _renderer2: Renderer2,
-        private _fuseDrawerService: FuseDrawerService,
-        private _fuseUtilsService: FuseUtilsService,
-    )
+    constructor()
     {
         this._handleOverlayClick = (): void =>
         {
@@ -69,9 +70,9 @@ export class FuseDrawerComponent implements OnChanges, OnInit, OnDestroy
             'fuse-drawer-animations-enabled'         : this._animationsEnabled,
             'fuse-drawer-fixed'                      : this.fixed,
             'fuse-drawer-hover'                      : this._hovered,
-            [`fuse-drawer-mode-${this.mode}`]        : true,
+            [`fuse-drawer-mode-${this.mode()}`]        : true,
             'fuse-drawer-opened'                     : this.opened,
-            [`fuse-drawer-position-${this.position}`]: true,
+            [`fuse-drawer-position-${this.position()}`]: true,
         };
         /* eslint-enable @typescript-eslint/naming-convention */
     }
@@ -138,7 +139,7 @@ export class FuseDrawerComponent implements OnChanges, OnInit, OnDestroy
             this.fixed = coerceBooleanProperty(changes.fixed.currentValue);
 
             // Execute the observable
-            this.fixedChanged.next(this.fixed);
+            this.fixedChanged.emit(this.fixed);
         }
 
         // Mode
@@ -170,7 +171,7 @@ export class FuseDrawerComponent implements OnChanges, OnInit, OnDestroy
             }
 
             // Execute the observable
-            this.modeChanged.next(currentMode);
+            this.modeChanged.emit(currentMode);
 
             // Enable the animations after a delay
             // The delay must be bigger than the current transition-duration
@@ -178,6 +179,9 @@ export class FuseDrawerComponent implements OnChanges, OnInit, OnDestroy
             setTimeout(() =>
             {
                 this._enableAnimations();
+
+                // Mark for check (zoneless change detection)
+                this._changeDetectorRef.markForCheck();
             }, 500);
         }
 
@@ -195,7 +199,7 @@ export class FuseDrawerComponent implements OnChanges, OnInit, OnDestroy
         if ( 'position' in changes )
         {
             // Execute the observable
-            this.positionChanged.next(this.position);
+            this.positionChanged.emit(this.position());
         }
 
         // Transparent overlay
@@ -212,7 +216,7 @@ export class FuseDrawerComponent implements OnChanges, OnInit, OnDestroy
     ngOnInit(): void
     {
         // Register the drawer
-        this._fuseDrawerService.registerComponent(this.name, this);
+        this._fuseDrawerService.registerComponent(this.name(), this);
     }
 
     /**
@@ -227,7 +231,7 @@ export class FuseDrawerComponent implements OnChanges, OnInit, OnDestroy
         }
 
         // Deregister the drawer from the registry
-        this._fuseDrawerService.deregisterComponent(this.name);
+        this._fuseDrawerService.deregisterComponent(this.name());
     }
 
     // -----------------------------------------------------------------------------------------------------
@@ -409,7 +413,7 @@ export class FuseDrawerComponent implements OnChanges, OnInit, OnDestroy
         this._enableAnimations();
 
         // If the mode is 'over'
-        if ( this.mode === 'over' )
+        if ( this.mode() === 'over' )
         {
             // If the drawer opens, show the overlay
             if ( open )
@@ -424,6 +428,10 @@ export class FuseDrawerComponent implements OnChanges, OnInit, OnDestroy
         }
 
         // Execute the observable
-        this.openedChanged.next(open);
+        this.openedChanged.emit(open);
+
+        // Mark for check, this can be called from a native (non-Angular)
+        // event listener such as the overlay click handler
+        this._changeDetectorRef.markForCheck();
     }
 }

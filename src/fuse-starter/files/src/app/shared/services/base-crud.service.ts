@@ -12,7 +12,7 @@ export class TableQueryDTO {
   rows?: number
   sortField?: string
   sortOrder?: 1 | -1
-  filters?: Record<string, any>
+  filters?: Record<string, unknown>
   globalFilter?: string | null
 }
 
@@ -24,6 +24,7 @@ export abstract class BaseCrudService<T> {
 
   constructor(
     // protected baseApi: BaseApiService,
+    // eslint-disable-next-line @angular-eslint/prefer-inject -- not a DI token: subclasses (incl. fuse-feature generated services) pass the endpoint via super('...')
     public endpoint: string, // <-- dinamik endpoint
   ) {}
 

@@ -1,17 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
-import { NgClass, NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
-import {
-    ChangeDetectionStrategy,
-    ChangeDetectorRef,
-    Component,
-    OnDestroy,
-    OnInit,
-    TemplateRef,
-    ViewChild,
-    ViewContainerRef,
-    ViewEncapsulation,
-} from '@angular/core';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewContainerRef, ViewEncapsulation, viewChild, inject } from '@angular/core';
 import {
     FormsModule,
     ReactiveFormsModule,
@@ -37,41 +27,33 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
     changeDetection: ChangeDetectionStrategy.OnPush,
     exportAs: 'shortcuts',
     imports: [
-        ButtonModule,
-        NgIf,
-        TooltipModule,
-        NgFor,
-        NgClass,
-        NgTemplateOutlet,
-        RouterLink,
-        FormsModule,
-        ReactiveFormsModule,
-        InputTextModule,
-        ToggleSwitchModule,
-        FuseIconComponent,
-    ],
+    ButtonModule,
+    TooltipModule,
+    NgClass,
+    NgTemplateOutlet,
+    RouterLink,
+    FormsModule,
+    ReactiveFormsModule,
+    InputTextModule,
+    ToggleSwitchModule,
+    FuseIconComponent
+],
 })
 export class ShortcutsComponent implements OnInit, OnDestroy {
-    @ViewChild('shortcutsOrigin', { read: ElementRef })
-    private _shortcutsOrigin: ElementRef<HTMLElement>;
-    @ViewChild('shortcutsPanel') private _shortcutsPanel: TemplateRef<any>;
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+    private _formBuilder = inject(UntypedFormBuilder);
+    private _shortcutsService = inject(ShortcutsService);
+    private _overlay = inject(Overlay);
+    private _viewContainerRef = inject(ViewContainerRef);
+
+    private readonly _shortcutsOrigin = viewChild('shortcutsOrigin', { read: ElementRef });
+    private readonly _shortcutsPanel = viewChild<TemplateRef<any>>('shortcutsPanel');
 
     mode: 'view' | 'modify' | 'add' | 'edit' = 'view';
     shortcutForm: UntypedFormGroup;
     shortcuts: Shortcut[];
     private _overlayRef: OverlayRef;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
-
-    /**
-     * Constructor
-     */
-    constructor(
-        private _changeDetectorRef: ChangeDetectorRef,
-        private _formBuilder: UntypedFormBuilder,
-        private _shortcutsService: ShortcutsService,
-        private _overlay: Overlay,
-        private _viewContainerRef: ViewContainerRef
-    ) {}
 
     // -----------------------------------------------------------------------------------------------------
     // @ Lifecycle hooks
@@ -126,7 +108,8 @@ export class ShortcutsComponent implements OnInit, OnDestroy {
      */
     openPanel(): void {
         // Return if the shortcuts panel or its origin is not defined
-        if (!this._shortcutsPanel || !this._shortcutsOrigin) {
+        const _shortcutsPanel = this._shortcutsPanel();
+        if (!_shortcutsPanel || !this._shortcutsOrigin()) {
             return;
         }
 
@@ -140,7 +123,7 @@ export class ShortcutsComponent implements OnInit, OnDestroy {
 
         // Attach the portal to the overlay
         this._overlayRef.attach(
-            new TemplatePortal(this._shortcutsPanel, this._viewContainerRef)
+            new TemplatePortal(_shortcutsPanel, this._viewContainerRef)
         );
     }
 
@@ -240,7 +223,7 @@ export class ShortcutsComponent implements OnInit, OnDestroy {
             scrollStrategy: this._overlay.scrollStrategies.block(),
             positionStrategy: this._overlay
                 .position()
-                .flexibleConnectedTo(this._shortcutsOrigin.nativeElement)
+                .flexibleConnectedTo(this._shortcutsOrigin().nativeElement)
                 .withLockedPosition(true)
                 .withPush(true)
                 .withPositions([

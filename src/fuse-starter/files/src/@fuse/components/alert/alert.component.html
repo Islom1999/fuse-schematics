@@ -1,51 +1,45 @@
-<div
+@if (!dismissible || dismissible && !dismissed) {
+  <div
     class="fuse-alert-container"
-    *ngIf="!dismissible || dismissible && !dismissed"
     [@fadeIn]="!dismissed"
     [@fadeOut]="!dismissed">
-
     <!-- Border -->
-    <div
+    @if (appearance() === 'border') {
+      <div
         class="fuse-alert-border"
-        *ngIf="appearance === 'border'"></div>
-
+      ></div>
+    }
     <!-- Icon -->
-    <div
+    @if (showIcon) {
+      <div
         class="fuse-alert-icon"
-        *ngIf="showIcon">
-
+        >
         <!-- Custom icon -->
         <div class="fuse-alert-custom-icon">
-            <ng-content select="[fuseAlertIcon]"></ng-content>
+          <ng-content select="[fuseAlertIcon]"></ng-content>
         </div>
-
         <!-- Default icons -->
         <div class="fuse-alert-default-icon">
-            <fuse-icon [icon]="defaultIcon"></fuse-icon>
+          <fuse-icon [icon]="defaultIcon"></fuse-icon>
         </div>
-
-    </div>
-
+      </div>
+    }
     <!-- Content -->
     <div class="fuse-alert-content">
-
-        <div class="fuse-alert-title">
-            <ng-content select="[fuseAlertTitle]"></ng-content>
-        </div>
-
-        <div class="fuse-alert-message">
-            <ng-content></ng-content>
-        </div>
-
+      <div class="fuse-alert-title">
+        <ng-content select="[fuseAlertTitle]"></ng-content>
+      </div>
+      <div class="fuse-alert-message">
+        <ng-content></ng-content>
+      </div>
     </div>
-
     <!-- Dismiss button -->
     <button
-        type="button"
-        class="fuse-alert-dismiss-button"
-        pButton
-        [icon]="dismissIcon"
-        (click)="dismiss()">
+      type="button"
+      class="fuse-alert-dismiss-button"
+      pButton
+      [icon]="dismissIcon"
+      (click)="dismiss()">
     </button>
-
-</div>
+  </div>
+}

@@ -1,7 +1,7 @@
 import { ScrollStrategy, ScrollStrategyOptions } from '@angular/cdk/overlay';
 import { TextFieldModule } from '@angular/cdk/text-field';
-import { DatePipe, NgClass, NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, HostBinding, HostListener, Inject, NgZone, OnDestroy, OnInit, Renderer2, ViewChild, ViewEncapsulation, DOCUMENT } from '@angular/core';
+import { DatePipe, NgClass, NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectorRef, AfterViewInit, Component, ElementRef, HostBinding, HostListener, OnDestroy, OnInit, Renderer2, ViewEncapsulation, DOCUMENT, viewChild, inject } from '@angular/core';
 import { FuseScrollbarDirective } from '@fuse/directives/scrollbar';
 import { QuickChatService } from 'app/layout/common/quick-chat/quick-chat.service';
 import { Chat } from 'app/layout/common/quick-chat/quick-chat.types';
@@ -15,11 +15,18 @@ import { FuseIconComponent } from '@fuse/components/icon';
     styleUrls: ['./quick-chat.component.scss'],
     encapsulation: ViewEncapsulation.None,
     exportAs: 'quickChat',
-    imports: [NgClass, NgIf, ButtonModule, FuseScrollbarDirective, NgFor, NgTemplateOutlet, TextFieldModule, DatePipe, FuseIconComponent]
+    imports: [NgClass, ButtonModule, FuseScrollbarDirective, NgTemplateOutlet, TextFieldModule, DatePipe, FuseIconComponent]
 })
 export class QuickChatComponent implements OnInit, AfterViewInit, OnDestroy
 {
-    @ViewChild('messageInput') messageInput: ElementRef;
+    private _document = inject<Document>(DOCUMENT);
+    private _elementRef = inject(ElementRef);
+    private _renderer2 = inject(Renderer2);
+    private _quickChatService = inject(QuickChatService);
+    private _scrollStrategyOptions = inject(ScrollStrategyOptions);
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+
+    readonly messageInput = viewChild<ElementRef>('messageInput');
     chat: Chat;
     chats: Chat[];
     opened: boolean = false;
@@ -28,20 +35,6 @@ export class QuickChatComponent implements OnInit, AfterViewInit, OnDestroy
     private _scrollStrategy: ScrollStrategy = this._scrollStrategyOptions.block();
     private _overlay: HTMLElement;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
-
-    /**
-     * Constructor
-     */
-    constructor(
-        @Inject(DOCUMENT) private _document: Document,
-        private _elementRef: ElementRef,
-        private _renderer2: Renderer2,
-        private _ngZone: NgZone,
-        private _quickChatService: QuickChatService,
-        private _scrollStrategyOptions: ScrollStrategyOptions,
-    )
-    {
-    }
 
     // -----------------------------------------------------------------------------------------------------
     // @ Decorated methods
@@ -66,17 +59,20 @@ export class QuickChatComponent implements OnInit, AfterViewInit, OnDestroy
     @HostListener('ngModelChange')
     private _resizeMessageInput(): void
     {
-        // This doesn't need to trigger Angular's change detection by itself
-        this._ngZone.runOutsideAngular(() =>
+        // Only touches the DOM, so it doesn't need to trigger change detection
+        setTimeout(() =>
         {
-            setTimeout(() =>
+            const messageInput = this.messageInput()?.nativeElement;
+            if ( !messageInput )
             {
-                // Set the height to 'auto' so we can correctly read the scrollHeight
-                this.messageInput.nativeElement.style.height = 'auto';
+                return;
+            }
 
-                // Get the scrollHeight and subtract the vertical padding
-                this.messageInput.nativeElement.style.height = `${this.messageInput.nativeElement.scrollHeight}px`;
-            });
+            // Set the height to 'auto' so we can correctly read the scrollHeight
+            messageInput.style.height = 'auto';
+
+            // Get the scrollHeight and subtract the vertical padding
+            messageInput.style.height = `${messageInput.scrollHeight}px`;
         });
     }
 
@@ -95,6 +91,9 @@ export class QuickChatComponent implements OnInit, AfterViewInit, OnDestroy
             .subscribe((chat: Chat) =>
             {
                 this.chat = chat;
+
+                // Mark for check (zoneless change detection)
+                this._changeDetectorRef.markForCheck();
             });
 
         // Chats
@@ -103,6 +102,9 @@ export class QuickChatComponent implements OnInit, AfterViewInit, OnDestroy
             .subscribe((chats: Chat[]) =>
             {
                 this.chats = chats;
+
+                // Mark for check (zoneless change detection)
+                this._changeDetectorRef.markForCheck();
             });
 
         // Selected chat
@@ -111,6 +113,9 @@ export class QuickChatComponent implements OnInit, AfterViewInit, OnDestroy
             .subscribe((chat: Chat) =>
             {
                 this.selectedChat = chat;
+
+                // Mark for check (zoneless change detection)
+                this._changeDetectorRef.markForCheck();
             });
     }
 
@@ -310,6 +315,9 @@ export class QuickChatComponent implements OnInit, AfterViewInit, OnDestroy
     {
         // Set the opened
         this.opened = open;
+
+        // Mark for check, this can be called from a native (non-Angular) event listener
+        this._changeDetectorRef.markForCheck();
 
         // If the panel opens, show the overlay
         if ( open )

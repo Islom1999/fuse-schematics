@@ -1,5 +1,5 @@
-import { NgClass, NgIf } from '@angular/common';
-import { Component, ViewEncapsulation } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { Component, ViewEncapsulation, inject } from '@angular/core';
 import { FuseConfirmationConfig } from '@fuse/services/confirmation/confirmation.types';
 import { ButtonModule } from 'primeng/button';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -26,18 +26,18 @@ import { FuseIconComponent } from '@fuse/components/icon';
         `,
     ],
     encapsulation: ViewEncapsulation.None,
-    imports: [NgIf, ButtonModule, NgClass, FuseIconComponent],
+    imports: [ButtonModule, NgClass, FuseIconComponent],
 })
 export class FuseConfirmationDialogComponent {
+    private _dialogRef = inject(DynamicDialogRef);
+    private _dialogConfig = inject(DynamicDialogConfig);
+
     data: FuseConfirmationConfig;
 
     /**
      * Constructor
      */
-    constructor(
-        private _dialogRef: DynamicDialogRef,
-        private _dialogConfig: DynamicDialogConfig
-    ) {
+    constructor() {
         this.data = this._dialogConfig.data as FuseConfirmationConfig;
     }
 

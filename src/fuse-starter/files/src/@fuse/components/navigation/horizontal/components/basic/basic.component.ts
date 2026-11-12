@@ -1,5 +1,5 @@
-import { NgClass, NgIf, NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, input, inject } from '@angular/core';
 import { IsActiveMatchOptions, RouterLink, RouterLinkActive } from '@angular/router';
 import { FuseHorizontalNavigationComponent } from '@fuse/components/navigation/horizontal/horizontal.component';
 import { FuseNavigationService } from '@fuse/components/navigation/navigation.service';
@@ -13,12 +13,16 @@ import { Subject, takeUntil } from 'rxjs';
     selector: 'fuse-horizontal-navigation-basic-item',
     templateUrl: './basic.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [NgClass, NgIf, RouterLink, RouterLinkActive, TooltipModule, NgTemplateOutlet, FuseIconComponent]
+    imports: [NgClass, RouterLink, RouterLinkActive, TooltipModule, NgTemplateOutlet, FuseIconComponent]
 })
 export class FuseHorizontalNavigationBasicItemComponent implements OnInit, OnDestroy
 {
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+    private _fuseNavigationService = inject(FuseNavigationService);
+    private _fuseUtilsService = inject(FuseUtilsService);
+
     @Input() item: FuseNavigationItem;
-    @Input() name: string;
+    readonly name = input<string>(undefined);
 
     isActiveMatchOptions: IsActiveMatchOptions;
     private _fuseHorizontalNavigationComponent: FuseHorizontalNavigationComponent;
@@ -27,11 +31,7 @@ export class FuseHorizontalNavigationBasicItemComponent implements OnInit, OnDes
     /**
      * Constructor
      */
-    constructor(
-        private _changeDetectorRef: ChangeDetectorRef,
-        private _fuseNavigationService: FuseNavigationService,
-        private _fuseUtilsService: FuseUtilsService,
-    )
+    constructor()
     {
         // Set the equivalent of {exact: false} as default for active match options.
         // We are not assigning the item.isActiveMatchOptions directly to the
@@ -58,7 +58,7 @@ export class FuseHorizontalNavigationBasicItemComponent implements OnInit, OnDes
                 : this._fuseUtilsService.subsetMatchOptions;
 
         // Get the parent navigation component
-        this._fuseHorizontalNavigationComponent = this._fuseNavigationService.getComponent(this.name);
+        this._fuseHorizontalNavigationComponent = this._fuseNavigationService.getComponent(this.name());
 
         // Mark for check
         this._changeDetectorRef.markForCheck();

@@ -5,8 +5,6 @@ import { NoAuthGuard } from 'app/core/auth/guards/noAuth.guard'
 import { LayoutComponent } from 'app/layout/layout.component'
 
 // @formatter:off
-/* eslint-disable max-len */
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 export const appRoutes: Route[] = [
   // Redirect empty path to '/example'
   { path: '', pathMatch: 'full', redirectTo: 'example' },
@@ -87,11 +85,6 @@ export const appRoutes: Route[] = [
     },
     children: [
       { path: 'example', loadChildren: () => import('app/modules/admin/example/example.routes') },
-      {
-        path: 'test',
-        loadChildren: () =>
-          import('app/modules/admin/foydalanuvchi-boshqaruvi/foydalanuvchi-boshqaruvi.routes'),
-      },
     ],
   },
 ]

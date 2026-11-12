@@ -17,7 +17,9 @@ export class PrimeNgThemeService {
     private _fuseConfigService = inject(FuseConfigService);
     private _platformId = inject(PLATFORM_ID);
 
-    constructor(rendererFactory: RendererFactory2) {
+    constructor() {
+        const rendererFactory = inject(RendererFactory2);
+
         this._renderer = rendererFactory.createRenderer(null, null);
 
         if (isPlatformBrowser(this._platformId)) {

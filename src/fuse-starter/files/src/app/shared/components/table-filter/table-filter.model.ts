@@ -5,10 +5,10 @@ export interface IFilterField {
   type: 'input' | 'select' | 'date' | 'number' | 'checkbox' | 'multiselect'
   label: string
   placeholder?: string
-  options?: { label: string; value: any }[]
+  options?: { label: string; value: unknown }[]
   className?: string
-  defaultValue?: any
-  props?: any
+  defaultValue?: unknown
+  props?: FormlyFieldConfig['props']
 }
 
 export interface ITableFilterConfig {

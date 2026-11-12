@@ -1,4 +1,4 @@
-import { TranslocoService } from '@ngneat/transloco'
+import { TranslocoService } from '@jsverse/transloco'
 import { FormlyExtension, FormlyFieldConfig } from '@ngx-formly/core'
 // !IF THIS APPROACH IS NOT GOOD YOU CAN REWRITE FORM-FIELD-WRAPPER AGAIN. AND YOU CAN USE transloco strightforward
 // https://formly.dev/docs/examples/advanced/i18n-alternative/

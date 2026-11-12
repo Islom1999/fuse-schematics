@@ -6,16 +6,27 @@
   "properties": {
     "name": {
       "type": "string",
-      "description": "Project name",
+      "description": "Project name (dasherized for the folder and the package.json name)",
       "$default": {
         "$source": "argv",
         "index": 0
-      }
+      },
+      "x-prompt": "What name would you like to use for the new project?"
     },
     "directory": {
       "type": "string",
       "description": "The directory to create the project in",
       "alias": "dir"
+    },
+    "skipInstall": {
+      "type": "boolean",
+      "description": "Do not run `npm install` in the new project",
+      "default": false
+    },
+    "skipGit": {
+      "type": "boolean",
+      "description": "Do not initialize a git repository (and initial commit) in the new project",
+      "default": false
     }
   },
   "required": ["name"]

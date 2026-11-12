@@ -1,0 +1,59 @@
+:host {
+  @apply block;
+}
+
+.app-card-face {
+  @apply flex flex-col overflow-hidden rounded-2xl bg-card shadow;
+}
+
+.app-card-header,
+.app-card-footer {
+  @apply px-6 py-4;
+}
+
+.app-card-header {
+  @apply border-b font-semibold;
+}
+
+.app-card-footer {
+  @apply border-t;
+}
+
+.app-card-body {
+  @apply flex-auto p-6;
+}
+
+.app-card-back {
+  @apply hidden;
+}
+
+// Flippable: both faces share one grid cell, so the card is as tall as the taller face.
+:host(.app-card-flippable) {
+  perspective: 1200px;
+
+  .app-card-inner {
+    display: grid;
+    transform-style: preserve-3d;
+    transition: transform 0.5s ease-in-out;
+  }
+
+  .app-card-face {
+    grid-area: 1 / 1;
+    backface-visibility: hidden;
+  }
+
+  .app-card-back {
+    @apply flex p-6;
+    transform: rotateY(180deg);
+  }
+}
+
+:host(.app-card-flipped) .app-card-inner {
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host(.app-card-flippable) .app-card-inner {
+    transition: none;
+  }
+}

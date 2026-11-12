@@ -1,22 +1,25 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core'
-import { CommonModule } from '@angular/common'
-import { TranslocoPipe } from '@ngneat/transloco'
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core'
+import { TranslocoPipe } from '@jsverse/transloco'
 import { ButtonModule } from 'primeng/button'
 
 @Component({
+  // eslint-disable-next-line @angular-eslint/component-selector -- public selector used by fuse-feature generated form templates; renaming would break existing features
   selector: 'form-action-buttons',
   standalone: true,
-  imports: [CommonModule, TranslocoPipe, ButtonModule],
+  imports: [TranslocoPipe, ButtonModule],
   templateUrl: './form-action-buttons.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FormActionButtonsComponent {
-  @Input() isEditMode: boolean = false
-  @Input() isFormValid: boolean = true
-  @Input() showDelete: boolean = true
+  readonly isEditMode = input<boolean>(false)
+  readonly isFormValid = input<boolean>(true)
+  readonly showDelete = input<boolean>(true)
 
-  @Output() delete = new EventEmitter<void>()
-  @Output() cancel = new EventEmitter<void>()
-  @Output() submit = new EventEmitter<void>()
+  readonly delete = output<void>()
+  // eslint-disable-next-line @angular-eslint/no-output-native -- public output (cancel) bound by fuse-feature generated form templates
+  readonly cancel = output<void>()
+  // eslint-disable-next-line @angular-eslint/no-output-native -- public output (submit) bound by fuse-feature generated form templates
+  readonly submit = output<void>()
 
   onDelete(): void {
     this.delete.emit()

@@ -2,7 +2,12 @@
   <!-- Header - Collapsible -->
   <div
     class="filter-header flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+    role="button"
+    tabindex="0"
+    [attr.aria-expanded]="isExpanded()"
     (click)="toggleFilter()"
+    (keydown.enter)="onHeaderKeydown($event)"
+    (keydown.space)="onHeaderKeydown($event)"
   >
     <div class="flex items-center gap-3">
       <i class="pi pi-filter text-lg text-primary-600"></i>
@@ -17,7 +22,7 @@
     </div>
 
     <div class="flex items-center gap-2">
-      @if (config.showResetButton !== false && hasActiveFilters) {
+      @if (config().showResetButton !== false && hasActiveFilters) {
         <p-button
           type="button"
           [label]="'admin.grid.actions.resetFilters' | transloco"
@@ -32,15 +37,15 @@
   </div>
 
   <!-- Form Fields - Collapsible Content -->
-  @if (isExpanded) {
+  @if (isExpanded()) {
     <div class="filter-content border-t border-gray-200 p-4 bg-gray-50">
       <form [formGroup]="form">
         <formly-form [form]="form" [fields]="fields" [model]="model">
           <ng-template #fieldWrapper>
             <div [class]="gridClass">
-              <ng-container *ngFor="let field of fields">
+              @for (field of fields; track field) {
                 <formly-field [field]="field"></formly-field>
-              </ng-container>
+              }
             </div>
           </ng-template>
         </formly-form>

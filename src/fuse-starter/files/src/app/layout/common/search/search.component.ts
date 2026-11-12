@@ -1,6 +1,6 @@
-import { NgClass, NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, ElementRef, EventEmitter, HostBinding, Input, OnChanges, OnDestroy, OnInit, Output, Renderer2, SimpleChanges, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostBinding, OnChanges, OnDestroy, OnInit, Renderer2, SimpleChanges, ViewChild, ViewEncapsulation, input, output, inject } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, UntypedFormControl } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { fuseAnimations } from '@fuse/animations/public-api';
@@ -15,30 +15,24 @@ import { FuseIconComponent } from '@fuse/components/icon';
     encapsulation: ViewEncapsulation.None,
     exportAs: 'fuseSearch',
     animations: fuseAnimations,
-    imports: [NgIf, ButtonModule, FuseIconComponent, FormsModule, ReactiveFormsModule, NgFor, RouterLink, NgTemplateOutlet, NgClass, InputTextModule]
+    imports: [ButtonModule, FuseIconComponent, FormsModule, ReactiveFormsModule, RouterLink, NgTemplateOutlet, NgClass, InputTextModule]
 })
 export class SearchComponent implements OnChanges, OnInit, OnDestroy
 {
-    @Input() appearance: 'basic' | 'bar' = 'basic';
-    @Input() debounce: number = 300;
-    @Input() minLength: number = 2;
-    @Output() search: EventEmitter<any> = new EventEmitter<any>();
+    private _elementRef = inject(ElementRef);
+    private _httpClient = inject(HttpClient);
+    private _renderer2 = inject(Renderer2);
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+
+    readonly appearance = input<'basic' | 'bar'>('basic');
+    readonly debounce = input<number>(300);
+    readonly minLength = input<number>(2);
+    readonly search = output<any>();
 
     opened: boolean = false;
     resultSets: any[];
     searchControl: UntypedFormControl = new UntypedFormControl();
     private _unsubscribeAll: Subject<any> = new Subject<any>();
-
-    /**
-     * Constructor
-     */
-    constructor(
-        private _elementRef: ElementRef,
-        private _httpClient: HttpClient,
-        private _renderer2: Renderer2,
-    )
-    {
-    }
 
     // -----------------------------------------------------------------------------------------------------
     // @ Accessors
@@ -50,8 +44,8 @@ export class SearchComponent implements OnChanges, OnInit, OnDestroy
     @HostBinding('class') get classList(): any
     {
         return {
-            'search-appearance-bar'  : this.appearance === 'bar',
-            'search-appearance-basic': this.appearance === 'basic',
+            'search-appearance-bar'  : this.appearance() === 'bar',
+            'search-appearance-basic': this.appearance() === 'basic',
             'search-opened'          : this.opened,
         };
     }
@@ -105,16 +99,17 @@ export class SearchComponent implements OnChanges, OnInit, OnDestroy
         // Subscribe to the search field value changes
         this.searchControl.valueChanges
             .pipe(
-                debounceTime(this.debounce),
+                debounceTime(this.debounce()),
                 takeUntil(this._unsubscribeAll),
                 map((value) =>
                 {
                     // Set the resultSets to null if there is no value or
                     // the length of the value is smaller than the minLength
                     // so the autocomplete panel can be closed
-                    if ( !value || value.length < this.minLength )
+                    if ( !value || value.length < this.minLength() )
                     {
                         this.resultSets = null;
+                        this._changeDetectorRef.markForCheck();
                     }
 
                     // Continue
@@ -122,7 +117,7 @@ export class SearchComponent implements OnChanges, OnInit, OnDestroy
                 }),
                 // Filter out undefined/null/false statements and also
                 // filter out the values that are smaller than minLength
-                filter(value => value && value.length >= this.minLength),
+                filter(value => value && value.length >= this.minLength()),
             )
             .subscribe((value) =>
             {
@@ -132,8 +127,11 @@ export class SearchComponent implements OnChanges, OnInit, OnDestroy
                         // Store the result sets
                         this.resultSets = resultSets;
 
+                        // Mark for check (zoneless change detection)
+                        this._changeDetectorRef.markForCheck();
+
                         // Execute the event
-                        this.search.next(resultSets);
+                        this.search.emit(resultSets);
                     });
             });
     }
@@ -159,7 +157,7 @@ export class SearchComponent implements OnChanges, OnInit, OnDestroy
      */
     onKeydown(event: KeyboardEvent): void
     {
-        if ( event.code === 'Escape' && this.appearance === 'bar' )
+        if ( event.code === 'Escape' && this.appearance() === 'bar' )
         {
             this.close();
         }

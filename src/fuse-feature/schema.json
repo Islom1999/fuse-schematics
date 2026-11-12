@@ -10,24 +10,56 @@
       "$default": {
         "$source": "argv",
         "index": 0
-      }
+      },
+      "x-prompt": "What name would you like to use for the feature?"
     },
     "path": {
       "type": "string",
-      "description": "Path where the feature will be created",
-      "default": "src/app/modules/admin"
+      "description": "Directory the feature folder is created in. Defaults to `<sourceRoot>/app/modules/admin` (sourceRoot read from angular.json), or the `fuse-feature.path` value of fuse-schematics.json."
+    },
+    "project": {
+      "type": "string",
+      "description": "Project in angular.json to read sourceRoot from. Defaults to the first application project."
     },
     "prefix": {
       "type": "string",
-      "description": "Component selector prefix",
-      "default": "app",
+      "description": "Component selector prefix. Defaults to `app`, or the `fuse-feature.prefix` value of fuse-schematics.json.",
       "alias": "p"
+    },
+    "fields": {
+      "type": "string",
+      "description": "Comma-separated field list `name:type`. Types: string, number, boolean, date, text, enum(a|b). A trailing `?` marks a field optional, e.g. \"name:string,price:number,note:text?,status:enum(active|blocked)\". Takes precedence over --openapi. Defaults to a single required `name:string` field."
+    },
+    "openapi": {
+      "type": "string",
+      "description": "OpenAPI 3.x / Swagger 2.0 document (JSON or YAML) to take the fields from when --fields is not given: a path relative to the workspace root or an http(s) URL, e.g. http://localhost:3000/docs-json. Without --schema the fields come from the CRUD resource matching the feature name (`/admin/<name>` paths)."
+    },
+    "schema": {
+      "type": "string",
+      "description": "Name of the OpenAPI schema to take the fields from (e.g. CreateMahsulotDto). Requires --openapi."
     },
     "skipForm": {
       "type": "boolean",
       "description": "Skip form component generation",
       "default": false
+    },
+    "skipRoute": {
+      "type": "boolean",
+      "description": "Do not register the lazy route in <sourceRoot>/app/app.routes.ts",
+      "default": false
+    },
+    "skipNav": {
+      "type": "boolean",
+      "description": "Do not add a menu item to <sourceRoot>/app/core/navigation/navigation.ts",
+      "default": false
+    },
+    "skipI18n": {
+      "type": "boolean",
+      "description": "Do not add translation keys to <sourceRoot>/assets/i18n/*.json",
+      "default": false
     }
   },
-  "required": ["name"]
+  "required": [
+    "name"
+  ]
 }

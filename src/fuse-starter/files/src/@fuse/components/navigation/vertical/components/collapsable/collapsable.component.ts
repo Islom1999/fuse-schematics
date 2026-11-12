@@ -1,6 +1,6 @@
 import { BooleanInput } from '@angular/cdk/coercion';
-import { NgClass, NgFor, NgIf } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, forwardRef, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, forwardRef, HostBinding, Input, OnDestroy, OnInit, input, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { fuseAnimations } from '@fuse/animations';
 import { FuseIconComponent } from '@fuse/components/icon';
@@ -19,33 +19,26 @@ import { filter, Subject, takeUntil } from 'rxjs';
     templateUrl: './collapsable.component.html',
     animations: fuseAnimations,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [NgClass, TooltipModule, NgIf, FuseIconComponent, NgFor, FuseVerticalNavigationBasicItemComponent, forwardRef(() => FuseVerticalNavigationCollapsableItemComponent), FuseVerticalNavigationDividerItemComponent, FuseVerticalNavigationGroupItemComponent, FuseVerticalNavigationSpacerItemComponent]
+    imports: [NgClass, TooltipModule, FuseIconComponent, FuseVerticalNavigationBasicItemComponent, forwardRef(() => FuseVerticalNavigationCollapsableItemComponent), FuseVerticalNavigationDividerItemComponent, FuseVerticalNavigationGroupItemComponent, FuseVerticalNavigationSpacerItemComponent]
 })
 export class FuseVerticalNavigationCollapsableItemComponent implements OnInit, OnDestroy
 {
+    private _changeDetectorRef = inject(ChangeDetectorRef);
+    private _router = inject(Router);
+    private _fuseNavigationService = inject(FuseNavigationService);
+
     /* eslint-disable @typescript-eslint/naming-convention */
     static ngAcceptInputType_autoCollapse: BooleanInput;
     /* eslint-enable @typescript-eslint/naming-convention */
 
-    @Input() autoCollapse: boolean;
+    readonly autoCollapse = input<boolean>(undefined);
     @Input() item: FuseNavigationItem;
-    @Input() name: string;
+    readonly name = input<string>(undefined);
 
     isCollapsed: boolean = true;
     isExpanded: boolean = false;
     private _fuseVerticalNavigationComponent: FuseVerticalNavigationComponent;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
-
-    /**
-     * Constructor
-     */
-    constructor(
-        private _changeDetectorRef: ChangeDetectorRef,
-        private _router: Router,
-        private _fuseNavigationService: FuseNavigationService,
-    )
-    {
-    }
 
     // -----------------------------------------------------------------------------------------------------
     // @ Accessors
@@ -74,9 +67,10 @@ export class FuseVerticalNavigationCollapsableItemComponent implements OnInit, O
     ngOnInit(): void
     {
         // Get the parent navigation component
-        this._fuseVerticalNavigationComponent = this._fuseNavigationService.getComponent(this.name);
+        this._fuseVerticalNavigationComponent = this._fuseNavigationService.getComponent(this.name());
 
         // If the item has a children that has a matching url with the current url, expand...
+        const autoCollapse = this.autoCollapse();
         if ( this._hasActiveChild(this.item, this._router.url) )
         {
             this.expand();
@@ -85,7 +79,7 @@ export class FuseVerticalNavigationCollapsableItemComponent implements OnInit, O
         else
         {
             // If the autoCollapse is on, collapse...
-            if ( this.autoCollapse )
+            if ( autoCollapse )
             {
                 this.collapse();
             }
@@ -110,7 +104,7 @@ export class FuseVerticalNavigationCollapsableItemComponent implements OnInit, O
             });
 
         // Listen for the onCollapsableItemExpanded from the service if the autoCollapse is on
-        if ( this.autoCollapse )
+        if ( autoCollapse )
         {
             this._fuseVerticalNavigationComponent.onCollapsableItemExpanded
                 .pipe(takeUntil(this._unsubscribeAll))
@@ -162,7 +156,7 @@ export class FuseVerticalNavigationCollapsableItemComponent implements OnInit, O
                 else
                 {
                     // If the autoCollapse is on, collapse...
-                    if ( this.autoCollapse )
+                    if ( this.autoCollapse() )
                     {
                         this.collapse();
                     }
