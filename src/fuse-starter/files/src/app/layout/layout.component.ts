@@ -1,228 +1,88 @@
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router'
+import { UI_LAYOUT_NAMES, UiConfigService, UiLayoutName } from '@ui/services/config'
+import { SettingsComponent } from 'app/layout/common/settings/settings.component'
+import { EmptyLayoutComponent } from 'app/layout/layouts/empty/empty.component'
+import { CenteredLayoutComponent } from 'app/layout/layouts/horizontal/centered/centered.component'
+import { EnterpriseLayoutComponent } from 'app/layout/layouts/horizontal/enterprise/enterprise.component'
+import { MaterialLayoutComponent } from 'app/layout/layouts/horizontal/material/material.component'
+import { ModernLayoutComponent } from 'app/layout/layouts/horizontal/modern/modern.component'
+import { ClassicLayoutComponent } from 'app/layout/layouts/vertical/classic/classic.component'
+import { ClassyLayoutComponent } from 'app/layout/layouts/vertical/classy/classy.component'
+import { CompactLayoutComponent } from 'app/layout/layouts/vertical/compact/compact.component'
+import { DenseLayoutComponent } from 'app/layout/layouts/vertical/dense/dense.component'
+import { FuturisticLayoutComponent } from 'app/layout/layouts/vertical/futuristic/futuristic.component'
+import { ThinLayoutComponent } from 'app/layout/layouts/vertical/thin/thin.component'
+import { filter } from 'rxjs'
 
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, Renderer2, ViewEncapsulation, DOCUMENT, inject } from '@angular/core';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { FuseConfig, FuseConfigService } from '@fuse/services/config';
-import { FuseMediaWatcherService } from '@fuse/services/media-watcher';
-import { FusePlatformService } from '@fuse/services/platform';
-import { FUSE_VERSION } from '@fuse/version';
-import { combineLatest, filter, map, Subject, takeUntil } from 'rxjs';
-import { SettingsComponent } from './common/settings/settings.component';
-import { EmptyLayoutComponent } from './layouts/empty/empty.component';
-import { CenteredLayoutComponent } from './layouts/horizontal/centered/centered.component';
-import { EnterpriseLayoutComponent } from './layouts/horizontal/enterprise/enterprise.component';
-import { MaterialLayoutComponent } from './layouts/horizontal/material/material.component';
-import { ModernLayoutComponent } from './layouts/horizontal/modern/modern.component';
-import { ClassicLayoutComponent } from './layouts/vertical/classic/classic.component';
-import { ClassyLayoutComponent } from './layouts/vertical/classy/classy.component';
-import { CompactLayoutComponent } from './layouts/vertical/compact/compact.component';
-import { DenseLayoutComponent } from './layouts/vertical/dense/dense.component';
-import { FuturisticLayoutComponent } from './layouts/vertical/futuristic/futuristic.component';
-import { ThinLayoutComponent } from './layouts/vertical/thin/thin.component';
+function isLayoutName(value: unknown): value is UiLayoutName {
+  return typeof value === 'string' && (UI_LAYOUT_NAMES as readonly string[]).includes(value)
+}
 
+/**
+ * Layout host: renders the active layout and the settings panel.
+ *
+ * The layout comes from `UiConfigService`. A `?layout=` query parameter is written into the
+ * config (persisted); a route `data.layout` overrides it for that route only, without persisting.
+ * Scheme and theme classes are applied by `provideUi()`, not here.
+ */
 @Component({
-    selector: 'layout',
-    templateUrl: './layout.component.html',
-    styleUrls: ['./layout.component.scss'],
-    encapsulation: ViewEncapsulation.None,
-    imports: [EmptyLayoutComponent, CenteredLayoutComponent, EnterpriseLayoutComponent, MaterialLayoutComponent, ModernLayoutComponent, ClassicLayoutComponent, ClassyLayoutComponent, CompactLayoutComponent, DenseLayoutComponent, FuturisticLayoutComponent, ThinLayoutComponent, SettingsComponent]
+  selector: 'app-layout',
+  standalone: true,
+  imports: [
+    SettingsComponent,
+    EmptyLayoutComponent,
+    ClassicLayoutComponent,
+    ClassyLayoutComponent,
+    CompactLayoutComponent,
+    DenseLayoutComponent,
+    FuturisticLayoutComponent,
+    ThinLayoutComponent,
+    CenteredLayoutComponent,
+    EnterpriseLayoutComponent,
+    MaterialLayoutComponent,
+    ModernLayoutComponent,
+  ],
+  templateUrl: './layout.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'flex flex-auto w-full' },
 })
-export class LayoutComponent implements OnInit, OnDestroy
-{
-    private _activatedRoute = inject(ActivatedRoute);
-    private _document = inject(DOCUMENT);
-    private _renderer2 = inject(Renderer2);
-    private _router = inject(Router);
-    private _fuseConfigService = inject(FuseConfigService);
-    private _fuseMediaWatcherService = inject(FuseMediaWatcherService);
-    private _fusePlatformService = inject(FusePlatformService);
-    private _changeDetectorRef = inject(ChangeDetectorRef);
+export class LayoutComponent {
+  private readonly router = inject(Router)
+  private readonly config = inject(UiConfigService)
 
-    config: FuseConfig;
-    layout: string;
-    scheme: 'dark' | 'light';
-    theme: string;
-    private _unsubscribeAll: Subject<any> = new Subject<any>();
+  /** Layout forced by the deepest route `data.layout`, if any. */
+  private readonly routeLayout = signal<string | null>(null)
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
+  /** The layout to render; unknown names fall back to `empty`. */
+  readonly layout = computed<UiLayoutName>(() => {
+    const name = this.routeLayout() ?? this.config.layout()
+    return isLayoutName(name) ? name : 'empty'
+  })
 
-    /**
-     * On init
-     */
-    ngOnInit(): void
-    {
-        // Set the theme and scheme based on the configuration
-        combineLatest([
-            this._fuseConfigService.config$,
-            this._fuseMediaWatcherService.onMediaQueryChange$(['(prefers-color-scheme: dark)', '(prefers-color-scheme: light)']),
-        ]).pipe(
-            takeUntil(this._unsubscribeAll),
-            map(([config, mql]) =>
-            {
-                const options = {
-                    scheme: config.scheme,
-                    theme : config.theme,
-                };
+  constructor() {
+    this.syncWithRoute()
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
+      .subscribe(() => this.syncWithRoute())
+  }
 
-                // If the scheme is set to 'auto'...
-                if ( config.scheme === 'auto' )
-                {
-                    // Decide the scheme using the media query
-                    options.scheme = mql.breakpoints['(prefers-color-scheme: dark)'] ? 'dark' : 'light';
-                }
+  private syncWithRoute(): void {
+    let route: ActivatedRouteSnapshot = this.router.routerState.snapshot.root
+    while (route.firstChild) route = route.firstChild
 
-                return options;
-            }),
-        ).subscribe((options) =>
-        {
-            // Store the options
-            this.scheme = options.scheme;
-            this.theme = options.theme;
+    const queryLayout = route.queryParamMap.get('layout')
+    if (isLayoutName(queryLayout)) this.config.set({ layout: queryLayout })
 
-            // Update the scheme and theme
-            this._updateScheme();
-            this._updateTheme();
-
-            // Mark for check (zoneless change detection)
-            this._changeDetectorRef.markForCheck();
-        });
-
-        // Subscribe to config changes
-        this._fuseConfigService.config$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((config: FuseConfig) =>
-            {
-                // Store the config
-                this.config = config;
-
-                // Update the layout
-                this._updateLayout();
-
-                // Mark for check (zoneless change detection)
-                this._changeDetectorRef.markForCheck();
-            });
-
-        // Subscribe to NavigationEnd event
-        this._router.events.pipe(
-            filter(event => event instanceof NavigationEnd),
-            takeUntil(this._unsubscribeAll),
-        ).subscribe(() =>
-        {
-            // Update the layout
-            this._updateLayout();
-
-            // Mark for check (zoneless change detection)
-            this._changeDetectorRef.markForCheck();
-        });
-
-        // Set the app version
-        this._renderer2.setAttribute(this._document.querySelector('[ng-version]'), 'fuse-version', FUSE_VERSION);
-
-        // Set the OS name
-        this._renderer2.addClass(this._document.body, this._fusePlatformService.osName);
+    let override: string | null = null
+    for (const item of route.pathFromRoot) {
+      const value = item.routeConfig?.data?.['layout']
+      if (value !== undefined && value !== null) override = String(value)
     }
-
-    /**
-     * On destroy
-     */
-    ngOnDestroy(): void
-    {
-        // Unsubscribe from all subscriptions
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
-    }
-
-    // -----------------------------------------------------------------------------------------------------
-    // @ Private methods
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Update the selected layout
-     */
-    private _updateLayout(): void
-    {
-        // Get the current activated route
-        let route = this._activatedRoute;
-        while ( route.firstChild )
-        {
-            route = route.firstChild;
-        }
-
-        // 1. Set the layout from the config
-        this.layout = this.config.layout;
-
-        // 2. Get the query parameter from the current route and
-        // set the layout and save the layout to the config
-        const layoutFromQueryParam = route.snapshot.queryParamMap.get('layout');
-        if ( layoutFromQueryParam )
-        {
-            this.layout = layoutFromQueryParam;
-            if ( this.config )
-            {
-                this.config.layout = layoutFromQueryParam;
-            }
-        }
-
-        // 3. Iterate through the paths and change the layout as we find
-        // a config for it.
-        //
-        // The reason we do this is that there might be empty grouping
-        // paths or componentless routes along the path. Because of that,
-        // we cannot just assume that the layout configuration will be
-        // in the last path's config or in the first path's config.
-        //
-        // So, we get all the paths that matched starting from root all
-        // the way to the current activated route, walk through them one
-        // by one and change the layout as we find the layout config. This
-        // way, layout configuration can live anywhere within the path and
-        // we won't miss it.
-        //
-        // Also, this will allow overriding the layout in any time so we
-        // can have different layouts for different routes.
-        const paths = route.pathFromRoot;
-        paths.forEach((path) =>
-        {
-            // Check if there is a 'layout' data
-            if ( path.routeConfig && path.routeConfig.data && path.routeConfig.data.layout )
-            {
-                // Set the layout
-                this.layout = path.routeConfig.data.layout;
-            }
-        });
-    }
-
-    /**
-     * Update the selected scheme
-     *
-     * @private
-     */
-    private _updateScheme(): void
-    {
-        // Remove class names for all schemes
-        this._document.body.classList.remove('light', 'dark');
-
-        // Add class name for the currently selected scheme
-        this._document.body.classList.add(this.scheme);
-    }
-
-    /**
-     * Update the selected theme
-     *
-     * @private
-     */
-    private _updateTheme(): void
-    {
-        // Find the class name for the previously selected theme and remove it
-        this._document.body.classList.forEach((className: string) =>
-        {
-            if ( className.startsWith('theme-') )
-            {
-                this._document.body.classList.remove(className, className.split('-')[1]);
-            }
-        });
-
-        // Add class name for the currently selected theme
-        this._document.body.classList.add(this.theme);
-    }
+    this.routeLayout.set(override)
+  }
 }

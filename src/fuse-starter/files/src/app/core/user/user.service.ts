@@ -1,63 +1,41 @@
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
-import { User } from 'app/core/user/user.types';
-import { map, Observable, ReplaySubject, tap } from 'rxjs';
+import { HttpClient } from '@angular/common/http'
+import { inject, Injectable, signal } from '@angular/core'
+import { joinApiUrl } from 'app/core/http/api-url'
+import { DITokens } from 'app/core/utils/di-tokens'
+import { Observable, tap } from 'rxjs'
+import { User } from './user.types'
 
-@Injectable({providedIn: 'root'})
-export class UserService
-{
-    private _httpClient = inject(HttpClient);
-    private _user: ReplaySubject<User> = new ReplaySubject<User>(1);
+/** Holds the signed-in user. Filled by `AuthService` on sign-in and session restore. */
+@Injectable({ providedIn: 'root' })
+export class UserService {
+  private readonly http = inject(HttpClient)
+  private readonly apiUrl = inject(DITokens.API_BASE_URL)
+  private readonly state = signal<User | null>(null)
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Accessors
-    // -----------------------------------------------------------------------------------------------------
+  /** The current user, or `null` when signed out. */
+  readonly user = this.state.asReadonly()
 
-    /**
-     * Setter & getter for user
-     *
-     * @param value
-     */
-    set user(value: User)
-    {
-        // Store the value
-        this._user.next(value);
-    }
+  set(user: User): void {
+    this.state.set(user)
+  }
 
-    get user$(): Observable<User>
-    {
-        return this._user.asObservable();
-    }
+  reset(): void {
+    this.state.set(null)
+  }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Public methods
-    // -----------------------------------------------------------------------------------------------------
+  /** `GET auth/me`, then stores the result. */
+  load(): Observable<User> {
+    return this.http.get<User>(joinApiUrl(this.apiUrl, 'auth/me')).pipe(tap((user) => this.set(user)))
+  }
 
-    /**
-     * Get the current signed-in user data
-     */
-    get(): Observable<User>
-    {
-        return this._httpClient.get<User>('api/common/user').pipe(
-            tap((user) =>
-            {
-                this._user.next(user);
-            }),
-        );
-    }
+  /** `PATCH auth/me`, then stores the user from the response. */
+  update(patch: Partial<Omit<User, 'id' | 'permissions'>>): Observable<User> {
+    return this.http.patch<User>(joinApiUrl(this.apiUrl, 'auth/me'), patch).pipe(tap((user) => this.set(user)))
+  }
 
-    /**
-     * Update the user
-     *
-     * @param user
-     */
-    update(user: User): Observable<any>
-    {
-        return this._httpClient.patch<User>('api/common/user', {user}).pipe(
-            map((response) =>
-            {
-                this._user.next(response);
-            }),
-        );
-    }
+  /** True when the user has `permission` or the wildcard `'*'`. */
+  hasPermission(permission: string): boolean {
+    const permissions = this.state()?.permissions ?? []
+    return permissions.includes('*') || permissions.includes(permission)
+  }
 }

@@ -1,143 +1,96 @@
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core'
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'
+import { ActivatedRoute, Router, RouterLink } from '@angular/router'
+import { TranslocoPipe } from '@jsverse/transloco'
+import { AuthService } from 'app/core/auth/auth.service'
+import { ButtonDirective, ButtonLabel } from 'primeng/button'
+import { Checkbox } from 'primeng/checkbox'
+import { InputText } from 'primeng/inputtext'
+import { AuthAlertComponent } from '../shared/auth-alert.component'
+import { AuthAlert, authAlert, authAlertText, backendMessage, firstError, httpStatus, isAppPath } from '../shared/auth-form'
+import { AuthPasswordToggleComponent } from '../shared/auth-password-toggle.component'
+import { AuthSpinnerComponent } from '../shared/auth-spinner.component'
+import { AuthSplitShellComponent } from '../shared/auth-split-shell.component'
 
-import { ChangeDetectorRef, Component, OnInit, ViewEncapsulation, viewChild, inject } from '@angular/core';
-import {
-    FormsModule,
-    NgForm,
-    ReactiveFormsModule,
-    UntypedFormBuilder,
-    UntypedFormGroup,
-    Validators,
-} from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { fuseAnimations } from '@fuse/animations';
-import { FuseAlertComponent, FuseAlertType } from '@fuse/components/alert';
-import { AuthService } from 'app/core/auth/auth.service';
-import { ButtonModule } from 'primeng/button';
-import { CheckboxModule } from 'primeng/checkbox';
-import { InputTextModule } from 'primeng/inputtext';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { FuseIconComponent } from '@fuse/components/icon';
+const MESSAGES = {
+  email: { required: 'auth.validation.emailRequired', email: 'auth.validation.emailInvalid' },
+  password: { required: 'auth.validation.passwordRequired' },
+}
 
 @Component({
-    selector: 'auth-sign-in',
-    templateUrl: './sign-in.component.html',
-    encapsulation: ViewEncapsulation.None,
-    animations: fuseAnimations,
-    imports: [
-    RouterLink,
-    FuseAlertComponent,
-    FormsModule,
+  selector: 'app-sign-in',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
     ReactiveFormsModule,
-    ButtonModule,
-    InputTextModule,
-    CheckboxModule,
-    ProgressSpinnerModule,
-    FuseIconComponent
-],
+    RouterLink,
+    TranslocoPipe,
+    InputText,
+    Checkbox,
+    ButtonDirective,
+    ButtonLabel,
+    AuthSplitShellComponent,
+    AuthAlertComponent,
+    AuthPasswordToggleComponent,
+    AuthSpinnerComponent,
+  ],
+  host: { class: 'flex min-w-0 flex-auto flex-col' },
+  templateUrl: './sign-in.component.html',
 })
-export class AuthSignInComponent implements OnInit {
-    private _activatedRoute = inject(ActivatedRoute);
-    private _authService = inject(AuthService);
-    private _formBuilder = inject(UntypedFormBuilder);
-    private _router = inject(Router);
-    private _changeDetectorRef = inject(ChangeDetectorRef);
+export class SignInComponent {
+  private readonly auth = inject(AuthService)
+  private readonly router = inject(Router)
+  private readonly route = inject(ActivatedRoute)
 
-    readonly signInNgForm = viewChild<NgForm>('signInNgForm');
+  protected readonly form = new FormGroup({
+    email: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
+    password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    rememberMe: new FormControl(false, { nonNullable: true }),
+  })
+  protected readonly busy = signal(false)
+  protected readonly alert = signal<AuthAlert | null>(null)
 
-    alert: { type: FuseAlertType; message: string } = {
-        type: 'success',
-        message: '',
-    };
-    signInForm: UntypedFormGroup;
-    showAlert: boolean = false;
-    hidePassword: boolean = true;
+  protected error(name: keyof typeof MESSAGES): string | null {
+    return firstError(this.form.controls[name], MESSAGES[name])
+  }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * On init
-     */
-    ngOnInit(): void {
-        // Create the form
-        this.signInForm = this._formBuilder.group({
-            email: [
-                'hughes.brian@company.com',
-                [Validators.required, Validators.email],
-            ],
-            password: ['admin', Validators.required],
-            rememberMe: [false],
-        });
+  protected submit(): void {
+    if (this.busy()) return
+    if (this.form.invalid) {
+      this.form.markAllAsTouched()
+      return
     }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Public methods
-    // -----------------------------------------------------------------------------------------------------
+    this.busy.set(true)
+    this.alert.set(null)
+    const credentials = this.form.getRawValue()
+    this.form.disable()
 
-    /**
-     * Sign in
-     */
-    signIn(): void {
-        // Return if the form is invalid
-        if (this.signInForm.invalid) {
-            this.signInForm.markAllAsTouched();
-            return;
-        }
+    this.auth.signIn(credentials).subscribe({
+      next: () => {
+        const redirectURL = this.route.snapshot.queryParamMap.get('redirectURL')
+        void this.router.navigateByUrl(isAppPath(redirectURL) ? redirectURL : '/signed-in-redirect')
+      },
+      error: (error: unknown) => {
+        this.busy.set(false)
+        this.form.enable()
+        this.form.controls.password.reset()
+        this.alert.set(this.alertFor(error))
+      },
+    })
+  }
 
-        // Disable the form
-        this.signInForm.disable();
-
-        // Hide the alert
-        this.showAlert = false;
-
-        // Sign in
-        this._authService.signIn(this.signInForm.value).subscribe(
-            () => {
-                // Set the redirect url.
-                // The '/signed-in-redirect' is a dummy url to catch the request and redirect the user
-                // to the correct page after a successful sign in. This way, that url can be set via
-                // routing file and we don't have to touch here.
-                const redirectURL =
-                    this._activatedRoute.snapshot.queryParamMap.get(
-                        'redirectURL'
-                    ) || '/signed-in-redirect';
-
-                // Navigate to the redirect url
-                this._router.navigateByUrl(redirectURL);
-            },
-            (response) =>
-            {
-                // Re-enable the form
-                this.signInForm.enable();
-
-                // Reset the form
-                this.signInNgForm().resetForm({
-                    email     : '',
-                    password  : '',
-                    rememberMe: false,
-                });
-                this.signInForm.reset({
-                    email     : '',
-                    password  : '',
-                    rememberMe: false,
-                });
-
-                // Reset password visibility
-                this.hidePassword = true;
-
-                // Set the alert
-                this.alert = {
-                    type   : 'error',
-                    message: 'Wrong email or password',
-                };
-
-                // Show the alert
-                this.showAlert = true;
-
-                // Mark for check (zoneless change detection)
-                this._changeDetectorRef.markForCheck();
-            },
-        );
+  private alertFor(error: unknown): AuthAlert {
+    switch (httpStatus(error)) {
+      case 401:
+        return authAlert('error', 'auth.signIn.wrongCredentials')
+      case 400: {
+        const message = backendMessage(error)
+        return message ? authAlertText('error', message) : authAlert('error', 'auth.errors.checkForm')
+      }
+      case 429:
+        return authAlert('error', 'auth.signIn.tooManyAttempts')
+      default:
+        return authAlert('error', 'auth.errors.generic')
     }
+  }
 }

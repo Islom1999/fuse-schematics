@@ -1,131 +1,93 @@
-import { NgClass } from '@angular/common';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation, inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { FuseDrawerComponent } from '@fuse/components/drawer';
 import {
-    FuseConfig,
-    FuseConfigService,
-    Scheme,
-    Theme,
-    Themes,
-} from '@fuse/services/config';
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+  ViewEncapsulation,
+} from '@angular/core'
+import { Router } from '@angular/router'
+import { TranslocoPipe } from '@jsverse/transloco'
+import { UiIconComponent } from '@ui/components/icon/ui-icon.component'
+import { UiConfigService, UiLayoutName, UiScheme } from '@ui/services/config'
+import { ButtonDirective } from 'primeng/button'
+import { Drawer } from 'primeng/drawer'
+import { Tooltip } from 'primeng/tooltip'
 
-import { Subject, takeUntil } from 'rxjs';
-import { ButtonModule } from 'primeng/button';
-import { TooltipModule } from 'primeng/tooltip';
-import { FuseIconComponent } from '@fuse/components/icon';
-import { PrimeNgThemeService } from 'app/core/primeng/primeng-theme.service';
+interface SchemeOption {
+  value: UiScheme
+  icon: string
+}
 
+/** Layout picker cells in display order; `null` is the spacer after Thin. */
+const LAYOUT_GRID: ReadonlyArray<UiLayoutName | null> = [
+  'empty',
+  'classic',
+  'classy',
+  'compact',
+  'dense',
+  'futuristic',
+  'thin',
+  null,
+  'centered',
+  'enterprise',
+  'material',
+  'modern',
+]
+
+const SCHEMES: readonly SchemeOption[] = [
+  { value: 'auto', icon: 'heroicons_solid:bolt' },
+  { value: 'dark', icon: 'heroicons_solid:moon' },
+  { value: 'light', icon: 'heroicons_solid:sun' },
+]
+
+/**
+ * Settings cog (fixed at the right edge) and the drawer it opens: theme, scheme and layout
+ * pickers, all driven by `UiConfigService`.
+ */
 @Component({
-    selector: 'settings',
-    templateUrl: './settings.component.html',
-    styles: [
-        `
-            settings {
-                position: static;
-                display: block;
-                flex: none;
-                width: auto;
-            }
-
-            @media (screen and min-width: 1280px) {
-                empty-layout + settings .settings-cog {
-                    right: 0 !important;
-                }
-            }
-        `,
-    ],
-    encapsulation: ViewEncapsulation.None,
-    imports: [
-    FuseIconComponent,
-    FuseDrawerComponent,
-    ButtonModule,
-    NgClass,
-    TooltipModule
-],
+  selector: 'app-settings',
+  standalone: true,
+  imports: [ButtonDirective, Drawer, Tooltip, TranslocoPipe, UiIconComponent],
+  templateUrl: './settings.component.html',
+  styleUrl: './settings.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  // The drawer is moved to <body>: its styles must be global (scoped by the `settings-*` classes).
+  encapsulation: ViewEncapsulation.None,
 })
-export class SettingsComponent implements OnInit, OnDestroy {
-    private _router = inject(Router);
-    private _fuseConfigService = inject(FuseConfigService);
-    private _primeNgThemeService = inject(PrimeNgThemeService);
-    private _changeDetectorRef = inject(ChangeDetectorRef);
+export class SettingsComponent {
+  private readonly router = inject(Router)
+  private readonly config = inject(UiConfigService)
 
-    config: FuseConfig;
-    layout: string;
-    scheme: 'dark' | 'light';
-    theme: string;
-    themes: Themes;
-    private _unsubscribeAll: Subject<any> = new Subject<any>();
+  protected readonly opened = signal(false)
+  protected readonly layout = this.config.layout
+  protected readonly scheme = this.config.scheme
+  protected readonly theme = this.config.theme
+  protected readonly themes = computed(() =>
+    this.config.themes().map((theme) => ({ ...theme, key: theme.id.replace(/^theme-/, '') })),
+  )
+  protected readonly schemes = SCHEMES
+  protected readonly layoutGrid = LAYOUT_GRID
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
+  open(): void {
+    this.opened.set(true)
+  }
 
-    /**
-     * On init
-     */
-    ngOnInit(): void {
-        // Subscribe to config changes
-        this._fuseConfigService.config$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((config: FuseConfig) => {
-                // Store the config
-                this.config = config;
+  close(): void {
+    this.opened.set(false)
+  }
 
-                // Mark for check (zoneless change detection)
-                this._changeDetectorRef.markForCheck();
-            });
-    }
+  setTheme(theme: string): void {
+    this.config.set({ theme })
+  }
 
-    /**
-     * On destroy
-     */
-    ngOnDestroy(): void {
-        // Unsubscribe from all subscriptions
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
-    }
+  setScheme(scheme: UiScheme): void {
+    this.config.set({ scheme })
+  }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Public methods
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Set the layout on the config
-     *
-     * @param layout
-     */
-    setLayout(layout: string): void {
-        // Clear the 'layout' query param to allow layout changes
-        this._router
-            .navigate([], {
-                queryParams: {
-                    layout: null,
-                },
-                queryParamsHandling: 'merge',
-            })
-            .then(() => {
-                // Set the config
-                this._fuseConfigService.config = { layout };
-            });
-    }
-
-    /**
-     * Set the scheme on the config
-     *
-     * @param scheme
-     */
-    setScheme(scheme: Scheme): void {
-        this._fuseConfigService.config = { scheme };
-        // Theme service automatically syncs via subscription
-    }
-
-    /**
-     * Set the theme on the config
-     *
-     * @param theme
-     */
-    setTheme(theme: Theme): void {
-        this._fuseConfigService.config = { theme };
-    }
+  /** Drops a `?layout=` override from the URL, then stores the choice. */
+  setLayout(layout: UiLayoutName): void {
+    void this.router.navigate([], { queryParams: { layout: null }, queryParamsHandling: 'merge' })
+    this.config.set({ layout })
+  }
 }

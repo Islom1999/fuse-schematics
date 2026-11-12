@@ -1,212 +1,187 @@
-import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { ChangeDetectorRef, Component, ElementRef, HostBinding, OnChanges, OnDestroy, OnInit, Renderer2, SimpleChanges, ViewChild, ViewEncapsulation, input, output, inject } from '@angular/core';
-import { FormsModule, ReactiveFormsModule, UntypedFormControl } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { fuseAnimations } from '@fuse/animations/public-api';
-import { debounceTime, filter, map, Subject, takeUntil } from 'rxjs';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { FuseIconComponent } from '@fuse/components/icon';
+import { DOCUMENT, NgTemplateOutlet } from '@angular/common'
+import {
+  afterNextRender,
+  afterRenderEffect,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  Injector,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { Router, RouterLink } from '@angular/router'
+import { TranslocoPipe } from '@jsverse/transloco'
+import { UiIconComponent } from '@ui'
+import { ButtonDirective } from 'primeng/button'
+import { debounce, distinctUntilChanged, map, Observable, of, Subject, switchMap, timer } from 'rxjs'
+import { SearchService } from './search.service'
+import { SearchAppearance, SearchResult, SearchResultSet } from './search.types'
 
+/** Result set ids that have their own row template and a translated group label. */
+const KNOWN_GROUPS = new Set(['pages', 'contacts', 'tasks'])
+
+interface ResultGroup {
+  set: SearchResultSet
+  rows: { result: SearchResult; index: number }[]
+}
+
+let nextId = 0
+
+/**
+ * Header search. `bar`: an icon button that opens an input over the whole header (the closest positioned
+ * ancestor); `basic`: an always-visible input. Results come from `SearchService`.
+ */
 @Component({
-    selector: 'search',
-    templateUrl: './search.component.html',
-    encapsulation: ViewEncapsulation.None,
-    exportAs: 'fuseSearch',
-    animations: fuseAnimations,
-    imports: [ButtonModule, FuseIconComponent, FormsModule, ReactiveFormsModule, RouterLink, NgTemplateOutlet, NgClass, InputTextModule]
+  selector: 'app-search',
+  standalone: true,
+  imports: [ButtonDirective, NgTemplateOutlet, RouterLink, TranslocoPipe, UiIconComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './search.component.html',
+  host: { class: 'app-search' },
 })
-export class SearchComponent implements OnChanges, OnInit, OnDestroy
-{
-    private _elementRef = inject(ElementRef);
-    private _httpClient = inject(HttpClient);
-    private _renderer2 = inject(Renderer2);
-    private _changeDetectorRef = inject(ChangeDetectorRef);
+export class SearchComponent {
+  private readonly service = inject(SearchService)
+  private readonly router = inject(Router)
+  private readonly injector = inject(Injector)
+  private readonly document = inject(DOCUMENT)
+  private readonly queries = new Subject<string>()
+  private readonly input = viewChild<ElementRef<HTMLInputElement>>('input')
+  private readonly trigger = viewChild<ElementRef<HTMLButtonElement>>('trigger')
 
-    readonly appearance = input<'basic' | 'bar'>('basic');
-    readonly debounce = input<number>(300);
-    readonly minLength = input<number>(2);
-    readonly search = output<any>();
+  /** `bar` expands over the header; `basic` is an always-visible input. Layouts use `bar`. */
+  readonly appearance = input<SearchAppearance>('basic')
+  /** Delay in ms after typing before searching. */
+  readonly debounce = input(300)
+  /** Minimum trimmed length before searching. */
+  readonly minLength = input(2)
+  /** Emits each result list as it arrives (`search` in the spec; renamed: it is a native DOM event). */
+  readonly searched = output<SearchResultSet[]>()
 
-    opened: boolean = false;
-    resultSets: any[];
-    searchControl: UntypedFormControl = new UntypedFormControl();
-    private _unsubscribeAll: Subject<any> = new Subject<any>();
+  /** Bar mode: the overlay is open. */
+  readonly opened = signal(false)
+  /** The current input text. */
+  readonly value = signal('')
+  /** `null` before a query ran (or after clearing); `[]` when a query found nothing. */
+  readonly results = signal<SearchResultSet[] | null>(null)
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Accessors
-    // -----------------------------------------------------------------------------------------------------
+  protected readonly id = `app-search-${nextId++}`
+  protected readonly activeIndex = signal(-1)
+  protected readonly groups = computed<ResultGroup[] | null>(() => {
+    let index = 0
+    return (
+      this.results()?.map((set) => ({ set, rows: set.results.map((result) => ({ result, index: index++ })) })) ?? null
+    )
+  })
+  private readonly options = computed(() => this.groups()?.flatMap((group) => group.rows) ?? [])
+  protected readonly activeOptionId = computed(() =>
+    this.activeIndex() >= 0 ? this.optionId(this.activeIndex()) : null,
+  )
 
-    /**
-     * Host binding for component classes
-     */
-    @HostBinding('class') get classList(): any
-    {
-        return {
-            'search-appearance-bar'  : this.appearance() === 'bar',
-            'search-appearance-basic': this.appearance() === 'basic',
-            'search-opened'          : this.opened,
-        };
-    }
+  constructor() {
+    this.queries
+      .pipe(
+        debounce(() => timer(this.debounce())),
+        map((value) => value.trim()),
+        distinctUntilChanged(),
+        switchMap((query): Observable<SearchResultSet[] | null> =>
+          query.length < this.minLength() ? of(null) : this.service.search(query),
+        ),
+        takeUntilDestroyed(),
+      )
+      .subscribe((results) => {
+        this.results.set(results)
+        this.activeIndex.set(-1)
+        if (results) this.searched.emit(results)
+      })
 
-    /**
-     * Setter for bar search input
-     *
-     * @param value
-     */
-    @ViewChild('barSearchInput')
-    set barSearchInput(value: ElementRef)
-    {
-        // If the value exists, it means that the search input
-        // is now in the DOM, and we can focus on the input..
-        if ( value )
-        {
-            // Give Angular time to complete the change detection cycle
-            setTimeout(() =>
-            {
-                // Focus to the input element
-                value.nativeElement.focus();
-            });
+    afterRenderEffect(() => {
+      const id = this.activeOptionId()
+      if (id) this.document.getElementById(id)?.scrollIntoView({ block: 'nearest' })
+    })
+  }
+
+  /** Bar mode: shows the overlay and focuses the input. */
+  open(): void {
+    if (this.opened()) return
+    this.opened.set(true)
+    afterNextRender(() => this.input()?.nativeElement.focus(), { injector: this.injector })
+  }
+
+  /** Bar mode: hides the overlay, clears the input and the results. */
+  close(): void {
+    this.opened.set(false)
+    this.clear()
+  }
+
+  protected onInput(value: string): void {
+    this.value.set(value)
+    this.queries.next(value)
+  }
+
+  protected onKeydown(event: KeyboardEvent): void {
+    const count = this.options().length
+    switch (event.key) {
+      case 'ArrowDown':
+      case 'ArrowUp': {
+        if (!count) return
+        event.preventDefault()
+        const step = event.key === 'ArrowDown' ? 1 : -1
+        this.activeIndex.update((index) => (index < 0 && step < 0 ? count - 1 : (index + step + count) % count))
+        break
+      }
+      case 'Enter': {
+        const option = this.options()[this.activeIndex()]
+        if (!option) return
+        event.preventDefault()
+        void this.router.navigateByUrl(option.result.link)
+        this.onSelect(option.result)
+        break
+      }
+      case 'Escape':
+        if (this.appearance() === 'bar') {
+          this.close()
+          this.trigger()?.nativeElement.focus()
+        } else {
+          this.clear()
         }
+        break
     }
+  }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * On changes
-     *
-     * @param changes
-     */
-    ngOnChanges(changes: SimpleChanges): void
-    {
-        // Appearance
-        if ( 'appearance' in changes )
-        {
-            // To prevent any issues, close the
-            // search after changing the appearance
-            this.close();
-        }
+  /** Basic mode: drop the panel when focus leaves the widget. */
+  protected onFocusOut(event: FocusEvent, host: HTMLElement): void {
+    if (this.appearance() === 'basic' && !host.contains(event.relatedTarget as Node | null)) {
+      this.results.set(null)
+      this.activeIndex.set(-1)
     }
+  }
 
-    /**
-     * On init
-     */
-    ngOnInit(): void
-    {
-        // Subscribe to the search field value changes
-        this.searchControl.valueChanges
-            .pipe(
-                debounceTime(this.debounce()),
-                takeUntil(this._unsubscribeAll),
-                map((value) =>
-                {
-                    // Set the resultSets to null if there is no value or
-                    // the length of the value is smaller than the minLength
-                    // so the autocomplete panel can be closed
-                    if ( !value || value.length < this.minLength() )
-                    {
-                        this.resultSets = null;
-                        this._changeDetectorRef.markForCheck();
-                    }
-
-                    // Continue
-                    return value;
-                }),
-                // Filter out undefined/null/false statements and also
-                // filter out the values that are smaller than minLength
-                filter(value => value && value.length >= this.minLength()),
-            )
-            .subscribe((value) =>
-            {
-                this._httpClient.post('api/common/search', {query: value})
-                    .subscribe((resultSets: any) =>
-                    {
-                        // Store the result sets
-                        this.resultSets = resultSets;
-
-                        // Mark for check (zoneless change detection)
-                        this._changeDetectorRef.markForCheck();
-
-                        // Execute the event
-                        this.search.emit(resultSets);
-                    });
-            });
+  protected onSelect(result: SearchResult): void {
+    if (this.appearance() === 'bar') {
+      this.close()
+      return
     }
+    this.clear()
+    this.value.set(result.value)
+  }
 
-    /**
-     * On destroy
-     */
-    ngOnDestroy(): void
-    {
-        // Unsubscribe from all subscriptions
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
-    }
+  protected optionId(index: number): string {
+    return `${this.id}-option-${index}`
+  }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Public methods
-    // -----------------------------------------------------------------------------------------------------
+  protected isKnownGroup(id: string): boolean {
+    return KNOWN_GROUPS.has(id)
+  }
 
-    /**
-     * On keydown of the search input
-     *
-     * @param event
-     */
-    onKeydown(event: KeyboardEvent): void
-    {
-        if ( event.code === 'Escape' && this.appearance() === 'bar' )
-        {
-            this.close();
-        }
-    }
-
-    /**
-     * Open the search
-     * Used in 'bar'
-     */
-    open(): void
-    {
-        // Return if it's already opened
-        if ( this.opened )
-        {
-            return;
-        }
-
-        // Open the search
-        this.opened = true;
-    }
-
-    /**
-     * Close the search
-     * * Used in 'bar'
-     */
-    close(): void
-    {
-        // Return if it's already closed
-        if ( !this.opened )
-        {
-            return;
-        }
-
-        // Clear the search input
-        this.searchControl.setValue('');
-        this.resultSets = null;
-
-        // Close the search
-        this.opened = false;
-    }
-
-    /**
-     * Track by function for ngFor loops
-     *
-     * @param index
-     * @param item
-     */
-    trackByFn(index: number, item: any): any
-    {
-        return item.id || index;
-    }
+  private clear(): void {
+    this.value.set('')
+    this.queries.next('')
+    this.results.set(null)
+    this.activeIndex.set(-1)
+  }
 }

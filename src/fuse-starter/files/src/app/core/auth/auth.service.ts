@@ -1,177 +1,199 @@
-import { HttpClient } from '@angular/common/http'
-import { inject, Injectable } from '@angular/core'
-import { AuthUtils } from 'app/core/auth/auth.utils'
+import { HttpClient, HttpContext, HttpHeaders } from '@angular/common/http'
+import { computed, inject, Injectable, signal } from '@angular/core'
+import { joinApiUrl } from 'app/core/http/api-url'
+import { SKIP_AUTH, SKIP_ERROR_TOAST } from 'app/core/http/http-context'
+import { NavigationService } from 'app/core/navigation/navigation.service'
 import { UserService } from 'app/core/user/user.service'
-import { catchError, Observable, of, switchMap, throwError } from 'rxjs'
-import { BaseApiService } from '../services/base.service'
+import { User } from 'app/core/user/user.types'
+import { DITokens } from 'app/core/utils/di-tokens'
+import { catchError, defer, finalize, map, Observable, of, shareReplay, throwError } from 'rxjs'
+import { AuthTokenStorage } from './auth.storage'
+import { AuthResponse, SignInCredentials } from './auth.types'
+import { isTokenExpired } from './auth.utils'
 
+/** Requests whose errors the auth pages show themselves. */
+const QUIET = (): HttpContext => new HttpContext().set(SKIP_ERROR_TOAST, true)
+/** Requests that `authInterceptor` must not touch (no token, no refresh on 401). */
+const PUBLIC = (): HttpContext => QUIET().set(SKIP_AUTH, true)
+
+/**
+ * Session state for the admin API: an access token plus a single-use refresh token.
+ * Tokens live in `localStorage` (remember me) or `sessionStorage`.
+ */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private _authenticated: boolean = false
-  private _httpClient = inject(HttpClient)
-  private _userService = inject(UserService)
-  private _baseApiService = inject(BaseApiService)
+  private readonly http = inject(HttpClient)
+  private readonly apiUrl = inject(DITokens.API_BASE_URL)
+  private readonly users = inject(UserService)
+  private readonly navigation = inject(NavigationService)
 
-  // -----------------------------------------------------------------------------------------------------
-  // @ Accessors
-  // -----------------------------------------------------------------------------------------------------
+  private readonly initial = AuthTokenStorage.read()
+  private readonly accessTokenState = signal<string | null>(this.initial.accessToken)
+  private readonly authenticatedState = signal(false)
+  private refreshToken: string | null = this.initial.refreshToken
+  private persistent = this.initial.persistent
 
-  /**
-   * Setter & getter for access token
-   */
-  set accessToken(token: string) {
-    localStorage.setItem('accessToken', token)
+  private pendingCheck: Observable<boolean> | null = null
+  private pendingRefresh: Observable<string> | null = null
+
+  /** The current access token, or `null`. */
+  readonly accessToken = this.accessTokenState.asReadonly()
+  /** True once a sign-in, refresh or session restore succeeded, until sign-out. */
+  readonly authenticated = this.authenticatedState.asReadonly()
+  /** Authenticated and holding an unexpired access token. */
+  readonly isAuthenticated = computed(
+    () => this.authenticatedState() && !isTokenExpired(this.accessTokenState()),
+  )
+
+  /** True while a refresh token is stored. */
+  get canRefresh(): boolean {
+    return !!this.refreshToken
   }
 
-  get accessToken(): string {
-    return localStorage.getItem('accessToken') ?? ''
-  }
-
-  // -----------------------------------------------------------------------------------------------------
-  // @ Public methods
-  // -----------------------------------------------------------------------------------------------------
-
-  /**
-   * Forgot password
-   *
-   * @param email
-   */
-  forgotPassword(email: string): Observable<any> {
-    return this._httpClient.post('api/auth/forgot-password', email)
-  }
-
-  /**
-   * Reset password
-   *
-   * @param password
-   */
-  resetPassword(password: string): Observable<any> {
-    return this._httpClient.post('api/auth/reset-password', password)
+  /** `POST auth/sign-in`. Stores the session (per `rememberMe`) and the user. */
+  signIn({ email, password, rememberMe }: SignInCredentials): Observable<User> {
+    if (this.authenticatedState()) return throwError(() => new Error('Already signed in'))
+    return this.http
+      .post<AuthResponse>(this.url('auth/sign-in'), { email, password }, { context: PUBLIC() })
+      .pipe(map((response) => this.startSession(response, rememberMe)))
   }
 
   /**
-   * Sign in
-   *
-   * @param credentials
+   * Ends the session. Local state is cleared at once; the backend `POST auth/sign-out` call is
+   * best effort and its errors are ignored.
    */
-  signIn(credentials: { email: string; password: string }): Observable<any> {
-    // Throw error, if the user is already logged in
-    if (this._authenticated) {
-      return throwError('User is already logged in.')
-    }
-
-    return this._httpClient.post('api/auth/sign-in', credentials).pipe(
-      switchMap((response: any) => {
-        // Store the access token in the local storage
-        this.accessToken = response.accessToken
-
-        // Set the authenticated flag to true
-        this._authenticated = true
-
-        // Store the user on the user service
-        this._userService.user = response.user
-
-        // Return a new observable with the response
-        return of(response)
-      }),
-    )
-  }
-
-  /**
-   * Sign in using the access token
-   */
-  signInUsingToken(): Observable<any> {
-    // Sign in using the token
-    return this._httpClient
-      .post('api/auth/sign-in-with-token', {
-        accessToken: this.accessToken,
+  signOut(): Observable<void> {
+    const token = this.accessTokenState()
+    this.clearSession()
+    if (!token || isTokenExpired(token)) return of(undefined)
+    return this.http
+      .post(this.url('auth/sign-out'), null, {
+        context: PUBLIC(),
+        headers: new HttpHeaders({ Authorization: `Bearer ${token}` }),
       })
       .pipe(
-        catchError(() =>
-          // Return false
-          of(false),
-        ),
-        switchMap((response: any) => {
-          // Replace the access token with the new one if it's available on
-          // the response object.
-          //
-          // This is an added optional step for better security. Once you sign
-          // in using the token, you should generate a new one on the server
-          // side and attach it to the response object. Then the following
-          // piece of code can replace the token with the refreshed one.
-          if (response.accessToken) {
-            this.accessToken = response.accessToken
-          }
-
-          // Set the authenticated flag to true
-          this._authenticated = true
-
-          // Store the user on the user service
-          this._userService.user = response.user
-
-          // Return true
-          return of(true)
-        }),
+        map(() => undefined),
+        catchError(() => of(undefined)),
       )
   }
 
   /**
-   * Sign out
-   */
-  signOut(): Observable<any> {
-    // Remove the access token from the local storage
-    localStorage.removeItem('accessToken')
-
-    // Set the authenticated flag to false
-    this._authenticated = false
-
-    // Return the observable
-    return of(true)
-  }
-
-  /**
-   * Sign up
-   *
-   * @param user
-   */
-  signUp(user: {
-    name: string
-    email: string
-    password: string
-    company: string
-  }): Observable<any> {
-    return this._httpClient.post('api/auth/sign-up', user)
-  }
-
-  /**
-   * Unlock session
-   *
-   * @param credentials
-   */
-  unlockSession(credentials: { email: string; password: string }): Observable<any> {
-    return this._httpClient.post('api/auth/unlock-session', credentials)
-  }
-
-  /**
-   * Check the authentication status
+   * Resolves whether there is a usable session, restoring it after a reload. Used by the guards.
+   * Parallel calls share one request.
    */
   check(): Observable<boolean> {
-    // Check if the user is logged in
-    if (this._authenticated) {
-      return of(true)
-    }
+    if (this.authenticatedState() && !isTokenExpired(this.accessTokenState())) return of(true)
+    if (this.pendingCheck) return this.pendingCheck
 
-    // Check the access token availability
-    if (!this.accessToken) {
+    const token = this.accessTokenState()
+    let source: Observable<boolean>
+    if (token && !isTokenExpired(token)) {
+      source = this.signInUsingToken(token)
+    } else if (this.refreshToken) {
+      source = this.refresh().pipe(
+        map(() => true),
+        catchError(() => of(false)),
+      )
+    } else {
+      if (token) this.clearSession()
       return of(false)
     }
 
-    // Check the access token expire date
-    if (AuthUtils.isTokenExpired(this.accessToken)) {
-      return of(false)
+    this.pendingCheck = source.pipe(
+      finalize(() => (this.pendingCheck = null)),
+      shareReplay({ bufferSize: 1, refCount: false }),
+    )
+    return this.pendingCheck
+  }
+
+  /**
+   * `POST auth/refresh` with the stored refresh token and stores the new pair. The refresh token is
+   * single use, so parallel callers share the one in-flight request. On failure the session is
+   * cleared locally and the error is re-thrown.
+   */
+  refresh(): Observable<string> {
+    if (this.pendingRefresh) return this.pendingRefresh
+    const refreshToken = this.refreshToken
+    if (!refreshToken) {
+      this.clearSession()
+      return throwError(() => new Error('No refresh token'))
     }
 
-    // If the access token exists, and it didn't expire, sign in using it
-    return this.signInUsingToken()
+    this.pendingRefresh = defer(() =>
+      this.http.post<AuthResponse>(this.url('auth/refresh'), { refreshToken }, { context: PUBLIC() }),
+    ).pipe(
+      map((response) => {
+        this.startSession(response, this.persistent)
+        return response.accessToken
+      }),
+      catchError((error: unknown) => {
+        this.clearSession()
+        return throwError(() => error)
+      }),
+      finalize(() => (this.pendingRefresh = null)),
+      shareReplay({ bufferSize: 1, refCount: false }),
+    )
+    return this.pendingRefresh
+  }
+
+  /** `POST auth/forgot-password`. Succeeds whether or not the email is registered. */
+  forgotPassword(email: string): Observable<void> {
+    return this.http
+      .post(this.url('auth/forgot-password'), { email }, { context: PUBLIC() })
+      .pipe(map(() => undefined))
+  }
+
+  /** `POST auth/reset-password` with the token from the reset link. */
+  resetPassword(token: string, password: string): Observable<void> {
+    return this.http
+      .post(this.url('auth/reset-password'), { token, password }, { context: PUBLIC() })
+      .pipe(map(() => undefined))
+  }
+
+  /** Clears tokens, user and navigation without calling the backend. */
+  clearSession(): void {
+    AuthTokenStorage.clear()
+    this.refreshToken = null
+    this.accessTokenState.set(null)
+    this.authenticatedState.set(false)
+    this.users.reset()
+    this.navigation.reset()
+  }
+
+  /** `POST auth/sign-in-with-token`: restores the session after a reload. Never errors. */
+  private signInUsingToken(accessToken: string): Observable<boolean> {
+    return this.http
+      .post<AuthResponse>(this.url('auth/sign-in-with-token'), { accessToken }, { context: PUBLIC() })
+      .pipe(
+        map((response) => {
+          this.startSession(response, this.persistent)
+          return true
+        }),
+        catchError((error: { status?: number }) => {
+          // A rejected access token may still have a valid refresh token behind it.
+          if (error?.status === 401 && this.refreshToken) {
+            return this.refresh().pipe(
+              map(() => true),
+              catchError(() => of(false)),
+            )
+          }
+          this.clearSession()
+          return of(false)
+        }),
+      )
+  }
+
+  private startSession(response: AuthResponse, persistent: boolean): User {
+    this.persistent = persistent
+    this.refreshToken = response.refreshToken ?? null
+    AuthTokenStorage.write(response.accessToken, this.refreshToken, persistent)
+    this.accessTokenState.set(response.accessToken)
+    this.authenticatedState.set(true)
+    this.users.set(response.user)
+    return response.user
+  }
+
+  private url(path: string): string {
+    return joinApiUrl(this.apiUrl, path)
   }
 }

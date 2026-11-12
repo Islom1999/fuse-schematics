@@ -1,114 +1,54 @@
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
+import { RouterOutlet } from '@angular/router'
+import { TranslocoPipe } from '@jsverse/transloco'
+import { UiFullscreenComponent } from '@ui/components/fullscreen'
+import { UiIconComponent } from '@ui/components/icon/ui-icon.component'
+import { UiLoadingBarComponent } from '@ui/components/loading-bar'
+import { UiHorizontalNavigationComponent } from '@ui/navigation/horizontal'
+import { UiNavigationService } from '@ui/navigation/navigation.service'
+import { UiNavigationComponentRef } from '@ui/navigation/navigation.types'
+import { UiVerticalNavigationComponent } from '@ui/navigation/vertical'
+import { UiMediaWatcherService } from '@ui/services/media-watcher'
+import { NavigationService } from 'app/core/navigation/navigation.service'
+import { LanguagesComponent } from 'app/layout/common/languages/languages.component'
+import { NotificationsComponent } from 'app/layout/common/notifications/notifications.component'
+import { SearchComponent } from 'app/layout/common/search/search.component'
+import { UserComponent } from 'app/layout/common/user/user.component'
+import { ButtonDirective } from 'primeng/button'
 
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation, inject } from '@angular/core';
-import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
-import { FuseFullscreenComponent } from '@fuse/components/fullscreen';
-import { FuseLoadingBarComponent } from '@fuse/components/loading-bar';
-import { FuseHorizontalNavigationComponent, FuseNavigationService, FuseVerticalNavigationComponent } from '@fuse/components/navigation';
-import { FuseMediaWatcherService } from '@fuse/services/media-watcher';
-import { NavigationService } from 'app/core/navigation/navigation.service';
-import { Navigation } from 'app/core/navigation/navigation.types';
-import { LanguagesComponent } from 'app/layout/common/languages/languages.component';
-import { MessagesComponent } from 'app/layout/common/messages/messages.component';
-import { NotificationsComponent } from 'app/layout/common/notifications/notifications.component';
-import { SearchComponent } from 'app/layout/common/search/search.component';
-import { ShortcutsComponent } from 'app/layout/common/shortcuts/shortcuts.component';
-import { UserComponent } from 'app/layout/common/user/user.component';
-import { Subject, takeUntil } from 'rxjs';
-import { ButtonModule } from 'primeng/button';
-import { FuseIconComponent } from '@fuse/components/icon';
-
+/** Horizontal layout: a centered, rounded card holding the header, the content and the footer. */
 @Component({
-    selector: 'centered-layout',
-    templateUrl: './centered.component.html',
-    encapsulation: ViewEncapsulation.None,
-    imports: [FuseLoadingBarComponent, FuseVerticalNavigationComponent, FuseHorizontalNavigationComponent, ButtonModule, LanguagesComponent, FuseFullscreenComponent, SearchComponent, ShortcutsComponent, MessagesComponent, NotificationsComponent, UserComponent, RouterOutlet, FuseIconComponent]
+  selector: 'app-centered-layout',
+  standalone: true,
+  imports: [
+    ButtonDirective,
+    LanguagesComponent,
+    NotificationsComponent,
+    RouterOutlet,
+    SearchComponent,
+    TranslocoPipe,
+    UiFullscreenComponent,
+    UiHorizontalNavigationComponent,
+    UiIconComponent,
+    UiLoadingBarComponent,
+    UiVerticalNavigationComponent,
+    UserComponent,
+  ],
+  templateUrl: './centered.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'flex flex-auto w-full' },
 })
-export class CenteredLayoutComponent implements OnInit, OnDestroy
-{
-    private _activatedRoute = inject(ActivatedRoute);
-    private _router = inject(Router);
-    private _navigationService = inject(NavigationService);
-    private _fuseMediaWatcherService = inject(FuseMediaWatcherService);
-    private _fuseNavigationService = inject(FuseNavigationService);
-    private _changeDetectorRef = inject(ChangeDetectorRef);
+export class CenteredLayoutComponent {
+  private readonly navigationService = inject(NavigationService)
+  private readonly uiNavigationService = inject(UiNavigationService)
+  private readonly isMd = inject(UiMediaWatcherService).is('md')
 
-    navigation: Navigation;
-    isScreenSmall: boolean;
-    private _unsubscribeAll: Subject<any> = new Subject<any>();
+  protected readonly navigation = this.navigationService.navigation
+  protected readonly isScreenSmall = computed(() => !this.isMd())
+  protected readonly currentYear = new Date().getFullYear()
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Accessors
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Getter for current year
-     */
-    get currentYear(): number
-    {
-        return new Date().getFullYear();
-    }
-
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * On init
-     */
-    ngOnInit(): void
-    {
-        // Subscribe to navigation data
-        this._navigationService.navigation$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((navigation: Navigation) =>
-            {
-                this.navigation = navigation;
-
-                // Mark for check (zoneless change detection)
-                this._changeDetectorRef.markForCheck();
-            });
-
-        // Subscribe to media changes
-        this._fuseMediaWatcherService.onMediaChange$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe(({matchingAliases}) =>
-            {
-                // Check if the screen is small
-                this.isScreenSmall = !matchingAliases.includes('md');
-
-                // Mark for check (zoneless change detection)
-                this._changeDetectorRef.markForCheck();
-            });
-    }
-
-    /**
-     * On destroy
-     */
-    ngOnDestroy(): void
-    {
-        // Unsubscribe from all subscriptions
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
-    }
-
-    // -----------------------------------------------------------------------------------------------------
-    // @ Public methods
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Toggle navigation
-     *
-     * @param name
-     */
-    toggleNavigation(name: string): void
-    {
-        // Get the navigation
-        const navigation = this._fuseNavigationService.getComponent<FuseVerticalNavigationComponent>(name);
-
-        if ( navigation )
-        {
-            // Toggle the opened status
-            navigation.toggle();
-        }
-    }
+  /** Toggles the registered navigation `name` (the small-screen drawer). */
+  toggleNavigation(name: string): void {
+    this.uiNavigationService.getComponent<UiNavigationComponentRef>(name)?.toggle?.()
+  }
 }

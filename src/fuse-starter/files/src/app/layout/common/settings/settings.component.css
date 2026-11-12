@@ -1,0 +1,150 @@
+/* Global styles (ViewEncapsulation.None): every rule is scoped by a `settings-*` class. */
+
+.settings-cog {
+  top: 275px;
+}
+
+/*
+ * Mask: black at 60%. PrimeNG's `maskStyle` input is overwritten by the drawer, and the global mask
+ * keyframes use a fixed 40%, so this mask gets its own keyframes.
+ */
+.settings-drawer ~ .p-drawer-mask {
+  --p-mask-background: rgba(0, 0, 0, 0.6);
+}
+
+.settings-drawer ~ .p-drawer-mask.p-overlay-mask-enter {
+  animation-name: settings-mask-enter;
+}
+
+.settings-drawer ~ .p-drawer-mask.p-overlay-mask-leave {
+  animation-name: settings-mask-leave;
+}
+
+@keyframes settings-mask-enter {
+  from {
+    background-color: transparent;
+  }
+  to {
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+}
+
+@keyframes settings-mask-leave {
+  from {
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+.settings-drawer .settings-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.5;
+  text-transform: uppercase;
+  letter-spacing: normal;
+  color: var(--ui-text-secondary);
+}
+
+/* Theme and scheme pills */
+.settings-drawer .settings-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  cursor: pointer;
+  color: var(--ui-text-secondary);
+  background-color: var(--ui-bg-hover);
+  transition: background-color 150ms;
+}
+
+.settings-drawer .settings-pill:hover {
+  background-color: rgba(148, 163, 184, 0.2);
+}
+
+.dark .settings-drawer .settings-pill:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.settings-drawer .settings-pill--selected {
+  color: var(--ui-text-default);
+  box-shadow: inset 0 0 0 2px var(--ui-primary);
+}
+
+/* Layout cards */
+.settings-drawer .settings-thumb {
+  display: flex;
+  height: 5rem;
+  width: 100%;
+  overflow: hidden;
+  border: 2px solid var(--ui-border);
+  border-radius: 6px;
+  transition: opacity 150ms;
+}
+
+.settings-drawer .settings-layout:hover .settings-thumb {
+  opacity: 0.8;
+}
+
+.settings-drawer .settings-layout--selected .settings-thumb {
+  border-color: var(--ui-primary);
+}
+
+.settings-drawer .settings-layout__label {
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-align: center;
+  color: var(--ui-text-secondary);
+}
+
+.settings-drawer .settings-layout--selected .settings-layout__label {
+  color: var(--ui-primary);
+}
+
+/* Thumbnail art: bars, ink (lines and dots), content and frame */
+.settings-thumb .t-bar {
+  background-color: #f1f5f9;
+}
+
+.settings-thumb .t-ink,
+.settings-thumb .t-dot,
+.settings-thumb .t-dash {
+  background-color: #cbd5e1;
+}
+
+.settings-thumb .t-dot {
+  width: 0.25rem;
+  height: 0.25rem;
+  border-radius: 9999px;
+}
+
+.settings-thumb .t-dash {
+  width: 0.75rem;
+  height: 0.25rem;
+  border-radius: 9999px;
+}
+
+.settings-thumb .t-content {
+  background-color: #f8fafc;
+}
+
+.settings-thumb .t-frame {
+  background-color: var(--ui-bg-card);
+}
+
+.dark .settings-thumb .t-bar {
+  background-color: #1e293b;
+}
+
+.dark .settings-thumb .t-ink,
+.dark .settings-thumb .t-dot,
+.dark .settings-thumb .t-dash {
+  background-color: #334155;
+}
+
+.dark .settings-thumb .t-content,
+.dark .settings-thumb .t-frame {
+  background-color: #0f172a;
+}

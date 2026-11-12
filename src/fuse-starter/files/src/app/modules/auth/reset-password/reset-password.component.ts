@@ -1,140 +1,107 @@
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core'
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'
+import { ActivatedRoute, RouterLink } from '@angular/router'
+import { TranslocoPipe } from '@jsverse/transloco'
+import { UiValidators } from '@ui/validators/ui-validators'
+import { AuthService } from 'app/core/auth/auth.service'
+import { ButtonDirective, ButtonLabel } from 'primeng/button'
+import { InputText } from 'primeng/inputtext'
+import { AuthAlertComponent } from '../shared/auth-alert.component'
+import { AuthAlert, authAlert, firstError, httpStatus } from '../shared/auth-form'
+import { AuthPasswordToggleComponent } from '../shared/auth-password-toggle.component'
+import { AuthSpinnerComponent } from '../shared/auth-spinner.component'
+import { AuthSplitShellComponent } from '../shared/auth-split-shell.component'
 
-import { ChangeDetectorRef, Component, OnInit, ViewEncapsulation, viewChild, inject } from '@angular/core';
-import {
-    FormsModule,
-    NgForm,
-    ReactiveFormsModule,
-    UntypedFormBuilder,
-    UntypedFormGroup,
-    Validators,
-} from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { fuseAnimations } from '@fuse/animations';
-import { FuseAlertComponent, FuseAlertType } from '@fuse/components/alert';
-import { FuseValidators } from '@fuse/validators';
-import { AuthService } from 'app/core/auth/auth.service';
-import { finalize } from 'rxjs';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { FuseIconComponent } from '@fuse/components/icon';
+/** Minimum password length (DECISIONS A3). */
+export const PASSWORD_MIN_LENGTH = 8
+
+const MESSAGES = {
+  password: { required: 'auth.validation.passwordRequired', minlength: 'auth.validation.passwordMinLength' },
+  passwordConfirm: {
+    required: 'auth.validation.passwordConfirmRequired',
+    mustMatch: 'auth.validation.passwordsMustMatch',
+  },
+}
 
 @Component({
-    selector: 'auth-reset-password',
-    templateUrl: './reset-password.component.html',
-    encapsulation: ViewEncapsulation.None,
-    animations: fuseAnimations,
-    imports: [
-    FuseAlertComponent,
-    FormsModule,
+  selector: 'app-reset-password',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
     ReactiveFormsModule,
-    ButtonModule,
-    InputTextModule,
-    ProgressSpinnerModule,
     RouterLink,
-    FuseIconComponent
-],
+    TranslocoPipe,
+    InputText,
+    ButtonDirective,
+    ButtonLabel,
+    AuthSplitShellComponent,
+    AuthAlertComponent,
+    AuthPasswordToggleComponent,
+    AuthSpinnerComponent,
+  ],
+  host: { class: 'flex min-w-0 flex-auto flex-col' },
+  templateUrl: './reset-password.component.html',
 })
-export class AuthResetPasswordComponent implements OnInit {
-    private _authService = inject(AuthService);
-    private _formBuilder = inject(UntypedFormBuilder);
-    private _changeDetectorRef = inject(ChangeDetectorRef);
+export class ResetPasswordComponent {
+  private readonly auth = inject(AuthService)
+  private readonly token = inject(ActivatedRoute).snapshot.queryParamMap.get('token')
 
-    readonly resetPasswordNgForm = viewChild<NgForm>('resetPasswordNgForm');
+  protected readonly minLength = PASSWORD_MIN_LENGTH
+  protected readonly form = new FormGroup(
+    {
+      password: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required, Validators.minLength(PASSWORD_MIN_LENGTH)],
+      }),
+      passwordConfirm: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    },
+    { validators: UiValidators.mustMatch('password', 'passwordConfirm') },
+  )
+  protected readonly busy = signal(false)
+  /** No token in the link, or the password was reset: the form stays disabled. */
+  protected readonly locked = signal(false)
+  protected readonly alert = signal<AuthAlert | null>(null)
 
-    alert: { type: FuseAlertType; message: string } = {
-        type: 'success',
-        message: '',
-    };
-    resetPasswordForm: UntypedFormGroup;
-    showAlert: boolean = false;
-    hidePassword: boolean = true;
-    hidePasswordConfirm: boolean = true;
+  constructor() {
+    if (!this.token) this.lock(authAlert('error', 'auth.resetPassword.invalidToken'))
+  }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
+  protected error(name: keyof typeof MESSAGES): string | null {
+    return firstError(this.form.controls[name], MESSAGES[name])
+  }
 
-    /**
-     * On init
-     */
-    ngOnInit(): void {
-        // Create the form
-        this.resetPasswordForm = this._formBuilder.group(
-            {
-                password: ['', Validators.required],
-                passwordConfirm: ['', Validators.required],
-            },
-            {
-                validators: FuseValidators.mustMatch(
-                    'password',
-                    'passwordConfirm'
-                ),
-            }
-        );
+  protected submit(): void {
+    if (this.busy() || this.locked() || !this.token) return
+    if (this.form.invalid) {
+      this.form.markAllAsTouched()
+      return
     }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Public methods
-    // -----------------------------------------------------------------------------------------------------
+    this.busy.set(true)
+    this.alert.set(null)
+    const { password } = this.form.getRawValue()
+    this.form.disable()
 
-    /**
-     * Reset password
-     */
-    resetPassword(): void {
-        // Return if the form is invalid
-        if (this.resetPasswordForm.invalid) {
-            this.resetPasswordForm.markAllAsTouched();
-            return;
-        }
+    this.auth.resetPassword(this.token, password).subscribe({
+      next: () => {
+        this.busy.set(false)
+        this.form.reset()
+        this.lock(authAlert('success', 'auth.resetPassword.success'))
+      },
+      error: (error: unknown) => {
+        const status = httpStatus(error)
+        this.busy.set(false)
+        this.form.enable()
+        this.form.reset()
+        this.alert.set(
+          authAlert('error', status === 400 || status === 401 ? 'auth.resetPassword.invalidToken' : 'auth.errors.generic'),
+        )
+      },
+    })
+  }
 
-        // Disable the form
-        this.resetPasswordForm.disable();
-
-        // Hide the alert
-        this.showAlert = false;
-
-        // Send the request to the server
-        this._authService
-            .resetPassword(this.resetPasswordForm.get('password').value)
-            .pipe(
-                finalize(() => {
-                    // Re-enable the form
-                    this.resetPasswordForm.enable();
-
-                    // Reset the form
-                    this.resetPasswordNgForm().resetForm();
-                    this.resetPasswordForm.reset({
-                        password: '',
-                        passwordConfirm: '',
-                    });
-
-                    // Reset password visibility
-                    this.hidePassword = true;
-                    this.hidePasswordConfirm = true;
-
-                    // Show the alert
-                    this.showAlert = true;
-
-                    // Mark for check (zoneless change detection)
-                    this._changeDetectorRef.markForCheck();
-                })
-            )
-            .subscribe(
-                (response) => {
-                    // Set the alert
-                    this.alert = {
-                        type: 'success',
-                        message: 'Your password has been reset.',
-                    };
-                },
-                (response) => {
-                    // Set the alert
-                    this.alert = {
-                        type: 'error',
-                        message: 'Something went wrong, please try again.',
-                    };
-                }
-            );
-    }
+  private lock(alert: AuthAlert): void {
+    this.locked.set(true)
+    this.form.disable()
+    this.alert.set(alert)
+  }
 }

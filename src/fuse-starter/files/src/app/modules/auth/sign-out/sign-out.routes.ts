@@ -1,9 +1,4 @@
-import { Routes } from '@angular/router';
-import { AuthSignOutComponent } from 'app/modules/auth/sign-out/sign-out.component';
+import { Routes } from '@angular/router'
+import { SignOutComponent } from './sign-out.component'
 
-export default [
-    {
-        path     : '',
-        component: AuthSignOutComponent,
-    },
-] as Routes;
+export default [{ path: '', component: SignOutComponent }] satisfies Routes

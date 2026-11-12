@@ -1,159 +1,53 @@
-import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation, viewChild, inject } from '@angular/core';
-import { FuseNavigationService, FuseVerticalNavigationComponent } from '@fuse/components/navigation';
-import { AvailableLangs, TranslocoService } from '@jsverse/transloco';
-import { take } from 'rxjs';
-import { ButtonModule } from 'primeng/button';
-import { PopoverModule } from 'primeng/popover';
-import { Popover } from 'primeng/popover';
+import { NgTemplateOutlet } from '@angular/common'
+import { ChangeDetectionStrategy, Component, computed, inject, viewChild } from '@angular/core'
+import { toSignal } from '@angular/core/rxjs-interop'
+import { LangDefinition, TranslocoPipe, TranslocoService } from '@jsverse/transloco'
+import { ButtonDirective } from 'primeng/button'
+import { Popover } from 'primeng/popover'
 
+/** Language id -> flag file name (country code) under `assets/images/flags/`. Extend it when adding a language. */
+export const LANGUAGE_FLAGS: Readonly<Record<string, string>> = {
+  en: 'US',
+  tr: 'TR',
+}
 
+/** `localStorage` key holding the user's language, read back on bootstrap. */
+export const LANGUAGE_STORAGE_KEY = 'currentLanguage'
+
+/** Header language switcher: the active language's flag, and a popover listing Transloco's languages. */
 @Component({
-    selector: 'languages',
-    templateUrl: './languages.component.html',
-    encapsulation: ViewEncapsulation.None,
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    exportAs: 'languages',
-    imports: [ButtonModule, PopoverModule, NgTemplateOutlet]
+  selector: 'app-languages',
+  standalone: true,
+  imports: [ButtonDirective, NgTemplateOutlet, Popover, TranslocoPipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './languages.component.html',
 })
-export class LanguagesComponent implements OnInit, OnDestroy
-{
-    private _changeDetectorRef = inject(ChangeDetectorRef);
-    private _fuseNavigationService = inject(FuseNavigationService);
-    private _translocoService = inject(TranslocoService);
+export class LanguagesComponent {
+  private readonly transloco = inject(TranslocoService)
+  private readonly popover = viewChild.required<Popover>('popover')
 
-    availableLangs: AvailableLangs;
-    activeLang: string;
-    flagCodes: any;
-    readonly languagesPopover = viewChild<Popover>('languagesPopover');
+  /** The active Transloco language. */
+  readonly activeLang = toSignal(this.transloco.langChanges$, { initialValue: this.transloco.getActiveLang() })
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
+  /** Ids of the configured languages, in config order. */
+  readonly langs: readonly string[] = this.transloco
+    .getAvailableLangs()
+    .map((lang: string | LangDefinition) => (typeof lang === 'string' ? lang : lang.id))
 
-    /**
-     * On init
-     */
-    ngOnInit(): void
-    {
-        // Get the available languages from transloco
-        this.availableLangs = this._translocoService.getAvailableLangs();
+  protected readonly activeFlag = computed(() => this.flagUrl(this.activeLang()))
 
-        // Subscribe to language changes
-        this._translocoService.langChanges$.subscribe((activeLang) =>
-        {
-            // Get the active lang
-            this.activeLang = activeLang;
+  protected flagUrl(lang: string): string {
+    return `assets/images/flags/${LANGUAGE_FLAGS[lang] ?? lang.toUpperCase()}.svg`
+  }
 
-            // Update the navigation
-            this._updateNavigation(activeLang);
-
-            // Mark for check (zoneless change detection)
-            this._changeDetectorRef.markForCheck();
-        });
-
-        // Set the country iso codes for languages for flags
-        this.flagCodes = {
-            'en': 'us',
-            'tr': 'tr',
-        };
+  /** Activates `lang`, remembers it in `localStorage` and closes the popover. */
+  setActiveLang(lang: string): void {
+    this.transloco.setActiveLang(lang)
+    try {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, lang)
+    } catch {
+      // Storage can be unavailable (private mode, blocked site data); the choice then lasts for the session.
     }
-
-    /**
-     * On destroy
-     */
-    ngOnDestroy(): void
-    {
-    }
-
-    // -----------------------------------------------------------------------------------------------------
-    // @ Public methods
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Set the active lang
-     *
-     * @param lang
-     */
-    setActiveLang(lang: string): void
-    {
-        // Set the active lang
-        this._translocoService.setActiveLang(lang);
-
-        // Close the panel
-        this.languagesPopover()?.hide();
-    }
-
-    /**
-     * Track by function for ngFor loops
-     *
-     * @param index
-     * @param item
-     */
-    trackByFn(index: number, item: any): any
-    {
-        return item.id || index;
-    }
-
-    // -----------------------------------------------------------------------------------------------------
-    // @ Private methods
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Update the navigation
-     *
-     * @param lang
-     * @private
-     */
-    private _updateNavigation(lang: string): void
-    {
-        // For the demonstration purposes, we will only update the Dashboard names
-        // from the navigation but you can do a full swap and change the entire
-        // navigation data.
-        //
-        // You can import the data from a file or request it from your backend,
-        // it's up to you.
-
-        // Get the component -> navigation data -> item
-        const navComponent = this._fuseNavigationService.getComponent<FuseVerticalNavigationComponent>('mainNavigation');
-
-        // Return if the navigation component does not exist
-        if ( !navComponent )
-        {
-            return null;
-        }
-
-        // Get the flat navigation data
-        const navigation = navComponent.navigation();
-
-        // Get the Project dashboard item and update its title
-        const projectDashboardItem = this._fuseNavigationService.getItem('dashboards.project', navigation);
-        if ( projectDashboardItem )
-        {
-            this._translocoService.selectTranslate('Project').pipe(take(1))
-                .subscribe((translation) =>
-                {
-                    // Set the title
-                    projectDashboardItem.title = translation;
-
-                    // Refresh the navigation component
-                    navComponent.refresh();
-                });
-        }
-
-        // Get the Analytics dashboard item and update its title
-        const analyticsDashboardItem = this._fuseNavigationService.getItem('dashboards.analytics', navigation);
-        if ( analyticsDashboardItem )
-        {
-            this._translocoService.selectTranslate('Analytics').pipe(take(1))
-                .subscribe((translation) =>
-                {
-                    // Set the title
-                    analyticsDashboardItem.title = translation;
-
-                    // Refresh the navigation component
-                    navComponent.refresh();
-                });
-        }
-    }
+    this.popover().hide()
+  }
 }

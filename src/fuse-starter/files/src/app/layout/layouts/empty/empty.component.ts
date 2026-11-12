@@ -1,37 +1,14 @@
+import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { RouterOutlet } from '@angular/router'
+import { UiLoadingBarComponent } from '@ui/components/loading-bar'
 
-import { Component, OnDestroy, ViewEncapsulation } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { FuseLoadingBarComponent } from '@fuse/components/loading-bar';
-import { Subject } from 'rxjs';
-
+/** Chrome-less layout (auth and landing pages): loading bar and router outlet only. */
 @Component({
-    selector: 'empty-layout',
-    templateUrl: './empty.component.html',
-    encapsulation: ViewEncapsulation.None,
-    imports: [FuseLoadingBarComponent, RouterOutlet]
+  selector: 'app-empty-layout',
+  standalone: true,
+  imports: [RouterOutlet, UiLoadingBarComponent],
+  templateUrl: './empty.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'flex flex-auto w-full' },
 })
-export class EmptyLayoutComponent implements OnDestroy
-{
-    private _unsubscribeAll: Subject<any> = new Subject<any>();
-
-    /**
-     * Constructor
-     */
-    constructor()
-    {
-    }
-
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * On destroy
-     */
-    ngOnDestroy(): void
-    {
-        // Unsubscribe from all subscriptions
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
-    }
-}
+export class EmptyLayoutComponent {}
