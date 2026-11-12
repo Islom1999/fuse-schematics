@@ -1,0 +1,26 @@
+{
+  "en": {
+    "layout": {
+      "logoAlt": "Logo",
+      "mainNavigation": "Main navigation",
+      "toggleNavigation": "Toggle navigation",
+      "toggleAppearance": "Toggle navigation appearance",
+      "fullscreen": "Toggle fullscreen",
+      "footer": {
+        "copyright": "Admin © {{year}}"
+      }
+    }
+  },
+  "tr": {
+    "layout": {
+      "logoAlt": "Logo",
+      "mainNavigation": "Ana menü",
+      "toggleNavigation": "Menüyü aç/kapat",
+      "toggleAppearance": "Menü görünümünü değiştir",
+      "fullscreen": "Tam ekranı aç/kapat",
+      "footer": {
+        "copyright": "Admin © {{year}}"
+      }
+    }
+  }
+}

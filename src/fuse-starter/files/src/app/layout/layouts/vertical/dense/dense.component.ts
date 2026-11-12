@@ -1,127 +1,44 @@
+import { ChangeDetectionStrategy, Component, inject, linkedSignal } from '@angular/core'
+import { RouterOutlet } from '@angular/router'
+import { TranslocoPipe } from '@jsverse/transloco'
+import { UiIconComponent } from '@ui/components/icon/ui-icon.component'
+import { UiLoadingBarComponent } from '@ui/components/loading-bar'
+import { UiVerticalNavigationAppearance } from '@ui/navigation/navigation.types'
+import { UiVerticalNavigationComponent } from '@ui/navigation/vertical'
+import { UiMediaWatcherService } from '@ui/services/media-watcher'
+import { NavigationService } from 'app/core/navigation/navigation.service'
+import { ButtonDirective } from 'primeng/button'
+import { VerticalFooterComponent } from '../shared/vertical-footer.component'
+import { MAIN_NAVIGATION, VerticalHeaderComponent } from '../shared/vertical-header.component'
 
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation, inject } from '@angular/core';
-import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
-import { FuseFullscreenComponent } from '@fuse/components/fullscreen';
-import { FuseLoadingBarComponent } from '@fuse/components/loading-bar';
-import { FuseNavigationService, FuseVerticalNavigationComponent } from '@fuse/components/navigation';
-import { FuseMediaWatcherService } from '@fuse/services/media-watcher';
-import { NavigationService } from 'app/core/navigation/navigation.service';
-import { Navigation } from 'app/core/navigation/navigation.types';
-import { LanguagesComponent } from 'app/layout/common/languages/languages.component';
-import { MessagesComponent } from 'app/layout/common/messages/messages.component';
-import { NotificationsComponent } from 'app/layout/common/notifications/notifications.component';
-import { QuickChatComponent } from 'app/layout/common/quick-chat/quick-chat.component';
-import { SearchComponent } from 'app/layout/common/search/search.component';
-import { ShortcutsComponent } from 'app/layout/common/shortcuts/shortcuts.component';
-import { UserComponent } from 'app/layout/common/user/user.component';
-import { Subject, takeUntil } from 'rxjs';
-import { ButtonModule } from 'primeng/button';
-import { FuseIconComponent } from '@fuse/components/icon';
-
+/** Dense layout: dark 80 px icon rail that expands on hover, with a header toggle to the full width. */
 @Component({
-    selector: 'dense-layout',
-    templateUrl: './dense.component.html',
-    encapsulation: ViewEncapsulation.None,
-    imports: [FuseLoadingBarComponent, FuseVerticalNavigationComponent, ButtonModule, LanguagesComponent, FuseFullscreenComponent, SearchComponent, ShortcutsComponent, MessagesComponent, NotificationsComponent, UserComponent, RouterOutlet, QuickChatComponent, FuseIconComponent]
+  selector: 'app-dense-layout',
+  imports: [
+    ButtonDirective,
+    RouterOutlet,
+    TranslocoPipe,
+    UiIconComponent,
+    UiLoadingBarComponent,
+    UiVerticalNavigationComponent,
+    VerticalFooterComponent,
+    VerticalHeaderComponent,
+  ],
+  templateUrl: './dense.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'flex w-full flex-auto' },
 })
-export class DenseLayoutComponent implements OnInit, OnDestroy
-{
-    private _activatedRoute = inject(ActivatedRoute);
-    private _router = inject(Router);
-    private _navigationService = inject(NavigationService);
-    private _fuseMediaWatcherService = inject(FuseMediaWatcherService);
-    private _fuseNavigationService = inject(FuseNavigationService);
-    private _changeDetectorRef = inject(ChangeDetectorRef);
+export class DenseLayoutComponent {
+  protected readonly navigationName = MAIN_NAVIGATION
+  protected readonly navigation = inject(NavigationService).navigation
+  protected readonly isScreenSmall = inject(UiMediaWatcherService).isLtMd
 
-    isScreenSmall: boolean;
-    navigation: Navigation;
-    navigationAppearance: 'default' | 'dense' = 'dense';
-    private _unsubscribeAll: Subject<any> = new Subject<any>();
+  /** `dense` on desktop, `default` on small screens; reset on every breakpoint change. */
+  protected readonly appearance = linkedSignal<UiVerticalNavigationAppearance>(() =>
+    this.isScreenSmall() ? 'default' : 'dense',
+  )
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Accessors
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Getter for current year
-     */
-    get currentYear(): number
-    {
-        return new Date().getFullYear();
-    }
-
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * On init
-     */
-    ngOnInit(): void
-    {
-        // Subscribe to navigation data
-        this._navigationService.navigation$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((navigation: Navigation) =>
-            {
-                this.navigation = navigation;
-
-                // Mark for check (zoneless change detection)
-                this._changeDetectorRef.markForCheck();
-            });
-
-        // Subscribe to media changes
-        this._fuseMediaWatcherService.onMediaChange$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe(({matchingAliases}) =>
-            {
-                // Check if the screen is small
-                this.isScreenSmall = !matchingAliases.includes('md');
-
-                // Change the navigation appearance
-                this.navigationAppearance = this.isScreenSmall ? 'default' : 'dense';
-
-                // Mark for check (zoneless change detection)
-                this._changeDetectorRef.markForCheck();
-            });
-    }
-
-    /**
-     * On destroy
-     */
-    ngOnDestroy(): void
-    {
-        // Unsubscribe from all subscriptions
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
-    }
-
-    // -----------------------------------------------------------------------------------------------------
-    // @ Public methods
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Toggle navigation
-     *
-     * @param name
-     */
-    toggleNavigation(name: string): void
-    {
-        // Get the navigation
-        const navigation = this._fuseNavigationService.getComponent<FuseVerticalNavigationComponent>(name);
-
-        if ( navigation )
-        {
-            // Toggle the opened status
-            navigation.toggle();
-        }
-    }
-
-    /**
-     * Toggle the navigation appearance
-     */
-    toggleNavigationAppearance(): void
-    {
-        this.navigationAppearance = (this.navigationAppearance === 'default' ? 'dense' : 'default');
-    }
+  protected toggleAppearance(): void {
+    this.appearance.update((appearance) => (appearance === 'dense' ? 'default' : 'dense'))
+  }
 }
