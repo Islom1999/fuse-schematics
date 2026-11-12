@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "FuseAddonSchema",
+  "title": "Fuse Admin Add-on Page Schema",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Admin page for a back-end add-on: users (client users and their device sessions), api-logs (server API logs), notifications (campaigns and send form), payments (transactions and wallets) or ai (usage statistics).",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": {
+        "message": "Which admin page do you want to add?",
+        "type": "list",
+        "items": [
+          { "value": "users", "label": "users - client users and their device sessions" },
+          { "value": "api-logs", "label": "api-logs - server API logs" },
+          { "value": "notifications", "label": "notifications - campaigns and send form" },
+          { "value": "payments", "label": "payments - transactions and wallets" },
+          { "value": "ai", "label": "ai - usage statistics" }
+        ]
+      }
+    },
+    "path": {
+      "type": "string",
+      "description": "Directory the page folder is created in. Defaults to `<sourceRoot>/app/modules/admin` (sourceRoot read from angular.json), or the `addon.path` value of fuse-schematics.json."
+    },
+    "project": {
+      "type": "string",
+      "description": "Project in angular.json to read sourceRoot from. Defaults to the first application project."
+    },
+    "force": {
+      "type": "boolean",
+      "description": "Overwrite page files that already exist. Without it, files that exist are left as they are.",
+      "default": false
+    },
+    "skipRoute": {
+      "type": "boolean",
+      "description": "Do not register the lazy route in <sourceRoot>/app/app.routes.ts",
+      "default": false
+    },
+    "skipNav": {
+      "type": "boolean",
+      "description": "Do not add a menu item to <sourceRoot>/app/core/navigation/navigation.ts",
+      "default": false
+    },
+    "skipI18n": {
+      "type": "boolean",
+      "description": "Do not add translation keys to <sourceRoot>/assets/i18n/*.json",
+      "default": false
+    }
+  },
+  "required": ["name"]
+}

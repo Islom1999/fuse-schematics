@@ -188,7 +188,8 @@ describe("fuse-feature --fields", () => {
       expect(Object.keys(keys.fields)).toEqual(["name", "price", "active", "note", "status", "soldAt"]);
       expect(keys.fields.soldAt).toBe("Sold at");
       // Labels of the yes/no select rendered for the boolean `active` filter.
-      expect(json.admin.grid.filter).withContext(file).toEqual({ yes: "Yes", no: "No" });
+      // The starter already ships these keys (translated in tr.json), and merging never overwrites.
+      expect(json.admin.grid.filter).withContext(file).toEqual(file === TR ? { yes: "Evet", no: "Hayır" } : { yes: "Yes", no: "No" });
     }
     expect(tree.readText(EN)).toContain('\n    "admin": {');
   });
@@ -235,7 +236,8 @@ describe("fuse-feature registration", () => {
     const routes = two.readText(ROUTES);
     expect(routes).toContain("path: 'mahsulot'");
     expect(routes).toContain("path: 'kategoriya'");
-    expect(Object.keys(JSON.parse(two.readText(TR)).admin)).toEqual(["mahsulot", "kategoriya"]);
+    // The starter also ships shared admin.* keys (common, grid, system), so only check the features.
+    expect(Object.keys(JSON.parse(two.readText(TR)).admin)).toEqual(jasmine.arrayContaining(["mahsulot", "kategoriya"]));
   });
 
   it("does not overwrite existing translations", async () => {

@@ -1,0 +1,30 @@
+@if (canRead()) {
+  <app-grid
+    [title]="'admin.users.title'"
+    [columns]="columns"
+    [showAddButton]="false"
+    [templateCostumFields]="cell"
+    (onRowSelect)="onRowSelect($event)"
+    [$data]="gridService"
+  >
+    <ng-template #costumTableFilter>
+      <app-table-filter
+        [config]="filterConfig"
+        [debounceTime]="500"
+        (filterChange)="onFilterChange($event)"
+        (filterReset)="onFilterReset()"
+      />
+    </ng-template>
+  </app-grid>
+
+  <ng-template #cell let-row="row">
+    <p-tag
+      [value]="(row.isBlocked ? 'admin.users.blocked' : 'admin.users.active') | transloco"
+      [severity]="row.isBlocked ? 'danger' : 'success'"
+    />
+  </ng-template>
+} @else {
+  <div class="p-6">
+    <p-message severity="warn" [text]="'admin.common.noPermission' | transloco" />
+  </div>
+}

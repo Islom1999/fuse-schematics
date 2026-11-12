@@ -146,5 +146,134 @@
         "network": "Sunucuya ulaşılamıyor",
         "forbidden": "Bu işlem için yetkiniz yok",
         "server": "Bir şeyler ters gitti, lütfen tekrar deneyin."
+    },
+    "active": {
+        "data": "Aktif"
+    },
+    "archive": {
+        "data": "Arşiv"
+    },
+    "form": {
+        "validation": {
+            "required": "Bu alan zorunludur"
+        }
+    },
+    "admin": {
+        "common": {
+            "create": "Oluştur",
+            "update": "Güncelle",
+            "delete": "Sil",
+            "cancel": "İptal",
+            "close": "Kapat",
+            "confirm": "Onayla",
+            "saved": "Kaydedildi",
+            "deleted": "Silindi",
+            "refresh": "Yenile",
+            "noPermission": "Bu sayfayı görüntüleme yetkiniz yok.",
+            "yes": "Evet",
+            "no": "Hayır",
+            "none": "Yok",
+            "id": "ID",
+            "status": "Durum",
+            "createdAt": "Oluşturulma",
+            "updatedAt": "Güncellenme",
+            "details": "Detaylar",
+            "search": "Ara",
+            "notAvailable": "yok",
+            "back": "Geri",
+            "loading": "Yükleniyor...",
+            "filters": "Filtreler"
+        },
+        "grid": {
+            "noData": "Veri yok",
+            "total": "Toplam: {{count}}",
+            "filter": {
+                "yes": "Evet",
+                "no": "Hayır"
+            },
+            "actions": {
+                "exportExcel": "Excel olarak dışa aktar",
+                "exportCsv": "CSV olarak dışa aktar",
+                "clearFilter": "Filtreyi temizle",
+                "resetFilters": "Filtreleri sıfırla"
+            }
+        },
+        "sessions": {
+            "title": "Cihaz oturumları",
+            "device": "Cihaz",
+            "ip": "IP adresi",
+            "lastUsedAt": "Son kullanım",
+            "expiresAt": "Bitiş",
+            "current": "Geçerli",
+            "empty": "Etkin oturum yok",
+            "revoke": "Oturumu sonlandır",
+            "revoked": "Oturum sonlandırıldı",
+            "revokeAll": "Tümünü sonlandır",
+            "revokedCount": "{{count}} oturum sonlandırıldı",
+            "revokeAllConfirm": {
+                "title": "Tüm oturumları sonlandır",
+                "message": "Tüm cihazların oturumu kapatılacak. Devam edilsin mi?"
+            }
+        },
+        "system": {
+            "admins": {
+                "title": "Yöneticiler",
+                "addNew": "Yönetici ekle",
+                "create": "Yönetici oluştur",
+                "edit": "Yöneticiyi düzenle",
+                "search": "Ara",
+                "searchPlaceholder": "E-posta, ad veya rol",
+                "blocked": "Engelli",
+                "active": "Aktif",
+                "security": "Güvenlik",
+                "block": "Engelle",
+                "unblock": "Engeli kaldır",
+                "blockedHint": "Bu yönetici engellidir ve giriş yapamaz.",
+                "activeHint": "Engellemek yöneticinin tüm oturumlarını sonlandırır.",
+                "blockConfirm": {
+                    "title": "Yöneticiyi engelle",
+                    "message": "Yöneticinin tüm cihazlardaki oturumu kapatılır ve engel kalkana kadar giriş yapamaz."
+                },
+                "unblockConfirm": {
+                    "title": "Engeli kaldır",
+                    "message": "Yönetici yeniden giriş yapabilecek."
+                },
+                "blockedDone": "Yönetici engellendi",
+                "unblockedDone": "Yönetici engeli kaldırıldı",
+                "newPassword": "Yeni şifre",
+                "setPassword": "Şifreyi ayarla",
+                "passwordHint": "8 ile 200 karakter. Yöneticinin tüm oturumları sonlanır.",
+                "passwordChanged": "Şifre değiştirildi",
+                "deleteTitle": "Yöneticiyi sil",
+                "deleteMessage": "\"{{name}}\" silinsin mi? Bu işlem geri alınamaz.",
+                "fields": {
+                    "email": "E-posta",
+                    "name": "Ad",
+                    "password": "Şifre",
+                    "role": "Rol",
+                    "isBlocked": "Durum",
+                    "lastLoginAt": "Son giriş",
+                    "createdAt": "Oluşturulma"
+                }
+            },
+            "roles": {
+                "title": "Roller",
+                "addNew": "Rol ekle",
+                "create": "Rol oluştur",
+                "edit": "Rolü düzenle",
+                "search": "Ara",
+                "searchPlaceholder": "Rol adı",
+                "allPermissions": "Tüm yetkiler",
+                "permissionCount": "{{count}} yetki",
+                "deleteTitle": "Rolü sil",
+                "deleteMessage": "\"{{name}}\" silinsin mi? Bu role sahip yöneticiler yetkilerini kaybeder.",
+                "fields": {
+                    "name": "Ad",
+                    "permissions": "Yetkiler",
+                    "createdAt": "Oluşturulma",
+                    "updatedAt": "Güncellenme"
+                }
+            }
+        }
     }
 }

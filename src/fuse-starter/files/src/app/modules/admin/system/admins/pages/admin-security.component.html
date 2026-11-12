@@ -1,0 +1,56 @@
+<section class="flex flex-col gap-6 border-t pt-4">
+  <h3 class="text-lg font-semibold">{{ 'admin.system.admins.security' | transloco }}</h3>
+
+  @if (canWrite()) {
+    <div class="flex flex-col gap-3">
+      <div class="flex items-center justify-between gap-3">
+        <span class="text-secondary text-sm">
+          {{ (isBlocked() ? 'admin.system.admins.blockedHint' : 'admin.system.admins.activeHint') | transloco }}
+        </span>
+        <p-button
+          [label]="(isBlocked() ? 'admin.system.admins.unblock' : 'admin.system.admins.block') | transloco"
+          [icon]="isBlocked() ? 'pi pi-lock-open' : 'pi pi-ban'"
+          [severity]="isBlocked() ? 'success' : 'danger'"
+          [outlined]="true"
+          type="button"
+          (onClick)="toggleBlocked()"
+        />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="admin-new-password" class="text-sm font-medium">
+          {{ 'admin.system.admins.newPassword' | transloco }}
+        </label>
+        <div class="flex gap-2">
+          <input
+            id="admin-new-password"
+            pInputText
+            class="flex-auto"
+            type="password"
+            autocomplete="new-password"
+            [value]="password()"
+            [maxLength]="200"
+            (input)="onPasswordInput($event)"
+          />
+          <p-button
+            [label]="'admin.system.admins.setPassword' | transloco"
+            [disabled]="!passwordValid()"
+            type="button"
+            (onClick)="savePassword()"
+          />
+        </div>
+        <small class="text-secondary">{{ 'admin.system.admins.passwordHint' | transloco }}</small>
+      </div>
+    </div>
+  }
+
+  @if (canRead()) {
+    <app-sessions-panel
+      [sessions]="sessions()"
+      [loading]="loading()"
+      [canRevoke]="canWrite()"
+      (revoke)="revoke($event)"
+      (revokeAll)="revokeAll()"
+    />
+  }
+</section>

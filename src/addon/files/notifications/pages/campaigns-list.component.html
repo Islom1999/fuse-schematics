@@ -1,0 +1,36 @@
+@if (canRead()) {
+  <app-grid
+    [title]="'admin.notifications.title'"
+    [columns]="columns"
+    [showAddButton]="false"
+    [templateCostumFields]="cell"
+    (onRowSelect)="onRowSelect($event)"
+    [$data]="gridService"
+  >
+    <ng-container titleRight>
+      @if (canWrite()) {
+        <a pButton routerLink="/notifications/send">
+          <i class="pi pi-send"></i>
+          {{ 'admin.notifications.send' | transloco }}
+        </a>
+      }
+    </ng-container>
+
+    <ng-template #costumTableFilter>
+      <app-table-filter
+        [config]="filterConfig"
+        [debounceTime]="500"
+        (filterChange)="onFilterChange($event)"
+        (filterReset)="onFilterReset()"
+      />
+    </ng-template>
+  </app-grid>
+
+  <ng-template #cell let-row="row">
+    <p-tag [value]="'admin.notifications.targets.' + row.target | transloco" severity="info" />
+  </ng-template>
+} @else {
+  <div class="p-6">
+    <p-message severity="warn" [text]="'admin.common.noPermission' | transloco" />
+  </div>
+}

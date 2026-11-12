@@ -1,0 +1,27 @@
+<section class="mx-auto flex max-w-screen-md flex-col gap-6 px-4 py-8 sm:px-8">
+  <div class="flex items-center justify-between gap-3">
+    <h1 class="text-2xl font-bold sm:text-3xl">{{ 'admin.notifications.send' | transloco }}</h1>
+    <a pButton routerLink="/notifications" severity="secondary" [outlined]="true">
+      <i class="pi pi-arrow-left"></i>
+      {{ 'admin.common.back' | transloco }}
+    </a>
+  </div>
+
+  @if (canWrite()) {
+    <form [formGroup]="form" (ngSubmit)="send()" class="bg-card flex flex-col gap-2 rounded-xl p-6 shadow">
+      <formly-form [form]="form" [fields]="fields" [model]="model" />
+
+      <div class="mt-4 flex justify-end gap-3 border-t pt-4">
+        <p-button
+          [label]="'admin.notifications.send' | transloco"
+          icon="pi pi-send"
+          type="submit"
+          [disabled]="form.invalid || sending()"
+          [loading]="sending()"
+        />
+      </div>
+    </form>
+  } @else {
+    <p-message severity="warn" [text]="'admin.common.noPermission' | transloco" />
+  }
+</section>

@@ -1,0 +1,34 @@
+@if (canRead()) {
+  <app-grid
+    [title]="'admin.system.roles.title'"
+    [columns]="columns"
+    [addButtonText]="'admin.system.roles.addNew'"
+    addButtonIcon="pi pi-plus"
+    [showAddButton]="canWrite()"
+    [templateCostumFields]="cell"
+    (onClickAdd)="onAddClick()"
+    (onRowSelect)="onRowSelect($event)"
+    [$data]="gridService"
+  >
+    <ng-template #costumTableFilter>
+      <app-table-filter
+        [config]="filterConfig"
+        [debounceTime]="500"
+        (filterChange)="onFilterChange($event)"
+        (filterReset)="onFilterReset()"
+      />
+    </ng-template>
+  </app-grid>
+
+  <ng-template #cell let-row="row">
+    @if (row.permissions.includes('*')) {
+      <p-tag [value]="'admin.system.roles.allPermissions' | transloco" severity="warn" />
+    } @else {
+      <span>{{ 'admin.system.roles.permissionCount' | transloco: { count: row.permissions.length } }}</span>
+    }
+  </ng-template>
+} @else {
+  <div class="p-6">
+    <p-message severity="warn" [text]="'admin.common.noPermission' | transloco" />
+  </div>
+}
