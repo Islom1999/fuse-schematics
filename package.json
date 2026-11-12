@@ -46,7 +46,7 @@
   "homepage": "https://github.com/Islom1999/fuse-schematics#readme",
   "license": "MIT",
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "engines": {
     "node": ">=20.19.0",
