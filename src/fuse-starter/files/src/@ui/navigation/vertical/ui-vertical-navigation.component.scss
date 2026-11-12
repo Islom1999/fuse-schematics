@@ -1,0 +1,632 @@
+// Global (ViewEncapsulation.None) styles of ui-vertical-navigation. Every selector is scoped
+// to the host class or to `ui-vnav-*` classes.
+
+$drawer: cubic-bezier(0.25, 0.8, 0.25, 1);
+$decelerate: cubic-bezier(0, 0, 0.2, 1);
+$accelerate: cubic-bezier(0.4, 0, 1, 1);
+
+:root {
+  --ui-vnav-width: 280px;
+  --ui-vnav-compact-width: 112px;
+  --ui-vnav-dense-width: 80px;
+  --ui-vnav-thin-width: 80px;
+}
+
+// ----- host -----
+
+.ui-vertical-navigation {
+  --ui-vnav-w: var(--ui-vnav-width, 280px);
+  --ui-vnav-hover-bg: rgba(30, 41, 59, 0.05);
+  --ui-vnav-border: #e2e8f0;
+
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  width: var(--ui-vnav-w);
+  min-width: var(--ui-vnav-w);
+  max-width: var(--ui-vnav-w);
+  height: 100vh;
+  outline: none;
+  visibility: visible;
+
+  &.ui-vnav-appearance-compact {
+    --ui-vnav-w: var(--ui-vnav-compact-width, 112px);
+  }
+
+  &.ui-vnav-appearance-thin {
+    --ui-vnav-w: var(--ui-vnav-thin-width, 80px);
+  }
+
+  &.ui-vnav-dense-collapsed,
+  &.ui-vnav-dense-expanded {
+    --ui-vnav-w: var(--ui-vnav-dense-width, 80px);
+  }
+
+  // Side mode: slide out with a negative margin.
+  &.ui-vnav-mode-side:not(.ui-vnav-opened) {
+    &.ui-vnav-position-left {
+      margin-left: calc(-1 * var(--ui-vnav-w));
+    }
+
+    &.ui-vnav-position-right {
+      margin-right: calc(-1 * var(--ui-vnav-w));
+    }
+  }
+
+  // Over mode: fixed drawer.
+  &.ui-vnav-mode-over {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    height: auto;
+
+    &.ui-vnav-position-left {
+      left: 0;
+      transform: translateX(-100%);
+    }
+
+    &.ui-vnav-position-right {
+      right: 0;
+      transform: translateX(100%);
+    }
+
+    &.ui-vnav-opened {
+      transform: translateX(0);
+    }
+  }
+
+  &:not(.ui-vnav-opened) {
+    visibility: hidden;
+  }
+
+  &.ui-vnav-animations-enabled {
+    transition-duration: 400ms;
+    transition-timing-function: $drawer;
+    transition-property: visibility, margin-left, margin-right, transform, width, min-width, max-width;
+  }
+
+  &.ui-vnav-animations-enabled > .ui-vnav-wrapper {
+    transition: width 400ms $drawer;
+  }
+
+  // Become visible at once when opening (so focus can move in); stay visible while sliding out.
+  &.ui-vnav-animations-enabled.ui-vnav-opened {
+    transition-property: margin-left, margin-right, transform, width, min-width, max-width;
+  }
+
+  // Inner mode: part of the page flow.
+  &.ui-vnav-inner {
+    position: relative;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    box-shadow: none;
+
+    > .ui-vnav-wrapper {
+      position: relative;
+      width: auto;
+      height: auto;
+      overflow: visible;
+    }
+
+    .ui-vnav-content {
+      overflow: visible;
+    }
+  }
+}
+
+// Dark context (the layouts put `dark` on the host or an ancestor).
+.dark .ui-vertical-navigation,
+.ui-vertical-navigation.dark {
+  --ui-vnav-hover-bg: rgba(255, 255, 255, 0.12);
+  --ui-vnav-border: rgba(241, 245, 249, 0.12);
+}
+
+.dark .light .ui-vertical-navigation,
+.ui-vertical-navigation.light {
+  --ui-vnav-hover-bg: rgba(30, 41, 59, 0.05);
+  --ui-vnav-border: #e2e8f0;
+}
+
+// ----- wrapper, slots, content -----
+
+.ui-vnav-wrapper {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  width: var(--ui-vnav-w);
+  overflow: hidden;
+  background: inherit;
+  color: inherit;
+  box-shadow: inset -1px 0 0 var(--ui-vnav-border);
+
+  .ui-vnav-position-right > & {
+    left: auto;
+    right: 0;
+    box-shadow: inset 1px 0 0 var(--ui-vnav-border);
+  }
+
+  .ui-vnav-dense-expanded > & {
+    width: var(--ui-vnav-width, 280px);
+  }
+}
+
+.ui-vnav-header,
+.ui-vnav-footer {
+  flex: 0 0 auto;
+}
+
+.ui-vnav-content {
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-vnav-border) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    background-color: var(--ui-vnav-border);
+  }
+}
+
+.ui-vnav-items {
+  display: block;
+}
+
+.ui-vnav-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// ----- rows -----
+
+.ui-vnav-item {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  user-select: none;
+}
+
+.ui-vnav-basic,
+.ui-vnav-aside-item,
+.ui-vnav-collapsable {
+  margin-bottom: 4px;
+}
+
+.ui-vnav-row-wrapper {
+  margin: 0 12px;
+}
+
+.ui-vnav-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: currentColor;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: left;
+  text-decoration: none;
+}
+
+.ui-vnav-row-interactive {
+  cursor: pointer;
+}
+
+.ui-vertical-navigation .ui-vnav-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 16px;
+  opacity: 0.6;
+}
+
+.ui-vnav-title-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ui-vnav-title {
+  opacity: 0.8;
+}
+
+.ui-vnav-subtitle {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.5;
+  opacity: 0.5;
+}
+
+.ui-vnav-badge {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  padding-left: 8px;
+}
+
+.ui-vnav-badge-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ui-vertical-navigation .ui-vnav-chevron {
+  width: 16px;
+  height: 16px;
+  margin-left: auto;
+  padding-left: 0;
+  opacity: 0.6;
+  transition:
+    transform 300ms $drawer,
+    color 375ms $drawer,
+    opacity 375ms $drawer;
+}
+
+.ui-vnav-badge + .ui-vnav-chevron {
+  margin-left: 8px !important;
+}
+
+// Hover and active
+.ui-vnav-item:not(.ui-vnav-item-disabled) > .ui-vnav-row-wrapper > .ui-vnav-row-interactive:hover,
+.ui-vnav-item-active > .ui-vnav-row-wrapper > .ui-vnav-row {
+  background-color: var(--ui-vnav-hover-bg);
+}
+
+.ui-vnav-item:not(.ui-vnav-item-disabled) > .ui-vnav-row-wrapper > .ui-vnav-row-interactive:hover,
+.ui-vnav-item-active > .ui-vnav-row-wrapper > .ui-vnav-row,
+.ui-vnav-item-expanded > .ui-vnav-row-wrapper > .ui-vnav-row {
+  .ui-vnav-icon,
+  .ui-vnav-title,
+  .ui-vnav-subtitle,
+  .ui-vnav-chevron {
+    opacity: 1;
+  }
+}
+
+.ui-vnav-item-expanded > .ui-vnav-row-wrapper > .ui-vnav-row .ui-vnav-chevron {
+  transform: rotate(90deg);
+}
+
+// Disabled
+.ui-vnav-item-disabled > .ui-vnav-row-wrapper > .ui-vnav-row {
+  opacity: 0.4;
+  cursor: default;
+}
+
+// ----- collapsable children -----
+
+.ui-vnav-children {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows 225ms $decelerate,
+    visibility 225ms $decelerate;
+
+  .ui-vnav-item-expanded > & {
+    grid-template-rows: 1fr;
+    visibility: visible;
+  }
+}
+
+.ui-vnav-children-inner {
+  min-height: 0;
+  overflow: hidden;
+
+  > .ui-vnav-items > .ui-vnav-list {
+    padding: 6px 0;
+  }
+}
+
+// The extra bottom space is not doubled for nested last children.
+.ui-vnav-children-inner .ui-vnav-item:last-child > .ui-vnav-children > .ui-vnav-children-inner > .ui-vnav-items > .ui-vnav-list {
+  padding-bottom: 0;
+}
+
+// ----- group, divider, spacer -----
+
+.ui-vnav-group-row {
+  cursor: default;
+
+  .ui-vnav-title {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 20px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    opacity: 1;
+  }
+}
+
+.ui-vnav-root > .ui-vnav-group {
+  margin-top: 24px;
+}
+
+.ui-vnav-divider {
+  height: 0;
+  margin: 12px 0;
+  border-top: 1px solid var(--ui-vnav-border);
+}
+
+.ui-vnav-root > .ui-vnav-divider {
+  margin: 24px 0;
+}
+
+.ui-vnav-spacer {
+  height: 0;
+  margin: 6px 0;
+}
+
+// ----- aside panel -----
+
+.ui-vnav-aside {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--ui-vnav-w);
+  z-index: 5;
+  box-sizing: border-box;
+  width: 280px;
+  padding: 24px 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: inherit;
+  color: inherit;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-vnav-border) transparent;
+  transition:
+    left 400ms $drawer,
+    right 400ms $drawer;
+
+  .ui-vnav-position-right > & {
+    left: auto;
+    right: var(--ui-vnav-w);
+  }
+
+  .ui-vnav-dense-expanded.ui-vnav-position-left > & {
+    left: var(--ui-vnav-width, 280px);
+  }
+
+  .ui-vnav-dense-expanded.ui-vnav-position-right > & {
+    right: var(--ui-vnav-width, 280px);
+  }
+}
+
+.ui-vnav-aside-enter {
+  animation: ui-vnav-aside-in 225ms $decelerate;
+}
+
+.ui-vnav-aside-leave {
+  animation: ui-vnav-aside-out 195ms $accelerate forwards;
+}
+
+.ui-vnav-position-right > .ui-vnav-aside-enter {
+  animation-name: ui-vnav-aside-in-right;
+}
+
+.ui-vnav-position-right > .ui-vnav-aside-leave {
+  animation-name: ui-vnav-aside-out-right;
+}
+
+@keyframes ui-vnav-aside-in {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes ui-vnav-aside-out {
+  to {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes ui-vnav-aside-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes ui-vnav-aside-out-right {
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+// ----- appearance: compact (top level only) -----
+
+.ui-vnav-appearance-compact .ui-vnav-wrapper .ui-vnav-root {
+  > .ui-vnav-collapsable,
+  > .ui-vnav-group > .ui-vnav-row-wrapper {
+    display: none;
+  }
+
+  > :is(.ui-vnav-basic, .ui-vnav-aside-item) {
+    > .ui-vnav-row-wrapper {
+      margin: 4px 8px 0;
+    }
+
+    > .ui-vnav-row-wrapper > .ui-vnav-row {
+      flex-direction: column;
+      justify-content: center;
+      padding: 12px;
+
+      .ui-vnav-icon {
+        margin-right: 0;
+      }
+
+      .ui-vnav-title-wrapper {
+        align-items: center;
+        margin-top: 8px;
+        text-align: center;
+      }
+
+      .ui-vnav-title {
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 16px;
+      }
+
+      .ui-vnav-subtitle {
+        display: none;
+      }
+
+      .ui-vnav-badge {
+        position: absolute;
+        top: 12px;
+        left: 64px;
+        margin: 0;
+        padding: 0;
+      }
+    }
+  }
+}
+
+// ----- appearance: thin (top level only) -----
+
+.ui-vnav-appearance-thin .ui-vnav-wrapper .ui-vnav-root {
+  > .ui-vnav-collapsable,
+  > .ui-vnav-group > .ui-vnav-row-wrapper {
+    display: none;
+  }
+
+  > :is(.ui-vnav-basic, .ui-vnav-aside-item) {
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    height: 64px;
+    padding: 0 16px;
+
+    > .ui-vnav-row-wrapper {
+      margin: 0;
+    }
+
+    > .ui-vnav-row-wrapper > .ui-vnav-row {
+      justify-content: center;
+      width: auto;
+      padding: 12px;
+      border-radius: 4px;
+
+      .ui-vnav-icon {
+        margin: 0;
+      }
+
+      .ui-vnav-title-wrapper,
+      .ui-vnav-badge,
+      .ui-vnav-chevron {
+        display: none;
+      }
+    }
+  }
+}
+
+// ----- appearance: dense (side mode) -----
+
+.ui-vnav-dense-collapsed,
+.ui-vnav-dense-expanded {
+  > .ui-vnav-wrapper {
+    .ui-vnav-row {
+      overflow: hidden;
+    }
+
+    .ui-vnav-title-wrapper,
+    .ui-vnav-badge,
+    .ui-vnav-chevron {
+      white-space: nowrap;
+      transition: opacity 400ms $drawer;
+    }
+
+    .ui-vnav-row .ui-vnav-chevron {
+      transition:
+        opacity 400ms $drawer,
+        transform 300ms $drawer;
+    }
+  }
+}
+
+.ui-vnav-dense-collapsed > .ui-vnav-wrapper {
+  .ui-vnav-title-wrapper,
+  .ui-vnav-badge,
+  .ui-vnav-chevron {
+    opacity: 0 !important;
+  }
+
+  .ui-vnav-children {
+    display: none;
+  }
+
+  .ui-vnav-root > .ui-vnav-group {
+    margin-top: 0;
+  }
+
+  .ui-vnav-root > .ui-vnav-group ~ .ui-vnav-group {
+    margin-top: 24px;
+  }
+
+  .ui-vnav-group-row::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 16px;
+    width: 23px;
+    border-top: 2px solid var(--ui-vnav-border);
+  }
+}
+
+// Keep labels on one line while the width animates, then let them wrap.
+.ui-vnav-dense-expanded > .ui-vnav-wrapper .ui-vnav-title-wrapper {
+  white-space: normal;
+  animation: ui-vnav-keep-nowrap 350ms;
+}
+
+@keyframes ui-vnav-keep-nowrap {
+  from,
+  to {
+    white-space: nowrap;
+  }
+}
+
+// ----- reduced motion -----
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-vertical-navigation,
+  .ui-vertical-navigation * {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+  }
+}

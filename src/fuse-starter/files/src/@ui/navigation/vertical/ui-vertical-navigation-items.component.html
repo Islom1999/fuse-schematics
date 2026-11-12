@@ -1,0 +1,207 @@
+<ul class="ui-vnav-list" [class.ui-vnav-root]="root()">
+  @for (item of items(); track item.id ?? $index) {
+    @if (!nav.isHidden(item)) {
+      @switch (item.type) {
+        @case ('basic') {
+          @let active = nav.isActive(item);
+          <li
+            class="ui-vnav-item ui-vnav-basic"
+            [class.ui-vnav-item-active]="active"
+            [class.ui-vnav-item-disabled]="item.disabled"
+          >
+            <div class="ui-vnav-row-wrapper" [class]="item.classes?.wrapper">
+              @if (item.disabled) {
+                <div
+                  class="ui-vnav-row"
+                  aria-disabled="true"
+                  [style.padding-left.px]="indent()"
+                  [attr.aria-label]="iconOnly() ? item.title : null"
+                  [pTooltip]="tooltip(item)"
+                  [tooltipDisabled]="!tooltip(item)"
+                  tooltipPosition="right"
+                >
+                  <ng-container *ngTemplateOutlet="content; context: { $implicit: item }" />
+                </div>
+              } @else if (item.link && !item.externalLink) {
+                <a
+                  class="ui-vnav-row ui-vnav-row-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50"
+                  [routerLink]="item.link"
+                  [fragment]="item.fragment"
+                  [preserveFragment]="item.preserveFragment ?? false"
+                  [queryParams]="item.queryParams"
+                  [queryParamsHandling]="item.queryParamsHandling"
+                  [style.padding-left.px]="indent()"
+                  [attr.aria-current]="nav.isRouteActive(item) ? 'page' : null"
+                  [attr.aria-label]="iconOnly() ? item.title : null"
+                  [pTooltip]="tooltip(item)"
+                  [tooltipDisabled]="!tooltip(item)"
+                  tooltipPosition="right"
+                  (click)="nav.activate(item)"
+                >
+                  <ng-container *ngTemplateOutlet="content; context: { $implicit: item }" />
+                </a>
+              } @else if (item.link) {
+                <a
+                  class="ui-vnav-row ui-vnav-row-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50"
+                  [href]="item.link"
+                  [target]="item.target || '_self'"
+                  [attr.rel]="item.target === '_blank' ? 'noopener noreferrer' : null"
+                  [style.padding-left.px]="indent()"
+                  [attr.aria-label]="iconOnly() ? item.title : null"
+                  [pTooltip]="tooltip(item)"
+                  [tooltipDisabled]="!tooltip(item)"
+                  tooltipPosition="right"
+                  (click)="nav.activate(item)"
+                >
+                  <ng-container *ngTemplateOutlet="content; context: { $implicit: item }" />
+                </a>
+              } @else if (item.function) {
+                <button
+                  type="button"
+                  class="ui-vnav-row ui-vnav-row-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50"
+                  [style.padding-left.px]="indent()"
+                  [attr.aria-label]="iconOnly() ? item.title : null"
+                  [pTooltip]="tooltip(item)"
+                  [tooltipDisabled]="!tooltip(item)"
+                  tooltipPosition="right"
+                  (click)="nav.activate(item)"
+                >
+                  <ng-container *ngTemplateOutlet="content; context: { $implicit: item }" />
+                </button>
+              } @else {
+                <div
+                  class="ui-vnav-row ui-vnav-row-interactive ui-vnav-row-static"
+                  [style.padding-left.px]="indent()"
+                  [attr.aria-label]="iconOnly() ? item.title : null"
+                  [pTooltip]="tooltip(item)"
+                  [tooltipDisabled]="!tooltip(item)"
+                  tooltipPosition="right"
+                >
+                  <ng-container *ngTemplateOutlet="content; context: { $implicit: item }" />
+                </div>
+              }
+            </div>
+          </li>
+        }
+
+        @case ('aside') {
+          @let open = nav.activeAsideItemId() !== null && nav.activeAsideItemId() === item.id;
+          <li
+            class="ui-vnav-item ui-vnav-aside-item"
+            [class.ui-vnav-item-active]="nav.isActive(item)"
+            [class.ui-vnav-item-disabled]="item.disabled"
+          >
+            <div class="ui-vnav-row-wrapper" [class]="item.classes?.wrapper">
+              <button
+                type="button"
+                class="ui-vnav-row ui-vnav-row-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50"
+                [style.padding-left.px]="indent()"
+                [attr.aria-expanded]="open"
+                [attr.aria-controls]="open ? nav.asidePanelId : null"
+                [attr.aria-disabled]="item.disabled ? 'true' : null"
+                [attr.tabindex]="item.disabled ? -1 : null"
+                [attr.aria-label]="iconOnly() ? item.title : null"
+                [pTooltip]="tooltip(item)"
+                [tooltipDisabled]="!tooltip(item)"
+                tooltipPosition="right"
+                (click)="onAsideClick(item, $event)"
+              >
+                <ng-container *ngTemplateOutlet="content; context: { $implicit: item }" />
+              </button>
+            </div>
+          </li>
+        }
+
+        @case ('collapsable') {
+          @let expanded = nav.isExpanded(item);
+          <li
+            class="ui-vnav-item ui-vnav-collapsable"
+            [class.ui-vnav-item-expanded]="expanded"
+            [class.ui-vnav-item-collapsed]="!expanded"
+            [class.ui-vnav-item-disabled]="item.disabled"
+          >
+            <div class="ui-vnav-row-wrapper" [class]="item.classes?.wrapper">
+              <button
+                type="button"
+                class="ui-vnav-row ui-vnav-row-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50"
+                [style.padding-left.px]="indent()"
+                [attr.aria-expanded]="expanded"
+                [attr.aria-controls]="nav.domId(item)"
+                [attr.aria-disabled]="item.disabled ? 'true' : null"
+                [attr.tabindex]="item.disabled ? -1 : null"
+                [pTooltip]="tooltip(item)"
+                [tooltipDisabled]="!tooltip(item)"
+                tooltipPosition="right"
+                (click)="onCollapsableClick(item)"
+                (keydown)="onCollapsableKeydown(item, $event)"
+              >
+                <ng-container *ngTemplateOutlet="content; context: { $implicit: item }" />
+              </button>
+            </div>
+            <div class="ui-vnav-children" [id]="nav.domId(item)">
+              <div class="ui-vnav-children-inner">
+                <ui-vertical-navigation-items [items]="item.children ?? []" [depth]="depth() + 1" />
+              </div>
+            </div>
+          </li>
+        }
+
+        @case ('group') {
+          <li class="ui-vnav-item ui-vnav-group">
+            <div class="ui-vnav-row-wrapper" [class]="item.classes?.wrapper">
+              <div class="ui-vnav-row ui-vnav-group-row" [style.padding-left.px]="indent()">
+                <span class="ui-vnav-title-wrapper">
+                  <span
+                    class="ui-vnav-title text-primary-600 dark:text-primary-400"
+                    role="heading"
+                    aria-level="2"
+                    [id]="nav.domId(item)"
+                    [pTooltip]="item.tooltip ?? ''"
+                    [tooltipDisabled]="!item.tooltip"
+                    tooltipPosition="right"
+                  >
+                    <span [class]="item.classes?.title">{{ item.title }}</span>
+                  </span>
+                  @if (item.subtitle) {
+                    <span class="ui-vnav-subtitle"><span [class]="item.classes?.subtitle">{{ item.subtitle }}</span></span>
+                  }
+                </span>
+              </div>
+            </div>
+            <div role="group" [attr.aria-labelledby]="nav.domId(item)">
+              <ui-vertical-navigation-items [items]="item.children ?? []" [depth]="depth()" />
+            </div>
+          </li>
+        }
+
+        @case ('divider') {
+          <li class="ui-vnav-item ui-vnav-divider" role="separator"></li>
+        }
+
+        @case ('spacer') {
+          <li class="ui-vnav-item ui-vnav-spacer" aria-hidden="true"></li>
+        }
+      }
+    }
+  }
+</ul>
+
+<ng-template #content let-item>
+  @if (item.icon) {
+    <ui-icon class="ui-vnav-icon" [class]="item.classes?.icon" [svgIcon]="item.icon" aria-hidden="true" />
+  }
+  <span class="ui-vnav-title-wrapper">
+    <span class="ui-vnav-title"><span [class]="item.classes?.title">{{ item.title }}</span></span>
+    @if (item.subtitle) {
+      <span class="ui-vnav-subtitle"><span [class]="item.classes?.subtitle">{{ item.subtitle }}</span></span>
+    }
+  </span>
+  @if (item.badge) {
+    <span class="ui-vnav-badge">
+      <span class="ui-vnav-badge-pill" [class]="item.badge.classes">{{ item.badge.title }}</span>
+    </span>
+  }
+  @if (item.type === 'collapsable') {
+    <ui-icon class="ui-vnav-chevron" svgIcon="heroicons_solid:chevron-right" aria-hidden="true" />
+  }
+</ng-template>
