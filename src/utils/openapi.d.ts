@@ -1,4 +1,4 @@
-import { FieldDefinition } from './fields';
+import { FieldSpec } from './fields';
 export declare class OpenApiError extends Error {
     constructor(message: string);
 }
@@ -23,7 +23,7 @@ export interface SkippedProperty {
     reason: string;
 }
 export interface SchemaFields {
-    fields: FieldDefinition[];
+    fields: FieldSpec[];
     /** Properties that could not be mapped to a field (objects, arrays, ...). */
     skipped: SkippedProperty[];
     /** Properties that were mapped with a fallback (e.g. an invalid enum). */

@@ -1,5 +1,5 @@
 /**
- * OpenAPI 3.x / Swagger 2.0 → `FieldDefinition[]`.
+ * OpenAPI 3.x / Swagger 2.0 → `FieldSpec[]`.
  *
  * Pure helpers (no Angular / schematics dependencies) used by the
  * `fuse-feature --openapi` option and the `fuse-openapi` schematic:
@@ -25,6 +25,10 @@
  * | `type: object` without properties (NestJS `T\|null`) | inferred from   |
  * |   maxLength/format/minimum/example, else string if   | the keywords,   |
  * |   nullable (with a warning)                          | else skipped    |
+ * | `x-relation` (`categoryId`, `tagIds`)                | `relation(T)` / |
+ * |   (checked before the rows above)                   | `relation(T[])` |
+ * | `x-file` (`imageId`, `docIds`)                      | `file(kind)` /  |
+ * |                                                     | `file(kind)[]`  |
  * | `object`, `array`, `$ref` to an object, binary      | skipped         |
  *
  * `id`, `createdAt`, `updatedAt`, `deletedAt` and `readOnly` properties are
@@ -33,7 +37,16 @@
  * `anyOf`/`oneOf` with a `null` branch).
  */
 import { parse as parseYaml } from 'yaml';
-import { FieldDefinition, FieldType, parseFields, stringifyFields } from './fields';
+import {
+  FILE_KINDS,
+  FieldSpec,
+  FieldType,
+  FileKind,
+  classifyName,
+  fieldKey,
+  parseFields,
+  stringifyFields,
+} from './fields';
 
 export class OpenApiError extends Error {
   constructor(message: string) {
@@ -70,7 +83,7 @@ export interface SkippedProperty {
 }
 
 export interface SchemaFields {
-  fields: FieldDefinition[];
+  fields: FieldSpec[];
   /** Properties that could not be mapped to a field (objects, arrays, ...). */
   skipped: SkippedProperty[];
   /** Properties that were mapped with a fallback (e.g. an invalid enum). */
@@ -451,11 +464,89 @@ function mapSchema(schema: any, refTarget: string | undefined, nullable: boolean
   }
 }
 
+/** The `x-relation` / `x-file` object of a property (set on the property or on the schema it resolves to). */
+function readExtension(property: any, resolved: any, key: 'x-relation' | 'x-file'): Record<string, any> | undefined {
+  for (const schema of [property, resolved]) {
+    if (isObject(schema) && isObject(schema[key])) return schema[key];
+  }
+  return undefined;
+}
+
+type Reference = { field: FieldSpec; warnings: string[] } | { skip: string };
+
+/** `categoryId` → `category`, `tagIds` → `tag`; `undefined` when the property has no id suffix. */
+function referenceName(property: string, many: boolean): string | undefined {
+  const match = (many ? /^(.+)Ids$/ : /^(.+)Id$/).exec(property);
+  return match ? match[1] : undefined;
+}
+
+/** Entity of an `x-relation`: its `entity`, else the segment before `/options` of its `endpoint`. */
+function relationTarget(relation: Record<string, any>): string | undefined {
+  if (typeof relation.entity === 'string' && relation.entity.trim()) return classifyName(relation.entity.trim());
+  const segments = typeof relation.endpoint === 'string' ? relation.endpoint.split('/').filter(Boolean) : [];
+  const resource = segments[segments.length - 1] === 'options' ? segments[segments.length - 2] : undefined;
+  return resource ? classifyName(resource) : undefined;
+}
+
+/** Same field the backend spec `name:relation(Entity[])[:label(x)]` produces. */
+function mapRelation(property: string, relation: Record<string, any>, optional: boolean): Reference {
+  const many = relation.multiple === true;
+  const name = referenceName(property, many);
+  const target = relationTarget(relation);
+  if (!name || !target) {
+    return { skip: `x-relation without ${name ? 'entity' : `an ${many ? 'Ids' : 'Id'} suffix in the property name`}` };
+  }
+  const field: FieldSpec = { name, type: 'relation', nullable: optional, target, many };
+  const warnings: string[] = [];
+  if (typeof relation.label === 'string' && /^[A-Za-z_][A-Za-z0-9_]*$/.test(relation.label.trim())) {
+    field.label = relation.label.trim();
+  }
+  if (fieldKey(field) !== property) {
+    return { skip: `x-relation key mismatch (the generator would use "${fieldKey(field)}")` };
+  }
+  if (!roundTrips(field)) {
+    return { skip: `x-relation target "${target}" cannot be used in --fields` };
+  }
+  const expected = `admin/${dasherizeName(target)}/options`;
+  if (typeof relation.endpoint === 'string' && relation.endpoint.replace(/^\/+|\/+$/g, '') !== expected) {
+    warnings.push(
+      `Property "${property}": x-relation endpoint "${relation.endpoint}" differs from "/${expected}"; the generated select uses "/${expected}".`
+    );
+  }
+  return { field, warnings };
+}
+
+/** Same field the backend spec `name:file(kind)[]` produces. */
+function mapFile(property: string, file: Record<string, any> | undefined, optional: boolean): Reference {
+  const many = !!file && file.multiple === true;
+  const name = referenceName(property, many);
+  if (!name) {
+    return { skip: `x-file without an ${many ? 'Ids' : 'Id'} suffix in the property name` };
+  }
+  const warnings: string[] = [];
+  let kind: FileKind = 'other';
+  const given = file && typeof file.kind === 'string' ? file.kind.toLowerCase() : undefined;
+  if (given && FILE_KINDS.includes(given as FileKind)) {
+    kind = given as FileKind;
+  } else {
+    warnings.push(`Property "${property}": x-file kind ${JSON.stringify(file && file.kind)} is not one of ${FILE_KINDS.join(', ')}; using "other".`);
+  }
+  const field: FieldSpec = { name, type: 'file', nullable: optional, kind, many };
+  if (fieldKey(field) !== property) {
+    return { skip: `x-file key mismatch (the generator would use "${fieldKey(field)}")` };
+  }
+  return { field, warnings };
+}
+
 /** `true` when `field` survives `stringifyFields` → `parseFields`. */
-function roundTrips(field: FieldDefinition): boolean {
+function roundTrips(field: FieldSpec): boolean {
   try {
     const [parsed] = parseFields(stringifyFields([field]));
-    return !!parsed && parsed.type === field.type;
+    return (
+      !!parsed &&
+      parsed.type === field.type &&
+      JSON.stringify(parsed.enumValues) === JSON.stringify(field.enumValues)
+    );
   } catch {
     return false;
   }
@@ -483,7 +574,7 @@ export function schemaToFields(doc: OpenApiDocument, schemaOrName: any): SchemaF
       result.skipped.push({ name, reason: 'system field' });
       continue;
     }
-    if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name)) {
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) {
       result.skipped.push({ name, reason: 'not a valid identifier' });
       continue;
     }
@@ -500,17 +591,28 @@ export function schemaToFields(doc: OpenApiDocument, schemaOrName: any): SchemaF
       continue;
     }
 
+    const optional = !shape.required.has(name) || info.nullable;
+
+    const relation = readExtension(shape.properties[name], info.schema, 'x-relation');
+    const file = readExtension(shape.properties[name], info.schema, 'x-file');
+    if (relation || file) {
+      const reference = relation ? mapRelation(name, relation, optional) : mapFile(name, file, optional);
+      if ('skip' in reference) {
+        result.skipped.push({ name, reason: reference.skip });
+      } else {
+        result.fields.push(reference.field);
+        result.warnings.push(...reference.warnings);
+      }
+      continue;
+    }
+
     const mapping = mapSchema(info.schema, info.refTarget, info.nullable);
     if ('skip' in mapping) {
       result.skipped.push({ name, reason: mapping.skip });
       continue;
     }
 
-    let field: FieldDefinition = {
-      name,
-      type: mapping.type,
-      required: shape.required.has(name) && !info.nullable,
-    };
+    let field: FieldSpec = { name, type: mapping.type, nullable: optional };
     if (mapping.enumValues) {
       field.enumValues = mapping.enumValues;
     }
@@ -521,7 +623,7 @@ export function schemaToFields(doc: OpenApiDocument, schemaOrName: any): SchemaF
       result.warnings.push(
         `Property "${name}": enum values ${JSON.stringify(mapping.enumValues)} cannot be used in --fields; generated as a string field.`
       );
-      field = { name, type: 'string', required: field.required };
+      field = { name, type: 'string', nullable: field.nullable };
     }
     result.fields.push(field);
   }

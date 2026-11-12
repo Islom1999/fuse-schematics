@@ -1,5 +1,6 @@
 import { strings } from '@angular-devkit/core';
-import { FieldDefinition } from '../utils/fields';
+import { FieldSpec, fieldKey } from '../utils/fields';
+import { dasherizeName } from '../utils/openapi';
 import { TranslationTree } from '../utils/registration';
 
 /**
@@ -9,7 +10,7 @@ import { TranslationTree } from '../utils/registration';
  */
 
 /** Used when `--fields` is not given: keeps the historical single `name` field. */
-export const DEFAULT_FIELDS: FieldDefinition[] = [{ name: 'name', type: 'string', required: true }];
+export const DEFAULT_FIELDS: FieldSpec[] = [{ name: 'name', type: 'string', nullable: false }];
 
 const PRINT_WIDTH = 100;
 const INDENT = '  ';
@@ -87,19 +88,41 @@ function lit(value: unknown, indent: string, column = indent.length): string {
   return 'undefined';
 }
 
-export function tsType(field: FieldDefinition): string {
+export function tsType(field: FieldSpec): string {
   switch (field.type) {
     case 'number':
+    case 'int':
+    case 'decimal':
       return 'number';
     case 'boolean':
       return 'boolean';
     case 'date':
       return 'Date';
+    case 'json':
+      return 'Record<string, unknown>';
     case 'enum':
       return (field.enumValues || []).map(quote).join(' | ');
+    case 'relation':
+    case 'file':
+      return field.many ? 'string[]' : 'string';
     default:
       return 'string';
   }
+}
+
+/** Single relation: the joined row the list endpoint returns next to `categoryId`. */
+const isJoinedRelation = (field: FieldSpec) => field.type === 'relation' && !field.many;
+
+/** Fields that can be shown as a grid column (the list endpoint joins single relations only). */
+const isGridField = (field: FieldSpec) =>
+  field.type !== 'json' && field.type !== 'file' && !(field.type === 'relation' && field.many);
+
+/** Fields the table filter can search with a plain input / number / date / select. */
+const isFilterField = (field: FieldSpec) => field.type !== 'json' && field.type !== 'file' && field.type !== 'relation';
+
+/** `GET admin/<resource>/options` of a relation target (`SpYear` → `admin/sp-year/options`). */
+export function relationEndpoint(field: FieldSpec): string {
+  return `admin/${dasherizeName(field.target || field.name)}/options`;
 }
 
 /** Human readable label: `createdAt` / `created-at` → `Created at`. */
@@ -125,7 +148,7 @@ export function titleCase(value: string): string {
 export interface RenderContext {
   /** Feature name as given on the command line. */
   name: string;
-  fields: FieldDefinition[];
+  fields: FieldSpec[];
 }
 
 export function i18nPrefix(name: string): string {
@@ -133,36 +156,80 @@ export function i18nPrefix(name: string): string {
 }
 
 /** Interface members (each line indented by 2 spaces, no trailing newline). */
-export function renderModelMembers(fields: FieldDefinition[], mode: 'entity' | 'create' | 'update'): string {
-  return fields
-    .map((f) => {
-      const optional = mode === 'update' || !f.required ? '?' : '';
-      return `${INDENT}${key(f.name)}${optional}: ${tsType(f)}`;
-    })
-    .join('\n');
+export function renderModelMembers(fields: FieldSpec[], mode: 'entity' | 'create' | 'update'): string {
+  const lines: string[] = [];
+  for (const f of fields) {
+    // List rows have no ManyToMany ids (only the detail does), so they are optional on the entity.
+    const optional = mode === 'update' || f.nullable || (mode === 'entity' && f.many === true) ? '?' : '';
+    lines.push(`${INDENT}${key(fieldKey(f))}${optional}: ${tsType(f)}`);
+    if (mode === 'entity' && isJoinedRelation(f)) {
+      lines.push(`${INDENT}${key(f.name)}?: Record<string, unknown>`);
+    }
+  }
+  return lines.join('\n');
 }
 
-function formField(field: FieldDefinition, prefix: string): Record<string, unknown> {
+function defaultValue(field: FieldSpec): unknown {
+  if (field.default === 'now' && field.type === 'date') {
+    return raw('new Date()');
+  }
+  return field.default;
+}
+
+function formField(field: FieldSpec, prefix: string): Record<string, unknown> {
   const label = `${prefix}.fields.${field.name}`;
-  const required = field.required && field.type !== 'boolean' ? true : undefined;
+  const required = !field.nullable && field.type !== 'boolean' ? true : undefined;
+  const k = fieldKey(field);
+  const initial = defaultValue(field);
 
   switch (field.type) {
     case 'number':
-      return { key: field.name, type: 'input-number', props: { label, required, translate: true } };
+    case 'int':
+    case 'decimal': {
+      const fraction = field.type === 'int' ? 0 : field.type === 'decimal' ? field.scale : undefined;
+      return {
+        key: k,
+        type: 'input-number',
+        defaultValue: initial,
+        props: {
+          label,
+          required,
+          minFractionDigits: field.type === 'decimal' ? fraction : undefined,
+          maxFractionDigits: fraction,
+          min: field.min,
+          max: field.max,
+          translate: true,
+        },
+      };
+    }
     case 'text':
-      return { key: field.name, type: 'textarea', props: { label, required, rows: 4, translate: true } };
+      return {
+        key: k,
+        type: 'textarea',
+        defaultValue: initial,
+        props: { label, required, rows: 4, minLength: field.min, maxLength: field.max ?? field.length, translate: true },
+      };
+    case 'json':
+      return {
+        key: k,
+        type: 'json',
+        defaultValue: initial,
+        props: { label, required, rows: 6, translate: true },
+      };
     case 'date':
       return {
-        key: field.name,
+        key: k,
         type: 'datepicker',
+        defaultValue: initial,
         props: { label, required, showIcon: true, dateFormat: 'dd.mm.yy', translate: true },
       };
     case 'boolean':
-      return { key: field.name, type: 'checkbox', defaultValue: false, props: { label, translate: true } };
+      return { key: k, type: 'checkbox', defaultValue: initial ?? false, props: { label, translate: true } };
     case 'enum':
       return {
-        key: field.name,
+        key: k,
         type: 'select',
+        defaultValue: initial,
         props: {
           label,
           required,
@@ -170,8 +237,32 @@ function formField(field: FieldDefinition, prefix: string): Record<string, unkno
           translate: true,
         },
       };
+    case 'relation':
+      return {
+        key: k,
+        type: 'relation-select',
+        props: {
+          label,
+          required: field.many ? undefined : required,
+          endpoint: relationEndpoint(field),
+          multiple: field.many === true,
+          labelField: field.label,
+          translate: true,
+        },
+      };
+    case 'file':
+      return {
+        key: k,
+        type: 'upload',
+        props: { label, required: field.many ? undefined : required, kind: field.kind, multiple: field.many === true, translate: true },
+      };
     default:
-      return { key: field.name, type: 'input', props: { label, required, translate: true } };
+      return {
+        key: k,
+        type: 'input',
+        defaultValue: initial,
+        props: { label, required, minLength: field.min, maxLength: field.max ?? field.length, translate: true },
+      };
   }
 }
 
@@ -188,8 +279,9 @@ export function renderFormFields(ctx: RenderContext): string {
 export function renderMapToModel(ctx: RenderContext): string {
   const obj: Record<string, unknown> = {};
   for (const f of ctx.fields) {
-    const access = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(f.name) ? `data.${f.name}` : `data[${quote(f.name)}]`;
-    obj[f.name] = raw(f.type === 'date' ? `${access} ? new Date(${access}) : undefined` : access);
+    const k = fieldKey(f);
+    const access = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(k) ? `data.${k}` : `data[${quote(k)}]`;
+    obj[k] = raw(f.type === 'date' ? `${access} ? new Date(${access}) : undefined` : access);
   }
   return lit(obj, INDENT.repeat(2));
 }
@@ -198,22 +290,27 @@ export function renderMapToModel(ctx: RenderContext): string {
 export function renderColumns(ctx: RenderContext): string {
   const prefix = i18nPrefix(ctx.name);
   return lit(
-    ctx.fields.map((f) => ({
-      field: f.name,
-      header: `${prefix}.fields.${f.name}`,
-      template: f.type === 'date' ? 'date' : undefined,
-    })),
+    ctx.fields.filter(isGridField).map((f) => {
+      const header = `${prefix}.fields.${f.name}`;
+      if (f.type === 'relation') {
+        // Shows `row.<name>[labelField]` (the joined row), or the id when the row is not joined.
+        return { field: f.name, header, template: 'relation', labelField: f.label, sortable: false };
+      }
+      return { field: f.name, header, template: f.type === 'date' ? 'date' : undefined };
+    }),
     INDENT
   );
 }
 
-function filterField(field: FieldDefinition, prefix: string): Record<string, unknown> {
+function filterField(field: FieldSpec, prefix: string): Record<string, unknown> {
   // The `name` filter keeps its historical dedicated i18n keys.
   const label = field.name === 'name' ? `${prefix}.name` : `${prefix}.fields.${field.name}`;
   const placeholder = field.name === 'name' ? `${prefix}.namePlaceholder` : undefined;
 
   switch (field.type) {
     case 'number':
+    case 'int':
+    case 'decimal':
       return { key: field.name, type: 'number', label, placeholder, props: inline({ translate: true }) };
     case 'date':
       return { key: field.name, type: 'date', label, placeholder, props: inline({ translate: true }) };
@@ -246,11 +343,12 @@ function filterField(field: FieldDefinition, prefix: string): Record<string, unk
 /** `ITableFilterConfig` literal for the list component, base indent 2 spaces. */
 export function renderFilterConfig(ctx: RenderContext): string {
   const prefix = i18nPrefix(ctx.name);
+  const filterable = ctx.fields.filter(isFilterField);
   return lit(
     {
-      columns: ctx.fields.length > 1 ? 3 : 1,
+      columns: filterable.length > 1 ? 3 : 1,
       showResetButton: true,
-      fields: ctx.fields.map((f) => filterField(f, prefix)),
+      fields: filterable.map((f) => filterField(f, prefix)),
     },
     INDENT
   );

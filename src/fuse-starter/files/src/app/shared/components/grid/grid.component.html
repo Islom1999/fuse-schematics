@@ -179,10 +179,16 @@
             <ng-template pTemplate="header">
               <tr class="bg-gray-50">
                 @for (col of columns(); track col.field) {
-                  <th [pSortableColumn]="col.field" class="font-semibold text-gray-700 py-4 px-4">
+                  <th
+                    [pSortableColumn]="col.field"
+                    [pSortableColumnDisabled]="col.sortable === false"
+                    class="font-semibold text-gray-700 py-4 px-4"
+                  >
                     <div class="flex items-center gap-2">
                       {{ col.header | transloco }}
-                      <p-sortIcon [field]="col.field" />
+                      @if (col.sortable !== false) {
+                        <p-sortIcon [field]="col.field" />
+                      }
                     </div>
                   </th>
                 }
@@ -223,6 +229,8 @@
                         <span class="text-gray-600 text-sm">
                           {{ row[col.field] | date: 'dd.MM.yyyy HH:mm' }}
                         </span>
+                      } @else if (col.template === 'relation') {
+                        <span class="text-gray-800">{{ relationLabel(row, col) }}</span>
                       } @else {
                         <span class="text-gray-800">
                           {{ row[col.field] }}

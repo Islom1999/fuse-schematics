@@ -28,7 +28,7 @@
     },
     "fields": {
       "type": "string",
-      "description": "Comma-separated field list `name:type`. Types: string, number, boolean, date, text, enum(a|b). A trailing `?` marks a field optional, e.g. \"name:string,price:number,note:text?,status:enum(active|blocked)\". Takes precedence over --openapi. Defaults to a single required `name:string` field."
+      "description": "Comma-separated field list `name:type[:modifier...]`. Types: string, string(N), text, int, number, decimal(p,s), boolean, date, json, enum(a|b), relation(Entity), relation(Entity[]), file(kind), file(kind)[]. Modifiers: unique, index, default(x), min(n), max(n), label(field), cascade, set-null. A trailing `?` marks a field optional, e.g. \"name:string,price:number,category:relation(Category),tags:relation(Tag[])?,image:file(image)?,status:enum(active|blocked)\". Takes precedence over --openapi. Defaults to a single required `name:string` field."
     },
     "openapi": {
       "type": "string",

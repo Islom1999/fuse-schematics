@@ -1,42 +1,74 @@
 /**
- * Dependency-free parser for the `--fields` option shared by fuse-schematics
- * (and sibling generators that want the same syntax).
+ * `--fields` spec parser. Shared syntax for the backend (nest-schematics)
+ * and the frontend (fuse-schematics), so it has no Nest/Angular dependencies.
+ * Copy it with `node scripts/sync-fields.mjs <dir>`; both packages test it
+ * against the same examples (`fields-contract.json`).
  *
- * Syntax: a comma-separated list of `name:type` entries.
+ *   "name:string:unique,price:decimal(12,2):default(0),category:relation(Category),tags:relation(Tag[])?"
  *
- *   name:string,price:number,active:boolean,note:text?,status:enum(active|blocked)
- *
- * - `type` is one of {@link FIELD_TYPES} (case-insensitive). When omitted
- *   (`name` or `name?`), it defaults to `string`.
- * - A trailing `?` on the type (`note:text?`) or on the name (`note?:text`)
- *   marks the field as not required.
- * - Enum values are listed in parentheses separated by `|`:
- *   `status:enum(active|blocked)`.
- * - Whitespace around tokens is ignored, empty entries (e.g. a trailing
- *   comma) are skipped.
+ * - entries are comma-separated `name:type[:modifier...]` (commas inside `(...)` do not split)
+ * - a trailing `?` makes the field nullable/optional; a missing type is `string`
+ * - types: string | string(N) | text | int | number | decimal(p,s) | boolean | date | json
+ *          | enum(a|b) | relation(Entity) | relation(Entity[]) | file(kind) | file(kind)[]
+ * - modifiers: unique | index | default(v) | min(n) | max(n) | cascade | set-null | label(field)
  */
-export declare const FIELD_TYPES: readonly ["string", "number", "boolean", "date", "text", "enum"];
-export type FieldType = (typeof FIELD_TYPES)[number];
-export interface FieldDefinition {
-    /** Property name, a valid JavaScript identifier. */
+export type FieldType = 'string' | 'text' | 'int' | 'number' | 'decimal' | 'boolean' | 'date' | 'json' | 'enum' | 'relation' | 'file';
+export type FileKind = 'image' | 'video' | 'audio' | 'pdf' | 'other';
+export type FieldDefault = string | number | boolean | Record<string, unknown> | unknown[];
+export interface FieldSpec {
+    /** Property name as written (camelCase recommended), e.g. `fullName`. */
     name: string;
-    /** Normalised (lower-case) field type. */
     type: FieldType;
-    /** `false` when the field was declared with a `?` suffix. */
-    required: boolean;
-    /** Allowed values, only present for `enum` fields. */
+    nullable: boolean;
+    /** `enum` only. */
     enumValues?: string[];
+    /** `string(N)` only: varchar length. */
+    length?: number;
+    /** `decimal(p,s)` only (`decimal` alone = 12,2). */
+    precision?: number;
+    scale?: number;
+    /** `relation` only: target entity class, e.g. `Category`. */
+    target?: string;
+    /** `file` only. */
+    kind?: FileKind;
+    /** `relation` and `file`: `Entity[]` / `kind[]` = many (ManyToMany). */
+    many?: boolean;
+    unique?: boolean;
+    index?: boolean;
+    /** Typed by field type: boolean, number, string, `'now'` (date) or JSON (json). */
+    default?: FieldDefault;
+    /** String/text length, number range, or item count for many relations/files. */
+    min?: number;
+    max?: number;
+    /** Single relation/file only; default: set-null when nullable, restrict otherwise. */
+    onDelete?: 'cascade' | 'set-null';
+    /** `relation` only: display field of the target (default: name, title or id). */
+    label?: string;
 }
-export declare class FieldParseError extends Error {
+export declare const FIELD_TYPES: readonly FieldType[];
+export declare const FILE_KINDS: readonly FileKind[];
+export declare const FIELD_MODIFIERS: readonly string[];
+/** Columns every entity already has (BaseEntity). */
+export declare const RESERVED_FIELD_NAMES: readonly string[];
+export declare const DEFAULT_DECIMAL: {
+    readonly precision: 12;
+    readonly scale: 2;
+};
+export declare const MAX_VARCHAR = 10485760;
+export declare class FieldSpecError extends Error {
     constructor(message: string);
 }
+/** `category` / `sp-year` / `SpYear` → `Category` / `SpYear` / `SpYear`. */
+export declare function classifyName(name: string): string;
+/** Naive singular for id keys: `tags` → `tag`, `categories` → `category`, `news` stays. */
+export declare function singular(name: string): string;
 /**
- * Parses a `--fields` definition string. Returns an empty array for an empty
- * or whitespace-only input. Throws {@link FieldParseError} on invalid input.
+ * Property the DTO / form / JSON uses for a field: `category` → `categoryId`,
+ * `tags` (many) → `tagIds`, `image:file(image)` → `imageId`, anything else → its name.
  */
-export declare function parseFields(input: string | undefined | null): FieldDefinition[];
-/**
- * Serialises field definitions back into the `--fields` syntax.
- * `parseFields(stringifyFields(x))` round-trips.
- */
-export declare function stringifyFields(fields: FieldDefinition[]): string;
+export declare function fieldKey(f: Pick<FieldSpec, 'name' | 'type' | 'many'>): string;
+export declare function parseFields(spec: string | undefined | null): FieldSpec[];
+/** One field in normalised `name:type[:modifier...][?]` form. */
+export declare function stringifyField(f: FieldSpec): string;
+/** Inverse of `parseFields` (normalised form): `parseFields(stringifyFields(x))` equals `x`. */
+export declare function stringifyFields(fields: FieldSpec[]): string;

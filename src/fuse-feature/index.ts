@@ -15,7 +15,7 @@ import {
 } from "@angular-devkit/schematics";
 import { normalize, strings } from "@angular-devkit/core";
 import { Schema } from "./schema";
-import { FieldParseError, parseFields, stringifyFields } from "../utils/fields";
+import { FieldSpecError, parseFields, stringifyFields } from "../utils/fields";
 import {
   SchemaFields,
   discoverResources,
@@ -102,7 +102,7 @@ function resolveOptions(options: Schema, tree: Tree, context: SchematicContext):
   try {
     fields = parseFields(options.fields);
   } catch (e) {
-    if (e instanceof FieldParseError) {
+    if (e instanceof FieldSpecError) {
       throw new SchematicsException(`Invalid --fields: ${e.message}`);
     }
     throw e;

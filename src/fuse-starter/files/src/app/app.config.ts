@@ -32,7 +32,9 @@ import { TypeAutocomplete } from './shared/ngx-formly/type-autocomplete'
 import { TypeDatepicker } from './shared/ngx-formly/type-datepicker'
 import { TypeInputMask } from './shared/ngx-formly/type-input-mask'
 import { TypeInputNumber } from './shared/ngx-formly/type-input-number'
+import { TypeJson } from './shared/ngx-formly/type-json'
 import { TypeMultiSelect } from './shared/ngx-formly/type-multiselect'
+import { TypeRelationSelect } from './shared/ngx-formly/type-relation-select'
 import { TypeTextArea } from './shared/ngx-formly/type-textarea'
 import { TypeUpload } from './shared/ngx-formly/type-upload.component'
 import { environment } from 'environments/environment.development'
@@ -108,6 +110,16 @@ export const appConfig: ApplicationConfig = {
           {
             name: 'multiselect',
             component: TypeMultiSelect,
+            wrappers: ['form-field'],
+          },
+          {
+            name: 'json',
+            component: TypeJson,
+            wrappers: ['form-field'],
+          },
+          {
+            name: 'relation-select',
+            component: TypeRelationSelect,
             wrappers: ['form-field'],
           },
           {

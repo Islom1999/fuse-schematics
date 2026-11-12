@@ -7,8 +7,16 @@ va bu loyiha [Semantic Versioning](https://semver.org/spec/v2.0.0.html) dan foyd
 
 ## [Unreleased]
 
+### Qo'shildi
+
+- `--fields` va OpenAPI: backend (nest-schematics) bilan umumiy sintaksis (`src/utils/fields.ts` + `fields-contract.json` nusxasi): `relation(Entity)`, `relation(Entity[])`, `file(kind)`, `file(kind)[]`, `int`, `decimal(p,s)`, `json`, `string(N)` va `unique/index/default/min/max/label/cascade/set-null` modifikatorlari
+- Relation maydoni `categoryId` / `tagIds` bo'lib, starterdagi yangi `relation-select` formly turi (`p-select` / `p-multiselect`, `GET admin/<resurs>/options?search=&ids=&limit=&label=`) orqali yuklanadi; gridda bog'langan qator yorlig'i (`template: 'relation'`)
+- Fayl maydoni (`imageId` / `docIds`) mavjud `upload` turiga `kind` / `multiple` bilan ulanadi
+- OpenAPI: `x-relation` va `x-file` o'qiladi (`fuse-openapi`, `crud --openapi`)
+
 ### O'zgardi
 
+- `--fields`: maydon turlari endi backend parseri bilan bir xil; OpenAPI enum qiymatlari faqat `A-Za-z0-9_-` bo'lsa enum bo'ladi (aks holda string)
 - Litsenziya yana MIT (`LICENSE`); uchinchi tomon resurslari `THIRD-PARTY-NOTICES.md` da
 - Paket nomi yana `fuse-schematics` (ochiq npm, npmjs.org; GitHub Packages'dan voz kechildi)
 - Fuse shablon eslatmasi olib tashlandi: starter shabloni to'liq yangidan yozilgan, Fuse/ThemeForest litsenziyasi endi talab qilinmaydi

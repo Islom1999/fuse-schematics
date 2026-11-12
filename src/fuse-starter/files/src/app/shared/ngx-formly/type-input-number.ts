@@ -10,6 +10,10 @@ interface InputNumberProps extends FormlyFieldProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mode?: any
   useGrouping?: boolean
+  minFractionDigits?: number
+  maxFractionDigits?: number
+  min?: number
+  max?: number
 }
 
 export interface FormlyTextAreaFieldConfig extends FormlyFieldConfig<InputNumberProps> {
@@ -30,6 +34,10 @@ export interface FormlyTextAreaFieldConfig extends FormlyFieldConfig<InputNumber
       [locale]="props.locale"
       [placeholder]="props.placeholder"
       [useGrouping]="props.useGrouping"
+      [minFractionDigits]="props.minFractionDigits"
+      [maxFractionDigits]="props.maxFractionDigits"
+      [min]="props.min"
+      [max]="props.max"
       fluid
     />
   `,
