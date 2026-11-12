@@ -1,4 +1,4 @@
-/** A notification as served by `GET /notifications`. */
+/** A notification as the widget shows it (mapped from `AdminNotification`, see `notifications.service.ts`). */
 export interface AppNotification {
   id: string
   /** `ui-icon` name, e.g. `heroicons_mini:star`. */
@@ -11,8 +11,22 @@ export interface AppNotification {
   /** ISO 8601. */
   time: string
   link?: string
-  /** `true`: `link` is a router link; otherwise a plain external `href`. */
+  /** `true`: `link` is a router link; otherwise a plain external `href`. The backend always sends router links. */
   useRouter?: boolean
+  read: boolean
+}
+
+/** `AdminNotification` as served by `GET admin/me/notifications` (absent values are `null`). */
+export interface AdminNotificationDto {
+  id: string
+  title: string
+  description: string | null
+  /** e.g. `heroicons_mini:star`. */
+  icon: string | null
+  /** Router link of this app. */
+  link: string | null
+  /** Created at, ISO 8601. */
+  time: string
   read: boolean
 }
 

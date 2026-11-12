@@ -171,10 +171,10 @@ Layouts always use `appearance="bar"`.
 
 ### Endpoint contract
 
-`POST {apiUrl}/search` (requires Bearer). NOT yet implemented in nest-schematics.
+`POST {apiUrl}/search` (requires Bearer; implemented in nest-schematics, used when `features.search === 'backend'`).
 
-- Request: `{ "query": string }`.
-- Response `200`: `SearchResultSet[]`. An empty array means no results.
+- Request: `{ "query": string }`, trimmed and cut to 100 characters. Fewer than 2 characters after trimming returns `[]`.
+- Response `200`: `SearchResultSet[]`. An empty array means no results. Groups are `admins` (needs `admin.read`) and `roles` (needs `role.read`), at most 5 hits per group, empty groups left out. A hit is `{ id, link, value, title }` with `link` such as `/admins/<id>`.
 - Errors: `401` is handled by the auth interceptor.
 
 `SearchResultSet`
@@ -197,12 +197,12 @@ Layouts always use `appearance="bar"`.
 | `avatar` | string? | For contacts. |
 | `completed` | boolean? | For tasks. |
 
-**Recommended interim client-side fallback.** Until the backend has `/search`, the app may implement `SearchService.search(query)` locally:
+**Client-side navigation search (the default).** The backend searches only admins and roles, so the app ships `SearchService.search(query)` locally:
 - Flatten `navigation().default` and match `title` case-insensitively.
 - Return one set: `{ id: 'pages', label: 'Pages', results: [{ id, title, link, value: title }] }`.
 - Return `[]` when nothing matches.
 
-This mirrors what the legacy mock did. Choose the backend or the fallback via the service, not the component. See open question W1.
+The backend is opt-in through `environment.features.search`. Choose the backend or the fallback via the service, not the component. See open question W1.
 
 ### i18n
 
@@ -238,12 +238,11 @@ Screenshots: `ref/widget-notifications-open.png`, `ref/widget-notifications-open
 | `useRouter` | boolean? | true → router link; false or absent → plain `href` (external). |
 | `read` | boolean | |
 
-`NotificationsService` holds a `notifications` signal of `AppNotification[]`, plus a computed `unreadCount`. Every mutation updates the signal optimistically from the server response. Methods:
+The backend's `AdminNotification` is `{ id, title, description | null, icon | null, link | null, time, read }`; the service maps it to `AppNotification` (nulls become absent, `useRouter` is always `true` because `link` is a router link of the admin app).
+
+`NotificationsService` holds a `notifications` signal of `AppNotification[]`, plus a computed `unreadCount`. Every mutation updates the signal from the server response. Methods:
 - `getAll()`
-- `markRead(id, read)`
-- `remove(id)`
-- `markAllRead()`
-- optional `create(n)`, used by other features only.
+- `markRead(id)` (one way only: the backend has no mark-unread, remove, mark-all-read or create route)
 
 ### Trigger
 
@@ -273,10 +272,7 @@ Screenshots: `ref/widget-notifications-open.png`, `ref/widget-notifications-open
 - Contents, left to right:
   - Close button: 40 px round, `x-mark` icon, white. Only below `sm`.
   - Title "Notifications" (i18n `notifications.title`): 16 px, weight 500, line height 40 px. Left margin 12 px when the close button shows.
-  - Mark-all-read button: 40 px round, at `ml-auto`, `envelope-open` icon (24 px, white).
-    - Tooltip "Mark all as read" (i18n `notifications.markAllAsRead`).
-    - Disabled when `unreadCount === 0`.
-    - Calls `markAllRead()`.
+  - The legacy mark-all-read button is not shown: the backend has no such route.
 
 **List**
 - Flex column, flex auto, vertical scroll.
@@ -298,15 +294,12 @@ Screenshots: `ref/widget-notifications-open.png`, `ref/widget-notifications-open
     - `time`: formatted `MMM dd, h:mm a` (Angular `DatePipe`, current locale), 12 px, line height 1, `text-secondary`, margin-top 8 px.
 - **Actions column**
   - Relative, flex column, margins 20 px top/bottom, 24 px right, 8 px left.
-  - Read toggle:
-    - A 24×24 button containing a dot 8 px in diameter.
-    - Unread: the dot is primary and always visible.
-    - Read: the dot is gray-400 and visible only on row hover from `sm` (always visible on touch).
-    - Tooltip "Mark as read" / "Mark as unread" (i18n `notifications.markAsRead`, `notifications.markAsUnread`).
-    - Click calls `markRead(id, !read)`.
-  - Remove button:
-    - 24×24, `x-mark` icon at 16 px, `text-secondary`. Visible only on row hover from `sm`.
-    - Tooltip "Remove" (i18n `notifications.remove`). Click calls `remove(id)`.
+  - Mark-as-read button (unread rows only):
+    - A 24×24 button containing a primary dot 8 px in diameter.
+    - Tooltip "Mark as read" (i18n `notifications.markAsRead`).
+    - Click calls `markRead(id)`.
+    - Opening the row's link also marks it read.
+  - The legacy mark-as-unread and remove buttons are not shown: the backend has no such routes.
   - Clicks on the action buttons must not trigger the row link.
 
 **Empty state**
@@ -322,17 +315,14 @@ Screenshots: `ref/widget-notifications-open.png`, `ref/widget-notifications-open
 
 ### Endpoint contract
 
-All endpoints are relative to `apiUrl`, require Bearer, and are NOT yet implemented in nest-schematics.
+All endpoints are relative to `apiUrl`, require Bearer (any signed-in admin, no extra permission) and exist in nest-schematics.
 
 | Method & path | Request | Response 200 | Notes |
 |---|---|---|---|
-| `GET /notifications` | | `AppNotification[]` | Newest first. |
-| `PATCH /notifications/:id` | `{ "read": boolean }` | the updated `AppNotification` | 404 if missing. |
-| `DELETE /notifications/:id` | | `{ "id": string }` or 204 | 404 if missing. |
-| `POST /notifications/mark-all-read` | `{}` | `AppNotification[]` (full updated list) | |
-| `POST /notifications` (optional) | `Omit<AppNotification,'id'>` | the created `AppNotification` | For other features. |
+| `GET /admin/me/notifications` | | `AdminNotification[]` | Newest first, at most 50. |
+| `POST /admin/me/notifications/:id/read` | | the updated `AdminNotification` | Calling it again is fine. 404 when the id is not one of the caller's. |
 
-The legacy mock used different paths (`api/common/notifications` with `id` in the query string, and `GET .../mark-all-as-read`). The new paths above are authoritative.
+There is no delete, mark-unread, mark-all-read or create route. Notifications are created server side only (`AdminNotificationsService.notify(adminId, ...)`).
 
 ### i18n
 
@@ -340,10 +330,7 @@ The legacy mock used different paths (`api/common/notifications` with `id` in th
 |---|---|
 | `notifications.open` | Notifications |
 | `notifications.title` | Notifications |
-| `notifications.markAllAsRead` | Mark all as read |
 | `notifications.markAsRead` | Mark as read |
-| `notifications.markAsUnread` | Mark as unread |
-| `notifications.remove` | Remove |
 | `notifications.close` | Close |
 | `notifications.empty.title` | No notifications |
 | `notifications.empty.text` | When you have notifications, they will appear here. |
@@ -615,4 +602,4 @@ The admin route resolver no longer loads messages, quick-chat or shortcuts data.
   This spec defaults to (a), behind a `features.userStatus` flag.
 - **W3.** Should the settings cog appear on auth pages (empty layout), as it does in the legacy app, or only in authenticated layouts?
 - **W4. Profile/Settings menu items.** No routes exist for them. Keep them as placeholders that only close the menu, or hide them until routes exist?
-- **W5. Notifications backend.** If `/notifications` is not available, should the bell be hidden, for example on a 404 or behind a feature flag?
+- **W5. Notifications backend.** If `admin/me/notifications` is not available, should the bell be hidden, for example on a 404 or behind a feature flag?

@@ -4,12 +4,17 @@ import { UiNavigationService } from '@ui'
 import { NavigationService } from 'app/core/navigation/navigation.service'
 import { DITokens } from 'app/core/utils/di-tokens'
 import { environment } from 'environments/environment'
-import { catchError, Observable, of } from 'rxjs'
+import { catchError, map, Observable, of } from 'rxjs'
 import { SearchResult, SearchResultSet } from './search.types'
 
+/** The backend cuts the query to 100 characters and returns `[]` below 2; at most 5 hits per group. */
+const BACKEND_MAX_QUERY = 100
+const BACKEND_MIN_QUERY = 2
+const BACKEND_MAX_HITS = 5
+
 /**
- * Runs header searches. With `environment.features.search === 'backend'` it calls `POST /search`;
- * otherwise it matches the titles of the default navigation on the client.
+ * Runs header searches. With `environment.features.search === 'backend'` it calls `POST /search` (groups `admins`, `roles`,
+ * at most 5 hits each, `[]` for fewer than 2 characters); otherwise it matches the titles of the default navigation on the client.
  */
 @Injectable({ providedIn: 'root' })
 export class SearchService {
@@ -21,9 +26,16 @@ export class SearchService {
   /** Result sets for `query`. Never errors: a failed request yields `[]`. */
   search(query: string): Observable<SearchResultSet[]> {
     if (environment.features.search === 'backend') {
-      return this.http
-        .post<SearchResultSet[]>(`${this.apiUrl}/search`, { query })
-        .pipe(catchError(() => of<SearchResultSet[]>([])))
+      const text = query.trim().slice(0, BACKEND_MAX_QUERY)
+      if (text.length < BACKEND_MIN_QUERY) return of<SearchResultSet[]>([])
+      return this.http.post<SearchResultSet[]>(`${this.apiUrl}/search`, { query: text }).pipe(
+        map((sets) =>
+          sets
+            .map((set) => ({ ...set, results: set.results.slice(0, BACKEND_MAX_HITS) }))
+            .filter((set) => set.results.length > 0),
+        ),
+        catchError(() => of<SearchResultSet[]>([])),
+      )
     }
     return of(this.searchNavigation(query))
   }

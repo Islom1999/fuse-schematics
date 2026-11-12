@@ -85,31 +85,38 @@ Error body for every non-2xx response:
 - Resource routes under `/admin/...` answer 403 "Not enough permissions" when a permission is missing.
 - The UI should show a toast for 403 (see §5) and must not sign out.
 
-### 2.2 Required by the UI, NOT yet implemented in nest-schematics
+### 2.2 Password reset and navigation (implemented in nest-schematics)
 
-These must be marked as backend TODOs.
+These routes exist in the backend starter (admin OpenAPI document).
 
-**`POST /auth/forgot-password`**
-
-| | |
-|---|---|
-| Request | `{ "email": string }` |
-| Response | `204` (or `200 {}`), whether or not the email exists. This prevents account enumeration. |
-| 400 | Invalid email. |
-
-**`POST /auth/reset-password`**
+**`POST /auth/forgot-password`** (public)
 
 | | |
 |---|---|
-| Request | `{ "token": string, "password": string }` |
-| Response | `204` (or `200 {}`) |
-| 400 / 401 | Invalid or expired token. |
+| Request | `{ "email": string }` (valid email, at most 254 characters) |
+| Response | `204` without a body, always, also for an unknown email (no account enumeration). |
+| 400 | Malformed email. |
+| 429 | Rate limited. |
 
-**`GET /navigation`**
-- Response 200: `{ default: NavItem[], compact: NavItem[], futuristic: NavItem[], horizontal: NavItem[] }`.
-- `NavItem` is defined in `navigation.md`.
+**`POST /auth/reset-password`** (public)
 
-**Further endpoints:** `PATCH /auth/me`, `/notifications*` and `/search` are specified in `widgets.md`.
+| | |
+|---|---|
+| Request | `{ "token": string, "password": string }` (token non-empty, at most 256; password 8 to 200 characters) |
+| Response | `204` without a body. Every session of that admin ends; the admin signs in again. |
+| 400 | `"Invalid or expired token"` (unknown, expired or already used), or a validation error when the password breaks 8..200. |
+| 429 | Rate limited. |
+
+- The token is random, single use and valid for 30 minutes; a new request voids older ones.
+- The mail link is `<ADMIN_APP_URL>/reset-password?token=<token>` (backend env `ADMIN_APP_URL`, default `http://localhost:4200`). The reset page reads `token` from the query string.
+- Mail is sent only when the backend has the mail add-on. Without it the backend logs a warning, and outside production that log line holds the reset link.
+
+**`GET /navigation`** (any signed-in admin; filtered by the admin's permissions)
+- Response 200: `{ default: NavItem[], compact: NavItem[], futuristic: NavItem[], horizontal: NavItem[] }`. All four hold the same tree.
+- `NavItem` is defined in `navigation.md`. The backend registry holds only `admins` (`/admins`) and `roles` (`/roles`); the starter redirects those links to `/system/admins` and `/system/roles`.
+- The client calls it only when `environment.features.navigation === 'backend'` (default `'static'`) and appends the static items of `navigation.ts` whose `id` the backend did not send.
+
+**Further endpoints:** `/search` and the admin notifications (`GET admin/me/notifications`, `POST admin/me/notifications/:id/read`) are specified in `widgets.md`. `PATCH /auth/me` is **not implemented** in the backend yet.
 
 The legacy client sent the bare email string and the bare password string as request bodies. The JSON objects above replace that.
 
@@ -648,7 +655,7 @@ No mock-API providers are registered.
 ## 13. Open questions
 
 - **A1. Remember-me semantics.** This spec uses localStorage when checked and sessionStorage when unchecked, unchecked by default. The legacy app always used localStorage. Confirm, or should it always persist?
-- **A2. Forgot/reset backend.** nest-schematics has no forgot-password or reset-password endpoints, and no email delivery. Should the pages ship anyway, against the contract in §2.2, or stay hidden behind a feature flag until the backend exists?
+- **A2. Forgot/reset backend.** (Resolved: nest-schematics now has `POST auth/forgot-password` and `POST auth/reset-password`; mail delivery needs its mail add-on. See §2.2 and DECISIONS A2.)
 - **A3. Password policy.** Should reset require a minimum length of 8, or only `required` as in the legacy app? The backend sign-in DTO only caps length at 200.
 - **A4. Landing route.** The legacy starter had a `home` landing route on the empty layout. Keep it, or redirect `/` straight to `/example`?
 - **A5. Token refresh.** The backend issues 1-day tokens and has no refresh flow. Should the UI call `sign-in-with-token` proactively near expiry, for example when under 10 minutes remain on navigation, or just let the user re-login on a 401?

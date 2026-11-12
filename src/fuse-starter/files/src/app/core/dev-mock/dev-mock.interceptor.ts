@@ -11,13 +11,14 @@ import { decodeJwtPayload } from 'app/core/auth/auth.utils'
 import { buildNavigation } from 'app/core/navigation/navigation.service'
 import { User } from 'app/core/user/user.types'
 import { DITokens } from 'app/core/utils/di-tokens'
+import { AdminNotificationDto } from 'app/layout/common/notifications/notifications.types'
 import { environment } from 'environments/environment'
 import type { MediaFile } from 'app/core/upload/upload.types'
 import { concat, map, mergeMap, Observable, throwError, timer } from 'rxjs'
 
 /*
  * Development-only fake backend for sign-in, session refresh, the current user, the navigation,
- * an empty notifications list and multipart file uploads (kept in memory, tus is not mocked).
+ * the admin notifications, search and multipart file uploads (kept in memory, tus is not mocked).
  * Enable it with `environment.devMock`. Every other request goes to the network untouched.
  * Delete this folder (and its entry in `withInterceptors`) to drop it.
  */
@@ -105,6 +106,26 @@ function fail(req: HttpRequest<unknown>, path: string, status: number, message: 
   )
 }
 
+/** `AdminNotification`s of the mock admin (in memory: reset by a reload). */
+const notifications: AdminNotificationDto[] = [
+  {
+    id: 'dev-notification-1',
+    title: 'Welcome',
+    description: 'This is a dev-mock notification. Open it or mark it as read.',
+    icon: 'heroicons_mini:star',
+    link: '/example',
+    time: new Date().toISOString(),
+    read: false,
+  },
+]
+
+/** `POST search`: the mock admin matches as an `admins` hit, like the backend's admins provider. */
+function search(query: unknown): { id: string; label: string; results: object[] }[] {
+  const needle = typeof query === 'string' ? query.trim().toLowerCase() : ''
+  if (needle.length < 2 || !(USER.email.includes(needle) || USER.name.toLowerCase().includes(needle))) return []
+  return [{ id: 'admins', label: 'Admins', results: [{ id: USER.id, link: `/admins/${USER.id}`, value: USER.email, title: USER.name }] }]
+}
+
 /** Files "uploaded" through the mock, by id (in memory: they are gone after a reload). */
 const mediaFiles = new Map<string, MediaFile>()
 
@@ -154,6 +175,14 @@ function handle(req: HttpRequest<unknown>, path: string): Observable<HttpEvent<u
     const media = mediaFiles.get(mediaId)
     return media ? reply(req, media) : fail(req, path, 404, 'File not found')
   }
+  const notificationId = /^admin\/me\/notifications\/([^/]+)\/read$/.exec(path)?.[1]
+  if (req.method === 'POST' && notificationId) {
+    if (!sessionOf(bearer(req))) return fail(req, path, 401, 'Unauthorized')
+    const found = notifications.find((item) => item.id === decodeURIComponent(notificationId))
+    if (!found) return fail(req, path, 404, 'Notification not found')
+    found.read = true
+    return reply(req, found)
+  }
   switch (route) {
     case 'POST auth/sign-in': {
       const { email, password } = body<{ email: string; password: string }>(req)
@@ -187,14 +216,16 @@ function handle(req: HttpRequest<unknown>, path: string): Observable<HttpEvent<u
       return sessionOf(bearer(req)) ? upload(req) : fail(req, path, 401, 'Unauthorized')
     case 'GET navigation':
       return reply(req, buildNavigation())
-    case 'GET notifications':
-      return reply(req, [])
+    case 'GET admin/me/notifications':
+      return sessionOf(bearer(req)) ? reply(req, notifications) : fail(req, path, 401, 'Unauthorized')
+    case 'POST search':
+      return sessionOf(bearer(req)) ? reply(req, search(body<{ query: string }>(req).query)) : fail(req, path, 401, 'Unauthorized')
     default:
       return null
   }
 }
 
-/** Serves the auth, user, navigation and notifications endpoints in development when `environment.devMock` is on. */
+/** Serves the auth, user, navigation, notifications and search endpoints in development when `environment.devMock` is on. */
 export const devMockInterceptor: HttpInterceptorFn = (req, next) => {
   if (!environment.devMock) return next(req)
   if (!isDevMode()) {
