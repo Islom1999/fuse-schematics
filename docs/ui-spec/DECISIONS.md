@@ -4,7 +4,7 @@ These resolve the "Open questions" sections in `navigation.md`, `core.md`, `them
 
 The general rule from the owner: **the look should stay as close to the current starter as possible.** Fix a legacy behavior only when it is a real bug or an accessibility problem.
 
-Items marked **OPEN** wait for the owner. Until they are answered, implement the "until answered" behavior.
+All owner questions were answered on 2026-11-12.
 
 ---
 
@@ -37,14 +37,14 @@ Items marked **OPEN** wait for the owner. Until they are answered, implement the
 
 | # | Question | Decision |
 |---|---|---|
-| T1 | PrimeNG dark mode is broken | **OPEN** (owner). Until answered, keep the current look: PrimeNG stays light in dark mode. Write the preset so the fix is a one-line selector change. |
-| T2 | PrimeNG ignores the selected theme (always indigo) | **OPEN** (owner). Until answered, keep indigo. Delete the current bridge, which does nothing. |
+| T1 | PrimeNG dark mode is broken | **Fix it** (owner, 2026-11-12). PrimeNG components (inputs, cards, tables, dialogs including the confirmation dialog) follow the dark scheme. |
+| T2 | PrimeNG ignores the selected theme (always indigo) | **Follow the theme** (owner, 2026-11-12). PrimeNG primary uses the active `theme-*` primary palette. Delete the current bridge, which does nothing. |
 | T3 | Dark borders, hr margin, placeholder color | Use the **intended values**: borders and dividers at slate-100 / 12% in dark mode, hr margin 32 px, scheme-aware placeholder. The light slate-200 line in dark mode is a bug. Same for layouts Q1. |
 | T4 | Unused fonts | Drop Material Icons and IBM Plex Mono. Keep Inter. |
 | T5 | Global `outline: none !important` | Remove it. Restore `:focus-visible` rings (2 px, primary color, 2 px offset). Mouse focus stays without a ring. |
 | T6 | Custom utility class names | Keep every class name listed in `theming.md` (`bg-card`, `bg-default`, `text-secondary`, `text-hint`, `text-disabled`, `border`, `divider`, `icon-size-*`, `bg-primary`, `text-on-primary` and the rest), so that layout code and the generated CRUD code keep working. |
-| T7 | Logo, wordmark, favicon, splash spinner color, brand base color (`#2196F3`) | **OPEN** (owner). Until answered, use a neutral placeholder mark (a rounded square with the letter "A"), the text "Admin" and keep `#2196F3`. |
-| T8 | Avatars in mock data and on the auth pages | **OPEN** (owner). Recommendation: generated initials avatars (no image files). Until answered, use initials. |
+| T7 | Logo, wordmark, favicon, splash spinner color, brand base color (`#2196F3`) | Owner, 2026-11-12: a neutral placeholder mark (a rounded square with the letter "A"), the text "Admin", and keep `#2196F3` as the brand base and splash color. |
+| T8 | Avatars in mock data and on the auth pages | Owner, 2026-11-12: generated initials avatars, no image files. |
 | T9 | Unused material sprites, scene PNGs, Fuse marketing text | Delete them in phase 3, as `theming.md` lists. |
 
 ## Layouts (`layouts.md`)
