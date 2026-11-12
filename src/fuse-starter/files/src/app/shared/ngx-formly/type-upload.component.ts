@@ -1,64 +1,57 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  inject,
-  signal,
-} from '@angular/core'
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { FormsModule } from '@angular/forms'
-import { FieldType, FieldTypeConfig, FormlyModule } from '@ngx-formly/core'
-import { MockClient } from 'app/core/mock'
-import { ButtonDirective } from 'primeng/button'
+import { FieldType, FieldTypeConfig, FormlyFieldProps as CoreFieldProps, FormlyModule } from '@ngx-formly/core'
+import { MediaKind } from 'app/core/upload/upload.service'
+import { UploadFileComponent } from 'app/shared/components/upload-file/upload-file.component'
+import { startWith } from 'rxjs'
 
+interface UploadProps extends CoreFieldProps {
+  /** Decides the accepted files: image | video | audio | pdf | other. */
+  kind?: MediaKind
+  /** `true`: the value is an array of media ids; otherwise one media id (or null). */
+  multiple?: boolean
+}
+
+function toIds(value: unknown): string[] {
+  if (Array.isArray(value)) return value.filter((id): id is string => typeof id === 'string' && id !== '')
+  return typeof value === 'string' && value !== '' ? [value] : []
+}
+
+/**
+ * Upload field. The control holds the media id (`imageId`) or an array of ids (`docIds`); the
+ * file itself goes through `UploadService` when it is picked, long before the form is saved.
+ */
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'type-upload',
   standalone: true,
-  imports: [FormsModule, FormlyModule, ButtonDirective],
+  imports: [FormsModule, FormlyModule, UploadFileComponent],
   template: `
-    <input type="file" [hidden]="true" #file (change)="handleFileInput($event)" />
-    <div class="flex gap-4 items-center">
-      @if (uploadedImgSrc(); as uploadedImgSrc) {
-        <img [src]="uploadedImgSrc" width="100px" alt="" />
-      } @else if (formControl.parent?.value?.fileDataUrl) {
-        <img [src]="formControl.parent?.value?.fileDataUrl" width="100px" alt="" />
-      }
-      <button
-        pButton
-        icon="pi pi-upload"
-        type="button"
-        (click)="file.click()"
-        aria-label="uploadFile"
-      ></button>
-    </div>
+    <app-upload-file
+      [kind]="props.kind ?? 'image'"
+      [multiple]="!!props.multiple"
+      [disabled]="!!props.disabled"
+      [ids]="ids()"
+      (idsChange)="onIds($event)"
+    />
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TypeUpload extends FieldType<FieldTypeConfig> {
-  private $cdr = inject(ChangeDetectorRef)
-  private $file = inject(MockClient)
-  uploadedImgSrc = signal<string | undefined>(undefined)
+export class TypeUpload extends FieldType<FieldTypeConfig<UploadProps>> implements OnInit {
+  private destroyRef = inject(DestroyRef)
+  protected ids = signal<string[]>([])
 
-  handleFileInput(e: Event) {
-    const file = (e.target as HTMLInputElement)?.files?.item(0)
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = () => {
-        this.uploadedImgSrc.set(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+  ngOnInit(): void {
+    // Follows the control, so an edit form that patches its value later shows the files.
+    this.formControl.valueChanges
+      .pipe(startWith(this.formControl.value as unknown), takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => this.ids.set(toIds(value)))
+  }
 
-      this.$file
-        .uploadFileToMinIO(this.props['filePath'], {
-          data: file,
-          fileName: file.name,
-        })
-        .subscribe((w) => {
-          if (w) {
-            this.formControl.setValue(w)
-          }
-          this.$cdr.markForCheck()
-        })
-    }
+  protected onIds(ids: string[]): void {
+    this.formControl.setValue(this.props.multiple ? ids : (ids[0] ?? null))
+    this.formControl.markAsDirty()
+    this.formControl.markAsTouched()
   }
 }

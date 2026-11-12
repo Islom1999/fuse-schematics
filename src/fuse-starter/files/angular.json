@@ -23,6 +23,7 @@
             "index": "src/index.html",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
+            "allowedCommonJsDependencies": ["url-parse"],
             "assets": [
               "src/favicon-16x16.png",
               "src/favicon-32x32.png",
