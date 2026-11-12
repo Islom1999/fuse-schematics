@@ -1,159 +1,146 @@
-<!-- Bar search -->
 @if (appearance() === 'bar') {
-  @if (!opened) {
-    <button
-      type="button"
-      pButton
-      class="p-button-rounded p-button-text p-button-icon-only"
-      (click)="open()">
-      <fuse-icon [svgIcon]="'heroicons_outline:magnifying-glass'"></fuse-icon>
-    </button>
-  }
-  @if (opened) {
+  <button
+    #trigger
+    type="button"
+    pButton
+    class="p-button-icon-only h-10 w-10 rounded-full p-0"
+    [text]="true"
+    [rounded]="true"
+    [attr.aria-label]="'search.open' | transloco"
+    [attr.aria-expanded]="opened()"
+    (click)="open()"
+  >
+    <ui-icon svgIcon="heroicons_outline:magnifying-glass" />
+  </button>
+
+  @if (opened()) {
     <div
-      class="absolute inset-0 flex items-center shrink-0 z-99 bg-card"
-      @slideInTop
-      @slideOutTop>
-      <fuse-icon
-        class="absolute ml-6 sm:ml-8 icon-size-5 text-secondary"
-      [svgIcon]="'heroicons_outline:magnifying-glass'"></fuse-icon>
-      <input
-        pInputText
-        class="w-full h-full px-16 sm:px-18 bg-transparent outline-none"
-        [formControl]="searchControl"
-        [placeholder]="'Search...'"
-        (keydown)="onKeydown($event)"
-        #barSearchInput>
+      class="ui-slide-in-top absolute inset-0 z-99 flex shrink-0 items-center bg-card focus-within:ring-1 focus-within:ring-inset focus-within:ring-primary"
+    >
+      <ui-icon class="pointer-events-none absolute ml-6 text-secondary icon-size-5 sm:ml-8" svgIcon="heroicons_outline:magnifying-glass" />
+      <ng-container
+        *ngTemplateOutlet="field; context: { $implicit: 'h-full w-full border-0 bg-transparent px-16 outline-none focus-visible:outline-none sm:px-18' }"
+      />
       <button
         type="button"
         pButton
-        class="absolute top-1/2 right-5 sm:right-7 shrink-0 w-10 h-10 -mt-5 p-button-rounded p-button-text p-button-icon-only"
-        (click)="close()">
-        <fuse-icon [svgIcon]="'heroicons_outline:x-mark'"></fuse-icon>
-      </button>
-      @if (resultSets) {
-        <div
-          class="absolute left-0 right-0 top-full mt-2"
-          >
-          <div class="max-h-128 sm:px-2 border-t rounded-b shadow-md overflow-y-auto bg-card">
-            <ng-container *ngTemplateOutlet="resultsContent"></ng-container>
-          </div>
-        </div>
-      }
-    </div>
-  }
-}
-
-<!-- Basic search -->
-@if (appearance() === 'basic') {
-  <div class="w-full sm:min-w-80">
-    <div class="relative">
-      <fuse-icon
-        class="absolute left-4 top-1/2 -translate-y-1/2 icon-size-5 text-secondary"
-      [svgIcon]="'heroicons_outline:magnifying-glass'"></fuse-icon>
-      <input
-        pInputText
-        class="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-transparent focus:outline-none focus:border-primary"
-        [formControl]="searchControl"
-        [placeholder]="'Search...'"
-        (keydown)="onKeydown($event)">
-    </div>
-    @if (resultSets) {
-      <div
-        class="max-h-128 mt-2 rounded border bg-card shadow overflow-y-auto"
-        >
-        <ng-container *ngTemplateOutlet="resultsContent"></ng-container>
-      </div>
-    }
-  </div>
-}
-
-<!-- Results content -->
-<ng-template #resultsContent>
-  @if (resultSets && !resultSets.length) {
-    <div
-      class="py-3 px-6 text-md text-secondary"
+        class="p-button-icon-only absolute right-5 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full p-0 sm:right-7"
+        [text]="true"
+        [rounded]="true"
+        [attr.aria-label]="'search.close' | transloco"
+        (click)="close(); trigger.focus()"
       >
-      No results found!
+        <ui-icon svgIcon="heroicons_outline:x-mark" />
+      </button>
+      <ng-container *ngTemplateOutlet="panel" />
     </div>
   }
-  @for (resultSet of resultSets; track trackByFn($index, resultSet)) {
-    <div class="flex items-center mt-2 px-4">
-      <span class="text-sm font-semibold tracking-wider text-secondary">{{resultSet.label.toUpperCase()}}</span>
+} @else {
+  <div #wrapper class="relative w-full sm:min-w-80" (focusout)="onFocusOut($event, wrapper)">
+    <ui-icon
+      class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-secondary icon-size-5"
+      svgIcon="heroicons_outline:magnifying-glass"
+    />
+    <ng-container
+      *ngTemplateOutlet="field; context: { $implicit: 'w-full rounded-lg border bg-card py-3 pl-12 pr-4' }"
+    />
+    <ng-container *ngTemplateOutlet="panel" />
+  </div>
+}
+
+<ng-template #field let-classes>
+  <input
+    #input
+    type="text"
+    role="combobox"
+    autocomplete="off"
+    aria-autocomplete="list"
+    [class]="classes"
+    [value]="value()"
+    [placeholder]="'search.placeholder' | transloco"
+    [attr.aria-label]="'search.open' | transloco"
+    [attr.aria-expanded]="results() !== null"
+    [attr.aria-controls]="id + '-panel'"
+    [attr.aria-activedescendant]="activeOptionId()"
+    (input)="onInput(input.value)"
+    (keydown)="onKeydown($event)"
+  />
+</ng-template>
+
+<ng-template #panel>
+  @if (groups(); as groups) {
+    <div
+      class="absolute left-0 right-0 top-full z-99 mt-2 max-h-128 overflow-y-auto bg-card shadow-md sm:px-2"
+      [class.border-t]="appearance() === 'bar'"
+      [class.rounded-b-md]="appearance() === 'bar'"
+      [class.rounded-md]="appearance() === 'basic'"
+      [id]="id + '-panel'"
+      role="listbox"
+      [attr.aria-label]="'search.open' | transloco"
+      (mousedown)="$event.preventDefault()"
+    >
+      @for (group of groups; track group.set.id) {
+        <div class="mt-2 px-4 text-sm font-semibold uppercase tracking-wider text-secondary" role="presentation">
+          @if (isKnownGroup(group.set.id)) {
+            {{ 'search.groups.' + group.set.id | transloco }}
+          } @else {
+            {{ group.set.label }}
+          }
+        </div>
+        @for (row of group.rows; track row.result.id) {
+          <a
+            class="flex cursor-pointer items-center rounded-md px-6 py-3 text-md hover:bg-gray-100 aria-selected:bg-gray-100 dark:hover:bg-hover dark:aria-selected:bg-hover"
+            role="option"
+            tabindex="-1"
+            [id]="optionId(row.index)"
+            [attr.aria-selected]="row.index === activeIndex()"
+            [routerLink]="row.result.link"
+            (click)="onSelect(row.result)"
+          >
+            @switch (group.set.id) {
+              @case ('contacts') {
+                @if (row.result.avatar) {
+                  <img class="h-8 w-8 shrink-0 rounded-full object-cover" alt="" [src]="row.result.avatar" />
+                } @else {
+                  <span
+                    class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-100 uppercase text-primary-800"
+                    aria-hidden="true"
+                  >
+                    {{ row.result.name?.charAt(0) }}
+                  </span>
+                }
+                <span class="ml-3 truncate">{{ row.result.name }}</span>
+              }
+              @case ('pages') {
+                <span class="flex min-w-0 flex-col">
+                  <span class="truncate">{{ row.result.title }}</span>
+                  <span class="truncate text-sm text-secondary">{{ row.result.link }}</span>
+                </span>
+              }
+              @case ('tasks') {
+                <ui-icon
+                  class="icon-size-5"
+                  [class.text-primary]="row.result.completed"
+                  [class.text-hint]="!row.result.completed"
+                  svgIcon="heroicons_outline:check-circle"
+                />
+                <span
+                  class="ml-3 truncate"
+                  [class.line-through]="row.result.completed"
+                  [class.text-secondary]="row.result.completed"
+                >
+                  {{ row.result.title }}
+                </span>
+              }
+              @default {
+                <span class="truncate">{{ row.result.title ?? row.result.name }}</span>
+              }
+            }
+          </a>
+        }
+      } @empty {
+        <div class="px-6 py-3 text-md text-secondary" role="presentation">{{ 'search.noResults' | transloco }}</div>
+      }
     </div>
-    @for (result of resultSet.results; track trackByFn($index, result)) {
-      <a
-        class="group relative flex items-center mb-1 py-3 px-6 text-md rounded-md hover:bg-gray-100 dark:hover:bg-hover no-underline"
-        [routerLink]="result.link">
-        @if (resultSet.id === 'contacts') {
-          <ng-container *ngTemplateOutlet="contactResult; context: {$implicit: result}"></ng-container>
-        }
-        @if (resultSet.id === 'pages') {
-          <ng-container *ngTemplateOutlet="pageResult; context: {$implicit: result}"></ng-container>
-        }
-        @if (resultSet.id === 'tasks') {
-          <ng-container *ngTemplateOutlet="taskResult; context: {$implicit: result}"></ng-container>
-        }
-      </a>
-    }
   }
-</ng-template>
-
-<!-- Contact result template -->
-<ng-template
-  #contactResult
-  let-result>
-  <div class="flex items-center">
-    <div class="flex shrink-0 items-center justify-center w-8 h-8 rounded-full overflow-hidden bg-primary-100 dark:bg-primary-800">
-      @if (result.avatar) {
-        <img
-          [src]="result.avatar"
-          alt="Contact avatar">
-      }
-      @if (!result.avatar) {
-        <fuse-icon
-          class="m-0 icon-size-5 text-primary dark:text-primary-400"
-        [svgIcon]="'heroicons_outline:user-circle'"></fuse-icon>
-      }
-    </div>
-    <div class="ml-3 truncate">
-      <span [innerHTML]="result.name"></span>
-    </div>
-  </div>
-</ng-template>
-
-<!-- Page result template -->
-<ng-template
-  #pageResult
-  let-result>
-  <div class="flex flex-col">
-    <div
-      class="truncate leading-normal"
-    [innerHTML]="result.title"></div>
-    <div class="truncate leading-normal text-sm text-secondary">
-      {{result.link}}
-    </div>
-  </div>
-</ng-template>
-
-<!-- Task result template -->
-<ng-template
-  #taskResult
-  let-result>
-  <div class="flex items-center">
-    @if (result.completed) {
-      <fuse-icon
-        class="mr-0 text-primary dark:text-primary-400"
-      [svgIcon]="'heroicons_outline:check-circle'"></fuse-icon>
-    }
-    @if (!result.completed) {
-      <fuse-icon
-        class="mr-0 text-hint"
-      [svgIcon]="'heroicons_outline:check-circle'"></fuse-icon>
-    }
-    <div
-      class="ml-3 truncate leading-normal"
-      [ngClass]="{'line-through text-hint': result.completed}"
-    [innerHTML]="result.title"></div>
-  </div>
 </ng-template>

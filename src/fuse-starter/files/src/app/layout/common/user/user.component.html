@@ -1,138 +1,87 @@
-<!-- Button -->
 <button
   type="button"
   pButton
-  class="user-trigger p-button-rounded p-button-text p-button-icon-only"
-  (click)="showStatusList = false; userPopover.toggle($event)"
-  >
-  <span class="relative flex items-center justify-center">
-    @if (showAvatar() && user?.avatar) {
-      <img
-        class="w-7 h-7 rounded-full"
-        [src]="user.avatar"
-        alt="User avatar"
-        />
+  class="p-button-icon-only h-10 w-10 rounded-full p-0"
+  [text]="true"
+  [rounded]="true"
+  aria-haspopup="menu"
+  [attr.aria-label]="'user.menu' | transloco"
+  (click)="statusOpen.set(false); popover.toggle($event)"
+>
+  <span class="relative flex">
+    @if (showAvatar() && user()?.avatar) {
+      <img class="h-7 w-7 rounded-full object-cover" alt="" [src]="user()?.avatar" />
+    } @else if (showAvatar() && initials()) {
+      <span
+        class="flex h-7 w-7 items-center justify-center rounded-full bg-primary-100 text-sm font-semibold text-primary-800"
+        aria-hidden="true"
+      >
+        {{ initials() }}
+      </span>
+    } @else {
+      <ui-icon svgIcon="heroicons_outline:user-circle" />
     }
-    @if (!showAvatar() || !user?.avatar) {
-      <fuse-icon
-        class="icon-size-6"
-        [svgIcon]="'heroicons_outline:user-circle'"
-      ></fuse-icon>
+    @if (statusDot(); as dot) {
+      <span class="absolute bottom-0 right-0 h-2 w-2 rounded-full ring-2 ring-bg-card" [class]="dot"></span>
     }
-    <span
-      class="absolute right-0 bottom-0 w-2 h-2 rounded-full"
-            [ngClass]="{
-                'mr-px mb-px': !showAvatar() || !user?.avatar,
-                'bg-green-500': user?.status === 'online',
-                'bg-amber-500': user?.status === 'away',
-                'bg-red-500': user?.status === 'busy',
-                'bg-gray-400': user?.status === 'not-visible'
-            }"
-    ></span>
   </span>
 </button>
 
-<p-popover
-  #userPopover
-  [styleClass]="'user-popover'"
-  >
-  <ng-template pTemplate="content">
-    <div class="flex flex-col py-2 gap-2 min-w-60">
-      <div class="px-4 py-2 border-b">
-        <div class="text-xs text-secondary uppercase">Signed in as</div>
-        <div class="mt-2 text-sm font-medium break-all">
-          {{ user?.email }}
-        </div>
+<p-popover #popover appendTo="body">
+  <ng-template #content>
+    <div class="min-w-60 py-1" role="menu" [attr.aria-label]="'user.menu' | transloco">
+      <div class="mb-1 border-b px-4 pb-2 pt-3">
+        <div class="text-xs font-medium uppercase text-secondary">{{ 'user.signedInAs' | transloco }}</div>
+        <div class="mt-2 truncate text-sm font-medium">{{ user()?.email }}</div>
       </div>
-      <button
-        type="button"
-        class="flex items-center px-4 py-2 text-sm rounded hover:bg-gray-100 dark:hover:bg-hover"
-        (click)="userPopover.hide()"
-        >
-        <fuse-icon
-          class="mr-3 icon-size-5"
-          [svgIcon]="'heroicons_outline:user-circle'"
-        ></fuse-icon>
-        <span>Profile</span>
+
+      <button type="button" role="menuitem" class="flex h-11 w-full cursor-pointer items-center gap-3 rounded-md px-4 text-left text-sm hover:bg-gray-100 dark:hover:bg-hover" (click)="openRoute(profileRoute)">
+        <ui-icon class="icon-size-5" svgIcon="heroicons_outline:user-circle" />
+        <span>{{ 'user.profile' | transloco }}</span>
       </button>
-      <button
-        type="button"
-        class="flex items-center px-4 py-2 text-sm rounded hover:bg-gray-100 dark:hover:bg-hover"
-        (click)="userPopover.hide()"
-        >
-        <fuse-icon
-          class="mr-3 icon-size-5"
-          [svgIcon]="'heroicons_outline:cog-8-tooth'"
-        ></fuse-icon>
-        <span>Settings</span>
+      <button type="button" role="menuitem" class="flex h-11 w-full cursor-pointer items-center gap-3 rounded-md px-4 text-left text-sm hover:bg-gray-100 dark:hover:bg-hover" (click)="openRoute(settingsRoute)">
+        <ui-icon class="icon-size-5" svgIcon="heroicons_outline:cog-8-tooth" />
+        <span>{{ 'user.settings' | transloco }}</span>
       </button>
-      <div class="border-t my-1"></div>
-      <button
-        type="button"
-        class="flex items-center px-4 py-2 text-sm rounded hover:bg-gray-100 dark:hover:bg-hover"
-        (click)="toggleStatusList()"
+
+      @if (statusEnabled) {
+        <div class="my-2 border-t" role="separator"></div>
+        <button
+          type="button"
+          role="menuitem"
+          class="flex h-11 w-full cursor-pointer items-center gap-3 rounded-md px-4 text-left text-sm hover:bg-gray-100 dark:hover:bg-hover"
+          [attr.aria-expanded]="statusOpen()"
+          (click)="statusOpen.set(!statusOpen())"
         >
-        <fuse-icon
-          class="mr-3 icon-size-5"
-          [svgIcon]="'heroicons_outline:ellipsis-horizontal-circle'"
-        ></fuse-icon>
-        <span class="flex-1 text-left">Status</span>
-        <fuse-icon
-          class="icon-size-4"
-                    [svgIcon]="
-                        showStatusList
-                            ? 'heroicons_outline:chevron-up'
-                            : 'heroicons_outline:chevron-down'
-                    "
-        ></fuse-icon>
-      </button>
-      @if (showStatusList) {
-        <div class="flex flex-col gap-1 px-6">
-          <button
-            type="button"
-            class="flex items-center py-1 text-sm hover:text-primary"
-            (click)="updateUserStatus('online')"
-            >
-            <span class="w-3 h-3 mr-3 rounded-full bg-green-500"></span>
-            <span>Online</span>
-          </button>
-          <button
-            type="button"
-            class="flex items-center py-1 text-sm hover:text-primary"
-            (click)="updateUserStatus('away')"
-            >
-            <span class="w-3 h-3 mr-3 rounded-full bg-amber-500"></span>
-            <span>Away</span>
-          </button>
-          <button
-            type="button"
-            class="flex items-center py-1 text-sm hover:text-primary"
-            (click)="updateUserStatus('busy')"
-            >
-            <span class="w-3 h-3 mr-3 rounded-full bg-red-500"></span>
-            <span>Busy</span>
-          </button>
-          <button
-            type="button"
-            class="flex items-center py-1 text-sm hover:text-primary"
-            (click)="updateUserStatus('not-visible')"
-            >
-            <span class="w-3 h-3 mr-3 rounded-full bg-gray-400"></span>
-            <span>Invisible</span>
-          </button>
-        </div>
+          <ui-icon class="icon-size-5" svgIcon="heroicons_outline:ellipsis-horizontal-circle" />
+          <span>{{ 'user.status' | transloco }}</span>
+          <ui-icon
+            class="ml-auto icon-size-4"
+            [svgIcon]="statusOpen() ? 'heroicons_outline:chevron-up' : 'heroicons_outline:chevron-down'"
+          />
+        </button>
+        @if (statusOpen()) {
+          <div class="px-6 pb-1 pt-0.5" role="group" [attr.aria-label]="'user.status' | transloco">
+            @for (status of statuses; track status.value) {
+              <button
+                type="button"
+                role="menuitemradio"
+                class="flex w-full cursor-pointer items-center gap-3 py-1.5 text-left text-sm hover:text-primary"
+                [attr.aria-checked]="user()?.status === status.value"
+                (click)="setStatus(status.value)"
+              >
+                <span class="h-3 w-3 shrink-0 rounded-full" [class]="status.dot"></span>
+                <span>{{ status.label | transloco }}</span>
+              </button>
+            }
+          </div>
+        }
       }
-      <div class="border-t my-1"></div>
-      <button
-        type="button"
-        class="flex items-center px-4 py-2 text-sm rounded hover:bg-gray-100 dark:hover:bg-hover text-red-500"
-        (click)="signOut()"
-        >
-        <fuse-icon
-          class="mr-3 icon-size-5"
-          [svgIcon]="'heroicons_outline:arrow-right-on-rectangle'"
-        ></fuse-icon>
-        <span>Sign out</span>
+
+      <div class="my-2 border-t" role="separator"></div>
+      <button type="button" role="menuitem" class="flex h-11 w-full cursor-pointer items-center gap-3 rounded-md px-4 text-left text-sm hover:bg-gray-100 dark:hover:bg-hover text-red-500" (click)="signOut()">
+        <ui-icon class="icon-size-5" svgIcon="heroicons_outline:arrow-right-on-rectangle" />
+        <span>{{ 'user.signOut' | transloco }}</span>
       </button>
     </div>
   </ng-template>

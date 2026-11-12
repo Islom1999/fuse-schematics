@@ -1,109 +1,88 @@
-import { BooleanInput } from '@angular/cdk/coercion';
-import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewEncapsulation, input, viewChild, inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { UserService } from 'app/core/user/user.service';
-import { User } from 'app/core/user/user.types';
-import { Subject, takeUntil } from 'rxjs';
-import { FuseIconComponent } from '@fuse/components/icon';
-import { ButtonModule } from 'primeng/button';
-import { PopoverModule } from 'primeng/popover';
-import { Popover } from 'primeng/popover';
+import { HttpErrorResponse } from '@angular/common/http'
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal, viewChild } from '@angular/core'
+import { Router } from '@angular/router'
+import { TranslocoPipe } from '@jsverse/transloco'
+import { UiIconComponent } from '@ui'
+import { User } from 'app/core/user/user.types'
+import { UserService } from 'app/core/user/user.service'
+import { environment } from 'environments/environment'
+import { ButtonDirective } from 'primeng/button'
+import { Popover } from 'primeng/popover'
 
+export type UserStatus = NonNullable<User['status']>
 
+/** Route of the "Profile" item; `null` = placeholder that only closes the menu. */
+export const PROFILE_ROUTE: string | null = null
+/** Route of the "Settings" item; `null` = placeholder that only closes the menu. */
+export const SETTINGS_ROUTE: string | null = null
+/** Route that performs the sign-out. */
+export const SIGN_OUT_ROUTE = '/sign-out'
+
+/** Status options of the user menu: value, i18n key and dot color class. */
+export const USER_STATUSES: readonly { value: UserStatus; label: string; dot: string }[] = [
+  { value: 'online', label: 'user.statuses.online', dot: 'bg-green-500' },
+  { value: 'away', label: 'user.statuses.away', dot: 'bg-amber-500' },
+  { value: 'busy', label: 'user.statuses.busy', dot: 'bg-red-500' },
+  { value: 'not-visible', label: 'user.statuses.invisible', dot: 'bg-gray-400' },
+]
+
+/** Header user menu: avatar (or initials, or an icon) with the signed-in email, status and sign out. */
 @Component({
-    selector: 'user',
-    templateUrl: './user.component.html',
-    encapsulation: ViewEncapsulation.None,
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    exportAs: 'user',
-    imports: [
-    ButtonModule,
-    PopoverModule,
-    NgClass,
-    FuseIconComponent
-],
+  selector: 'app-user',
+  standalone: true,
+  imports: [ButtonDirective, Popover, TranslocoPipe, UiIconComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './user.component.html',
 })
-export class UserComponent implements OnInit, OnDestroy {
-    private _changeDetectorRef = inject(ChangeDetectorRef);
-    private _router = inject(Router);
-    private _userService = inject(UserService);
+export class UserComponent {
+  private readonly userService = inject(UserService)
+  private readonly router = inject(Router)
+  private readonly popover = viewChild.required<Popover>('popover')
 
-    /* eslint-disable @typescript-eslint/naming-convention */
-    static ngAcceptInputType_showAvatar: BooleanInput;
-    /* eslint-enable @typescript-eslint/naming-convention */
+  /** Show the user's picture (or initials) in the trigger; `false` shows the user-circle icon. */
+  readonly showAvatar = input(true)
 
-    readonly showAvatar = input<boolean>(true);
-    user: User;
-    showStatusList: boolean = false;
-    readonly userPopover = viewChild<Popover>('userPopover');
+  protected readonly user = this.userService.user
+  /** The status section and the dot exist only with `features.userStatus`. */
+  protected readonly statusEnabled = environment.features.userStatus
+  protected readonly statuses = USER_STATUSES
+  protected readonly statusOpen = signal(false)
+  protected readonly profileRoute = PROFILE_ROUTE
+  protected readonly settingsRoute = SETTINGS_ROUTE
 
-    private _unsubscribeAll: Subject<any> = new Subject<any>();
+  protected readonly initials = computed(() => {
+    const user = this.user()
+    const source = user?.name?.trim() || user?.email || ''
+    const words = source.split(/\s+/).filter(Boolean)
+    return ((words[0]?.charAt(0) ?? '') + (words.length > 1 ? words[words.length - 1].charAt(0) : '')).toUpperCase()
+  })
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
+  protected readonly statusDot = computed(() => {
+    const status = this.statusEnabled ? this.user()?.status : undefined
+    return status ? (USER_STATUSES.find((item) => item.value === status)?.dot ?? null) : null
+  })
 
-    /**
-     * On init
-     */
-    ngOnInit(): void {
-        // Subscribe to user changes
-        this._userService.user$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((user: User) => {
-                this.user = user;
+  protected openRoute(route: string | null): void {
+    this.popover().hide()
+    if (route) void this.router.navigateByUrl(route)
+  }
 
-                // Mark for check
-                this._changeDetectorRef.markForCheck();
-            });
-    }
-
-    /**
-     * On destroy
-     */
-    ngOnDestroy(): void {
-        // Unsubscribe from all subscriptions
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
-    }
-
-    // -----------------------------------------------------------------------------------------------------
-    // @ Public methods
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Update the user status
-     *
-     * @param status
-     */
-    updateUserStatus(status: string): void {
-        // Return if user is not available
-        if (!this.user) {
-            return;
+  protected setStatus(status: UserStatus): void {
+    const user = this.user()
+    if (!user) return
+    this.userService.update({ status }).subscribe({
+      error: (error: unknown) => {
+        // No PATCH /auth/me on the backend yet: keep the status on the client only.
+        if (error instanceof HttpErrorResponse && (error.status === 404 || error.status === 405)) {
+          this.userService.set({ ...user, status })
         }
+      },
+    })
+    this.popover().hide()
+  }
 
-        // Update the user
-        this._userService
-            .update({
-                ...this.user,
-                status,
-            })
-            .subscribe();
-
-        this.showStatusList = false;
-        this.userPopover()?.hide();
-    }
-
-    /**
-     * Sign out
-     */
-    signOut(): void {
-        this._router.navigate(['/sign-out']);
-        this.userPopover()?.hide();
-    }
-
-    toggleStatusList(): void {
-        this.showStatusList = !this.showStatusList;
-    }
+  protected signOut(): void {
+    this.popover().hide()
+    void this.router.navigateByUrl(SIGN_OUT_ROUTE)
+  }
 }

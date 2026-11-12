@@ -1,0 +1,92 @@
+{
+  "en": {
+    "languages": {
+      "menu": "Language",
+      "en": "English",
+      "tr": "Turkish"
+    },
+    "search": {
+      "open": "Search",
+      "placeholder": "Search...",
+      "close": "Close search",
+      "noResults": "No results found!",
+      "groups": {
+        "pages": "Pages",
+        "contacts": "Contacts",
+        "tasks": "Tasks"
+      }
+    },
+    "notifications": {
+      "open": "Notifications",
+      "title": "Notifications",
+      "markAllAsRead": "Mark all as read",
+      "markAsRead": "Mark as read",
+      "markAsUnread": "Mark as unread",
+      "remove": "Remove",
+      "close": "Close",
+      "empty": {
+        "title": "No notifications",
+        "text": "When you have notifications, they will appear here."
+      }
+    },
+    "user": {
+      "menu": "User menu",
+      "signedInAs": "Signed in as",
+      "profile": "Profile",
+      "settings": "Settings",
+      "status": "Status",
+      "statuses": {
+        "online": "Online",
+        "away": "Away",
+        "busy": "Busy",
+        "invisible": "Invisible"
+      },
+      "signOut": "Sign out"
+    }
+  },
+  "tr": {
+    "languages": {
+      "menu": "Dil",
+      "en": "İngilizce",
+      "tr": "Türkçe"
+    },
+    "search": {
+      "open": "Ara",
+      "placeholder": "Ara...",
+      "close": "Aramayı kapat",
+      "noResults": "Sonuç bulunamadı!",
+      "groups": {
+        "pages": "Sayfalar",
+        "contacts": "Kişiler",
+        "tasks": "Görevler"
+      }
+    },
+    "notifications": {
+      "open": "Bildirimler",
+      "title": "Bildirimler",
+      "markAllAsRead": "Tümünü okundu olarak işaretle",
+      "markAsRead": "Okundu olarak işaretle",
+      "markAsUnread": "Okunmadı olarak işaretle",
+      "remove": "Kaldır",
+      "close": "Kapat",
+      "empty": {
+        "title": "Bildirim yok",
+        "text": "Bildirimleriniz olduğunda burada görünecek."
+      }
+    },
+    "user": {
+      "menu": "Kullanıcı menüsü",
+      "signedInAs": "Oturum açan",
+      "profile": "Profil",
+      "settings": "Ayarlar",
+      "status": "Durum",
+      "statuses": {
+        "online": "Çevrimiçi",
+        "away": "Uzakta",
+        "busy": "Meşgul",
+        "invisible": "Görünmez"
+      },
+      "signOut": "Çıkış yap"
+    }
+  }
+}

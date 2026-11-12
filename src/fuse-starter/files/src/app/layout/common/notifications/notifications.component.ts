@@ -1,222 +1,82 @@
-import { Overlay, OverlayRef } from '@angular/cdk/overlay';
-import { TemplatePortal } from '@angular/cdk/portal';
-import { DatePipe, NgClass, NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewContainerRef, ViewEncapsulation, viewChild, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { NotificationsService } from 'app/layout/common/notifications/notifications.service';
-import { Notification } from 'app/layout/common/notifications/notifications.types';
-import { Subject, takeUntil } from 'rxjs';
-import { ButtonModule } from 'primeng/button';
-import { TooltipModule } from 'primeng/tooltip';
-import { FuseIconComponent } from '@fuse/components/icon';
-import { ElementRef } from '@angular/core';
+import { DatePipe, NgTemplateOutlet } from '@angular/common'
+import { ChangeDetectionStrategy, Component, inject, signal, viewChild, ViewEncapsulation } from '@angular/core'
+import { RouterLink } from '@angular/router'
+import { TranslocoPipe } from '@jsverse/transloco'
+import { UiIconComponent, UiMediaWatcherService } from '@ui'
+import { ButtonDirective } from 'primeng/button'
+import { Drawer } from 'primeng/drawer'
+import { Popover } from 'primeng/popover'
+import { Tooltip } from 'primeng/tooltip'
+import { NotificationsService } from './notifications.service'
+import { AppNotification } from './notifications.types'
 
+const noop = (): void => undefined
+
+/**
+ * Header bell with the unread count. Opens the notification list in a popover (a full-screen drawer
+ * below `sm`). Hidden while `NotificationsService.available()` is false.
+ */
 @Component({
-    selector: 'notifications',
-    templateUrl: './notifications.component.html',
-    encapsulation: ViewEncapsulation.None,
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    exportAs: 'notifications',
-    imports: [ButtonModule, TooltipModule, NgClass, NgTemplateOutlet, RouterLink, DatePipe, FuseIconComponent]
+  selector: 'app-notifications',
+  standalone: true,
+  imports: [ButtonDirective, DatePipe, Drawer, NgTemplateOutlet, Popover, RouterLink, Tooltip, TranslocoPipe, UiIconComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
+  templateUrl: './notifications.component.html',
+  styles: `
+    .app-notifications-panel.p-popover {
+      margin-top: 0;
+      width: 22.5rem;
+      border: 0;
+      border-radius: 1rem;
+      overflow: hidden;
+      box-shadow:
+        0 10px 15px -3px rgb(0 0 0 / 0.1),
+        0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+
+    .app-notifications-panel.p-popover::before,
+    .app-notifications-panel.p-popover::after {
+      display: none;
+    }
+
+    .app-notifications-panel .p-popover-content {
+      padding: 0;
+    }
+  `,
 })
-export class NotificationsComponent implements OnInit, OnDestroy
-{
-    private _changeDetectorRef = inject(ChangeDetectorRef);
-    private _notificationsService = inject(NotificationsService);
-    private _overlay = inject(Overlay);
-    private _viewContainerRef = inject(ViewContainerRef);
+export class NotificationsComponent {
+  private readonly popover = viewChild<Popover>('popover')
+  private readonly media = inject(UiMediaWatcherService)
 
-    private readonly _notificationsOrigin = viewChild('notificationsOrigin', { read: ElementRef });
-    private readonly _notificationsPanel = viewChild<TemplateRef<any>>('notificationsPanel');
+  protected readonly service = inject(NotificationsService)
+  protected readonly notifications = this.service.notifications
+  protected readonly unreadCount = this.service.unreadCount
+  /** Below `sm` the list opens as a full-screen drawer. */
+  protected readonly mobile = this.media.is('lt-sm')
+  protected readonly drawerOpen = signal(false)
 
-    notifications: Notification[];
-    unreadCount: number = 0;
-    private _overlayRef: OverlayRef;
-    private _unsubscribeAll: Subject<any> = new Subject<any>();
+  /** Opens or closes the list. */
+  toggle(event: Event): void {
+    if (this.mobile()) this.drawerOpen.update((open) => !open)
+    else this.popover()?.toggle(event)
+  }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
+  /** Closes the list. */
+  close(): void {
+    this.drawerOpen.set(false)
+    this.popover()?.hide()
+  }
 
-    /**
-     * On init
-     */
-    ngOnInit(): void
-    {
-        // Subscribe to notification changes
-        this._notificationsService.notifications$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((notifications: Notification[]) =>
-            {
-                // Load the notifications
-                this.notifications = notifications;
+  protected toggleRead(notification: AppNotification): void {
+    this.service.markRead(notification.id, !notification.read).subscribe({ error: noop })
+  }
 
-                // Calculate the unread count
-                this._calculateUnreadCount();
+  protected remove(notification: AppNotification): void {
+    this.service.remove(notification.id).subscribe({ error: noop })
+  }
 
-                // Mark for check
-                this._changeDetectorRef.markForCheck();
-            });
-    }
-
-    /**
-     * On destroy
-     */
-    ngOnDestroy(): void
-    {
-        // Unsubscribe from all subscriptions
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
-
-        // Dispose the overlay
-        if ( this._overlayRef )
-        {
-            this._overlayRef.dispose();
-        }
-    }
-
-    // -----------------------------------------------------------------------------------------------------
-    // @ Public methods
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Open the notifications panel
-     */
-    openPanel(): void
-    {
-        // Return if the notifications panel or its origin is not defined
-        const _notificationsPanel = this._notificationsPanel();
-        if ( !_notificationsPanel || !this._notificationsOrigin() )
-        {
-            return;
-        }
-
-        // Create the overlay if it doesn't exist
-        if ( !this._overlayRef )
-        {
-            this._createOverlay();
-        }
-
-        // Attach the portal to the overlay
-        this._overlayRef.attach(new TemplatePortal(_notificationsPanel, this._viewContainerRef));
-    }
-
-    /**
-     * Close the notifications panel
-     */
-    closePanel(): void
-    {
-        this._overlayRef.detach();
-    }
-
-    /**
-     * Mark all notifications as read
-     */
-    markAllAsRead(): void
-    {
-        // Mark all as read
-        this._notificationsService.markAllAsRead().subscribe();
-    }
-
-    /**
-     * Toggle read status of the given notification
-     */
-    toggleRead(notification: Notification): void
-    {
-        // Toggle the read status
-        notification.read = !notification.read;
-
-        // Update the notification
-        this._notificationsService.update(notification.id, notification).subscribe();
-    }
-
-    /**
-     * Delete the given notification
-     */
-    delete(notification: Notification): void
-    {
-        // Delete the notification
-        this._notificationsService.delete(notification.id).subscribe();
-    }
-
-    /**
-     * Track by function for ngFor loops
-     *
-     * @param index
-     * @param item
-     */
-    trackByFn(index: number, item: any): any
-    {
-        return item.id || index;
-    }
-
-    // -----------------------------------------------------------------------------------------------------
-    // @ Private methods
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Create the overlay
-     */
-    private _createOverlay(): void
-    {
-        // Create the overlay
-        this._overlayRef = this._overlay.create({
-            hasBackdrop     : true,
-            backdropClass   : 'fuse-backdrop-on-mobile',
-            scrollStrategy  : this._overlay.scrollStrategies.block(),
-            positionStrategy: this._overlay.position()
-                .flexibleConnectedTo(this._notificationsOrigin().nativeElement)
-                .withLockedPosition(true)
-                .withPush(true)
-                .withPositions([
-                    {
-                        originX : 'start',
-                        originY : 'bottom',
-                        overlayX: 'start',
-                        overlayY: 'top',
-                    },
-                    {
-                        originX : 'start',
-                        originY : 'top',
-                        overlayX: 'start',
-                        overlayY: 'bottom',
-                    },
-                    {
-                        originX : 'end',
-                        originY : 'bottom',
-                        overlayX: 'end',
-                        overlayY: 'top',
-                    },
-                    {
-                        originX : 'end',
-                        originY : 'top',
-                        overlayX: 'end',
-                        overlayY: 'bottom',
-                    },
-                ]),
-        });
-
-        // Detach the overlay from the portal on backdrop click
-        this._overlayRef.backdropClick().subscribe(() =>
-        {
-            this._overlayRef.detach();
-        });
-    }
-
-    /**
-     * Calculate the unread count
-     *
-     * @private
-     */
-    private _calculateUnreadCount(): void
-    {
-        let count = 0;
-
-        if ( this.notifications && this.notifications.length )
-        {
-            count = this.notifications.filter(notification => !notification.read).length;
-        }
-
-        this.unreadCount = count;
-    }
+  protected markAllRead(): void {
+    this.service.markAllRead().subscribe({ error: noop })
+  }
 }
