@@ -275,5 +275,15 @@
                 }
             }
         }
+    },
+    "upload": {
+        "choose": "Choose file",
+        "cancel": "Cancel upload",
+        "remove": "Remove",
+        "error": {
+            "size": "The file is too large",
+            "type": "This file type is not allowed",
+            "failed": "Upload failed"
+        }
     }
 }

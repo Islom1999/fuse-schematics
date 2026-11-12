@@ -275,5 +275,15 @@
                 }
             }
         }
+    },
+    "upload": {
+        "choose": "Dosya seç",
+        "cancel": "Yüklemeyi iptal et",
+        "remove": "Kaldır",
+        "error": {
+            "size": "Dosya çok büyük",
+            "type": "Bu dosya türüne izin verilmiyor",
+            "failed": "Yükleme başarısız"
+        }
     }
 }
