@@ -9,26 +9,18 @@ export const defaultNavigation: UiNavigationItem[] = [
         link : '/example'
     },
     {
-        id      : 'system',
-        title   : 'System',
-        type    : 'collapsable',
-        icon    : 'heroicons_outline:cog-6-tooth',
-        children: [
-            {
-                id   : 'system-admins',
-                title: 'Admins',
-                type : 'basic',
-                icon : 'heroicons_outline:users',
-                link : '/system/admins'
-            },
-            {
-                id   : 'system-roles',
-                title: 'Roles',
-                type : 'basic',
-                icon : 'heroicons_outline:shield-check',
-                link : '/system/roles'
-            }
-        ]
+        id   : 'admins',
+        title: 'Admins',
+        type : 'basic',
+        icon : 'heroicons_outline:users',
+        link : '/admins'
+    },
+    {
+        id   : 'roles',
+        title: 'Roles',
+        type : 'basic',
+        icon : 'heroicons_outline:shield-check',
+        link : '/roles'
     }
 ];
 export const compactNavigation: UiNavigationItem[] = [
@@ -40,26 +32,18 @@ export const compactNavigation: UiNavigationItem[] = [
         link : '/example'
     },
     {
-        id      : 'system',
-        title   : 'System',
-        type    : 'aside',
-        icon    : 'heroicons_outline:cog-6-tooth',
-        children: [
-            {
-                id   : 'system-admins',
-                title: 'Admins',
-                type : 'basic',
-                icon : 'heroicons_outline:users',
-                link : '/system/admins'
-            },
-            {
-                id   : 'system-roles',
-                title: 'Roles',
-                type : 'basic',
-                icon : 'heroicons_outline:shield-check',
-                link : '/system/roles'
-            }
-        ]
+        id   : 'admins',
+        title: 'Admins',
+        type : 'basic',
+        icon : 'heroicons_outline:users',
+        link : '/admins'
+    },
+    {
+        id   : 'roles',
+        title: 'Roles',
+        type : 'basic',
+        icon : 'heroicons_outline:shield-check',
+        link : '/roles'
     }
 ];
 export const futuristicNavigation: UiNavigationItem[] = [
@@ -71,26 +55,18 @@ export const futuristicNavigation: UiNavigationItem[] = [
         link : '/example'
     },
     {
-        id      : 'system',
-        title   : 'System',
-        type    : 'collapsable',
-        icon    : 'heroicons_outline:cog-6-tooth',
-        children: [
-            {
-                id   : 'system-admins',
-                title: 'Admins',
-                type : 'basic',
-                icon : 'heroicons_outline:users',
-                link : '/system/admins'
-            },
-            {
-                id   : 'system-roles',
-                title: 'Roles',
-                type : 'basic',
-                icon : 'heroicons_outline:shield-check',
-                link : '/system/roles'
-            }
-        ]
+        id   : 'admins',
+        title: 'Admins',
+        type : 'basic',
+        icon : 'heroicons_outline:users',
+        link : '/admins'
+    },
+    {
+        id   : 'roles',
+        title: 'Roles',
+        type : 'basic',
+        icon : 'heroicons_outline:shield-check',
+        link : '/roles'
     }
 ];
 export const horizontalNavigation: UiNavigationItem[] = [
@@ -102,25 +78,17 @@ export const horizontalNavigation: UiNavigationItem[] = [
         link : '/example'
     },
     {
-        id      : 'system',
-        title   : 'System',
-        type    : 'collapsable',
-        icon    : 'heroicons_outline:cog-6-tooth',
-        children: [
-            {
-                id   : 'system-admins',
-                title: 'Admins',
-                type : 'basic',
-                icon : 'heroicons_outline:users',
-                link : '/system/admins'
-            },
-            {
-                id   : 'system-roles',
-                title: 'Roles',
-                type : 'basic',
-                icon : 'heroicons_outline:shield-check',
-                link : '/system/roles'
-            }
-        ]
+        id   : 'admins',
+        title: 'Admins',
+        type : 'basic',
+        icon : 'heroicons_outline:users',
+        link : '/admins'
+    },
+    {
+        id   : 'roles',
+        title: 'Roles',
+        type : 'basic',
+        icon : 'heroicons_outline:shield-check',
+        link : '/roles'
     }
 ];

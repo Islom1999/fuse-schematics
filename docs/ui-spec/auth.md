@@ -113,7 +113,7 @@ These routes exist in the backend starter (admin OpenAPI document).
 
 **`GET /navigation`** (any signed-in admin; filtered by the admin's permissions)
 - Response 200: `{ default: NavItem[], compact: NavItem[], futuristic: NavItem[], horizontal: NavItem[] }`. All four hold the same tree.
-- `NavItem` is defined in `navigation.md`. The backend registry holds only `admins` (`/admins`) and `roles` (`/roles`); the starter redirects those links to `/system/admins` and `/system/roles`.
+- `NavItem` is defined in `navigation.md`. The backend registry holds only `admins` (`/admins`) and `roles` (`/roles`); the starter's static navigation and routes use the same ids and links.
 - The client calls it only when `environment.features.navigation === 'backend'` (default `'static'`) and appends the static items of `navigation.ts` whose `id` the backend did not send.
 
 **Further endpoints:** `/search` and the admin notifications (`GET admin/me/notifications`, `POST admin/me/notifications/:id/read`) are specified in `widgets.md`. `PATCH /auth/me` is **not implemented** in the backend yet.

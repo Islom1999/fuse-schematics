@@ -42,12 +42,8 @@ export const appRoutes: Route[] = [
     resolve: { initialData: initialDataResolver },
     children: [
       { path: 'example', loadChildren: () => import('app/modules/admin/example/example.routes') },
-      { path: 'system', loadChildren: () => import('app/modules/admin/system/system.routes') },
-      // Links served by `GET navigation` and `POST search` ('/admins', '/roles', '/admins/<id>') point at the system pages.
-      { path: 'admins', redirectTo: 'system/admins' },
-      { path: 'admins/:id', redirectTo: 'system/admins' },
-      { path: 'roles', redirectTo: 'system/roles' },
-      { path: 'roles/:id', redirectTo: 'system/roles' },
+      // Admins and roles live at '/admins' and '/roles', the links `GET navigation` and `POST search` send.
+      { path: '', loadChildren: () => import('app/modules/admin/system/system.routes') },
     ],
   },
 

@@ -36,15 +36,15 @@ describe("fuse-starter system pages", () => {
 
   it("registers the lazy system route in app.routes.ts", () => {
     expect(read("src/app/app.routes.ts")).toContain(
-      "{ path: 'system', loadChildren: () => import('app/modules/admin/system/system.routes') }"
+      "{ path: '', loadChildren: () => import('app/modules/admin/system/system.routes') }"
     );
   });
 
-  it("adds a System group with admins and roles to all four navigation arrays", () => {
+  it("puts admins and roles in all four navigation arrays with the backend links", () => {
     const nav = read("src/app/core/navigation/navigation.ts");
-    expect(nav.split("'system'").length - 1).toBe(4);
-    expect(nav.split("'/system/admins'").length - 1).toBe(4);
-    expect(nav.split("'/system/roles'").length - 1).toBe(4);
+    expect(nav.split("'/admins'").length - 1).toBe(4);
+    expect(nav.split("'/roles'").length - 1).toBe(4);
+    expect(nav).not.toContain("'system'");
   });
 
   it("gates the pages with permissions", () => {

@@ -1,4 +1,5 @@
 import { Directive, inject, OnInit } from '@angular/core'
+import { TranslocoService } from '@jsverse/transloco'
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog'
 import { UiLoadingService } from '@ui/components/loading-bar'
 import { UiConfirmationService } from '@ui/services/confirmation'
@@ -12,6 +13,7 @@ export abstract class BaseTableComponent<T> implements OnInit {
   protected loadingService = inject(UiLoadingService)
   protected confirmationService = inject(UiConfirmationService)
   protected dialogService = inject(DialogService)
+  protected translocoService = inject(TranslocoService)
 
   protected dialogRef?: DynamicDialogRef
 
@@ -51,7 +53,9 @@ export abstract class BaseTableComponent<T> implements OnInit {
 
   protected openFormDialog(id?: string): void {
     this.dialogRef = this.dialogService.open(this.formComponent, {
-      header: id ? this.getEditHeaderKey() : this.getCreateHeaderKey(),
+      header: this.translocoService.translate(
+        id ? this.getEditHeaderKey() : this.getCreateHeaderKey(),
+      ),
       width: '50vw',
       breakpoints: {
         '960px': '75vw',

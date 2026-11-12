@@ -130,6 +130,8 @@ export class GridComponent<T> implements AfterViewInit, OnChanges, OnDestroy {
   /** Rows of the current page (derived from the grid service signals). */
   readonly dataSource = computed(() => this.$data().data())
   readonly isLoading = computed(() => this.$data().isLoading())
+  /** Placeholder rows rendered as skeletons while a page loads. */
+  protected readonly skeletonRows = Array.from({ length: 10 }, (_, index) => ({ index }))
   readonly filterableColumns = computed(() =>
     (this.columns() || []).filter((column) => column.is_filter === true && !!column.field),
   )
