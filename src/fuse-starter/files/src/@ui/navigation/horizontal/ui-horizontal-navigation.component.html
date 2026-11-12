@@ -1,0 +1,174 @@
+<nav class="ui-hnav" [attr.aria-label]="ariaLabel()">
+  <ul class="ui-hnav__list">
+    @for (entry of entries(); track entry.key) {
+      @switch (entry.kind) {
+        @case ('divider') {
+          <!-- Dividers are ignored at the top level. -->
+        }
+        @case ('spacer') {
+          <li class="ui-hnav__spacer" aria-hidden="true" [class]="entry.item.classes?.wrapper ?? ''"></li>
+        }
+        @case ('branch') {
+          <li class="ui-hnav__item">
+            <div
+              class="ui-hnav__wrapper"
+              [class]="wrapperClass(entry)"
+              [pTooltip]="entry.item.tooltip"
+              [tooltipDisabled]="!entry.item.tooltip"
+              tooltipPosition="bottom"
+            >
+              <button
+                #trigger
+                type="button"
+                class="ui-hnav__row"
+                [class]="rowClass(entry)"
+                aria-haspopup="menu"
+                [attr.aria-expanded]="openKey() === entry.key"
+                [attr.aria-controls]="openKey() === entry.key ? menuId(entry) : null"
+                [attr.aria-disabled]="entry.disabled || null"
+                [disabled]="entry.disabled"
+                (click)="toggleMenu(entry, menu, $event)"
+                (keydown.arrowdown)="openMenuFromKeyboard(entry, menu, $event)"
+              >
+                <ng-container *ngTemplateOutlet="content; context: { $implicit: entry }" />
+              </button>
+            </div>
+            <p-tieredmenu
+              #menu
+              [id]="menuId(entry)"
+              [model]="entry.menu"
+              [popup]="true"
+              appendTo="body"
+              [styleClass]="menuStyleClass()"
+              [ariaLabel]="entry.item.title"
+              [showTransitionOptions]="showTransition"
+              [hideTransitionOptions]="hideTransition"
+              (onShow)="menuShown(entry)"
+              (onHide)="menuHidden(entry, trigger)"
+            >
+              <ng-template #item let-menuItem let-hasSubmenu="hasSubmenu">
+                @let row = entryOf(menuItem);
+                @switch (row.kind) {
+                  @case ('link') {
+                    <a
+                      class="ui-hnav-menu__row"
+                      [class]="menuRowClass(row)"
+                      data-pc-section="itemlink"
+                      tabindex="-1"
+                      [routerLink]="row.item.link"
+                      [queryParams]="row.item.queryParams"
+                      [queryParamsHandling]="row.item.queryParamsHandling"
+                      [fragment]="row.item.fragment"
+                      [preserveFragment]="row.item.preserveFragment ?? false"
+                      [attr.aria-current]="row.active ? 'page' : null"
+                    >
+                      <ng-container *ngTemplateOutlet="content; context: { $implicit: row }" />
+                    </a>
+                  }
+                  @case ('external') {
+                    <a
+                      class="ui-hnav-menu__row"
+                      [class]="menuRowClass(row)"
+                      data-pc-section="itemlink"
+                      tabindex="-1"
+                      [href]="row.item.link"
+                      [target]="row.item.target || '_self'"
+                      [attr.rel]="row.item.target === '_blank' ? 'noopener noreferrer' : null"
+                    >
+                      <ng-container *ngTemplateOutlet="content; context: { $implicit: row }" />
+                    </a>
+                  }
+                  @default {
+                    <span class="ui-hnav-menu__row" [class]="menuRowClass(row)" data-pc-section="itemlink">
+                      <ng-container *ngTemplateOutlet="content; context: { $implicit: row }" />
+                      @if (hasSubmenu) {
+                        <ui-icon class="ui-hnav-menu__chevron" svgIcon="heroicons_outline:chevron-right" />
+                      }
+                    </span>
+                  }
+                }
+              </ng-template>
+            </p-tieredmenu>
+          </li>
+        }
+        @default {
+          <li class="ui-hnav__item">
+            <div
+              class="ui-hnav__wrapper"
+              [class]="wrapperClass(entry)"
+              [pTooltip]="entry.item.tooltip"
+              [tooltipDisabled]="!entry.item.tooltip"
+              tooltipPosition="bottom"
+            >
+              @switch (entry.kind) {
+                @case ('link') {
+                  <a
+                    class="ui-hnav__row"
+                    [class]="rowClass(entry)"
+                    [routerLink]="entry.item.link"
+                    [queryParams]="entry.item.queryParams"
+                    [queryParamsHandling]="entry.item.queryParamsHandling"
+                    [fragment]="entry.item.fragment"
+                    [preserveFragment]="entry.item.preserveFragment ?? false"
+                    [attr.aria-current]="entry.active ? 'page' : null"
+                    (click)="itemClicked(entry)"
+                  >
+                    <ng-container *ngTemplateOutlet="content; context: { $implicit: entry }" />
+                  </a>
+                }
+                @case ('external') {
+                  <a
+                    class="ui-hnav__row"
+                    [class]="rowClass(entry)"
+                    [href]="entry.item.link"
+                    [target]="entry.item.target || '_self'"
+                    [attr.rel]="entry.item.target === '_blank' ? 'noopener noreferrer' : null"
+                    (click)="itemClicked(entry)"
+                  >
+                    <ng-container *ngTemplateOutlet="content; context: { $implicit: entry }" />
+                  </a>
+                }
+                @case ('button') {
+                  <button type="button" class="ui-hnav__row" [class]="rowClass(entry)" (click)="itemClicked(entry)">
+                    <ng-container *ngTemplateOutlet="content; context: { $implicit: entry }" />
+                  </button>
+                }
+                @default {
+                  <span class="ui-hnav__row" [class]="rowClass(entry)" [attr.aria-disabled]="entry.disabled || null">
+                    <ng-container *ngTemplateOutlet="content; context: { $implicit: entry }" />
+                  </span>
+                }
+              }
+            </div>
+          </li>
+        }
+      }
+    }
+  </ul>
+</nav>
+
+<ng-template #content let-entry>
+  @if (entry.svgIcon || entry.fontIcon) {
+    <ui-icon
+      class="ui-hnav__icon"
+      [class]="entry.item.classes?.icon ?? ''"
+      [svgIcon]="entry.svgIcon"
+      [icon]="entry.fontIcon"
+    />
+  }
+  <span class="ui-hnav__text">
+    <span class="ui-hnav__title"
+      ><span [class]="entry.item.classes?.title ?? ''">{{ entry.item.title }}</span></span
+    >
+    @if (entry.item.subtitle) {
+      <span class="ui-hnav__subtitle" [class]="subtitleClass(entry)"
+        ><span [class]="entry.item.classes?.subtitle ?? ''">{{ entry.item.subtitle }}</span></span
+      >
+    }
+  </span>
+  @if (entry.item.badge?.title) {
+    <span class="ui-hnav__badge">
+      <span class="ui-hnav__badge-pill" [class]="entry.item.badge.classes ?? ''">{{ entry.item.badge.title }}</span>
+    </span>
+  }
+</ng-template>

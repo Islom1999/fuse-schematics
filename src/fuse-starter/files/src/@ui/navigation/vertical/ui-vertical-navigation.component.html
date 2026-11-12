@@ -1,0 +1,35 @@
+<div class="ui-vnav-wrapper">
+  <div class="ui-vnav-header">
+    <ng-content select="[uiVerticalNavigationHeader]" />
+  </div>
+
+  <div class="ui-vnav-content" #content>
+    <div class="ui-vnav-content-header">
+      <ng-content select="[uiVerticalNavigationContentHeader]" />
+    </div>
+
+    <ui-vertical-navigation-items [items]="navigation()" [root]="true" />
+
+    <div class="ui-vnav-content-footer">
+      <ng-content select="[uiVerticalNavigationContentFooter]" />
+    </div>
+  </div>
+
+  <div class="ui-vnav-footer">
+    <ng-content select="[uiVerticalNavigationFooter]" />
+  </div>
+</div>
+
+@if (activeAsideItem(); as aside) {
+  <div
+    #asidePanel
+    class="ui-vnav-aside"
+    role="region"
+    [id]="asidePanelId"
+    [attr.aria-label]="aside.title"
+    animate.enter="ui-vnav-aside-enter"
+    animate.leave="ui-vnav-aside-leave"
+  >
+    <ui-vertical-navigation-items [items]="aside.children ?? []" />
+  </div>
+}

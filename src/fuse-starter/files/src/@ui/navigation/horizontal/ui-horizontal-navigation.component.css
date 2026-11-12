@@ -1,0 +1,192 @@
+/*
+ * Global (ViewEncapsulation.None) because the branch menus are PrimeNG overlays appended to <body>.
+ * Every selector is scoped by a `ui-hnav` class. Colors come from theme utility classes in the template.
+ */
+
+.ui-horizontal-navigation {
+  display: block;
+}
+
+/* Top-level bar */
+
+.ui-hnav__list {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ui-hnav__item {
+  display: flex;
+  position: relative;
+  margin: 0;
+}
+
+.ui-hnav__wrapper {
+  display: flex;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.ui-hnav__wrapper--disabled {
+  opacity: 0.4;
+}
+
+.ui-hnav__row {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  margin: 0;
+  padding: 0 16px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ui-hnav__row--subtitle {
+  min-height: 56px;
+}
+
+.ui-hnav__wrapper--disabled .ui-hnav__row {
+  cursor: default;
+}
+
+.ui-hnav__spacer {
+  display: block;
+  width: 12px;
+  margin: 12px 0;
+}
+
+/* Row content, shared by the bar and the menus */
+
+.ui-hnav__icon {
+  margin-right: 12px;
+}
+
+.ui-hnav__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ui-hnav__title {
+  white-space: nowrap;
+}
+
+.ui-hnav__subtitle {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.ui-hnav__badge {
+  display: flex;
+  margin-left: auto;
+  padding-left: 8px;
+}
+
+.ui-hnav__badge-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Branch menus (PrimeNG TieredMenu popup) */
+
+.p-tieredmenu.ui-hnav-menu {
+  --p-tieredmenu-border-color: transparent;
+  --p-tieredmenu-border-radius: 6px;
+  --p-tieredmenu-list-padding: 8px 0;
+  --p-tieredmenu-list-gap: 0;
+  --p-tieredmenu-color: currentColor;
+  --p-tieredmenu-item-padding: 0;
+  --p-tieredmenu-item-gap: 0;
+  --p-tieredmenu-item-border-radius: 0;
+  --p-tieredmenu-item-color: currentColor;
+  --p-tieredmenu-item-focus-color: currentColor;
+  --p-tieredmenu-item-active-color: currentColor;
+  --p-tieredmenu-item-focus-background: transparent;
+  --p-tieredmenu-item-active-background: transparent;
+  --p-tieredmenu-separator-border-color: currentColor;
+  min-width: 192px;
+  max-width: 320px;
+  border: 0;
+  border-radius: 6px;
+}
+
+.ui-hnav-menu .p-tieredmenu-submenu {
+  min-width: 192px;
+  max-width: 320px;
+  margin-top: -8px;
+  border: 0;
+  border-radius: 6px;
+}
+
+.ui-hnav-menu .p-tieredmenu-item.p-disabled {
+  opacity: 0.4;
+  /* Hoverable for its tooltip; the row itself stays inert. */
+  pointer-events: auto;
+}
+
+.ui-hnav-menu .p-tieredmenu-item.p-disabled > .p-tieredmenu-item-content {
+  pointer-events: none;
+}
+
+.ui-hnav-menu .p-tieredmenu-separator {
+  margin: 8px 0;
+}
+
+.ui-hnav-menu__row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+
+.ui-hnav-menu__row--subtitle {
+  min-height: 56px;
+}
+
+.ui-hnav-menu__row .ui-hnav__text {
+  flex: 1 1 auto;
+}
+
+.ui-hnav-menu__row .ui-hnav__title {
+  white-space: normal;
+}
+
+.ui-hnav-menu__row .ui-hnav__badge {
+  padding-left: 12px;
+}
+
+.ui-hnav-menu__chevron.ui-icon {
+  width: 16px;
+  height: 16px;
+  margin-left: 8px;
+}
+
+.p-disabled .ui-hnav-menu__row {
+  cursor: default;
+}
