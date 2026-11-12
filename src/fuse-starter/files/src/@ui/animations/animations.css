@@ -1,0 +1,210 @@
+/*
+ * @ui animations: plain CSS classes, used with Angular's `animate.enter` / `animate.leave`
+ * (for example `animate.enter="ui-fade-in"`) or as conditional classes (`[class.ui-shake]`).
+ * Everything is disabled under `prefers-reduced-motion: reduce`.
+ */
+
+:root {
+  --ui-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ui-ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --ui-ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
+  --ui-ease-sharp: cubic-bezier(0.4, 0, 0.6, 1);
+  --ui-ease-drawer: cubic-bezier(0.25, 0.8, 0.25, 1);
+  --ui-duration-entering: 225ms;
+  --ui-duration-exiting: 195ms;
+  --ui-duration-complex: 375ms;
+}
+
+/* Fade */
+
+.ui-fade-in {
+  animation: ui-fade-in var(--ui-duration-entering) var(--ui-ease-decelerate) both;
+}
+
+.ui-fade-out {
+  animation: ui-fade-out var(--ui-duration-exiting) var(--ui-ease-accelerate) both;
+}
+
+@keyframes ui-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ui-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Slide from / to the top */
+
+.ui-slide-in-top {
+  animation: ui-slide-in-top var(--ui-duration-entering) var(--ui-ease-decelerate) both;
+}
+
+.ui-slide-out-top {
+  animation: ui-slide-out-top var(--ui-duration-exiting) var(--ui-ease-accelerate) both;
+}
+
+@keyframes ui-slide-in-top {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes ui-slide-out-top {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+/* Fade + slide from / to the side */
+
+.ui-fade-in-left {
+  animation: ui-fade-in-left var(--ui-duration-entering) var(--ui-ease-decelerate) both;
+}
+
+.ui-fade-in-right {
+  animation: ui-fade-in-right var(--ui-duration-entering) var(--ui-ease-decelerate) both;
+}
+
+.ui-fade-out-left {
+  animation: ui-fade-out-left var(--ui-duration-exiting) var(--ui-ease-accelerate) both;
+}
+
+.ui-fade-out-right {
+  animation: ui-fade-out-right var(--ui-duration-exiting) var(--ui-ease-accelerate) both;
+}
+
+@keyframes ui-fade-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes ui-fade-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes ui-fade-out-left {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes ui-fade-out-right {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+/* Expand / collapse (height 0 <-> auto). Engines without `interpolate-size` simply jump. */
+
+.ui-expand,
+.ui-collapse {
+  interpolate-size: allow-keywords;
+  overflow: hidden;
+}
+
+.ui-expand {
+  animation: ui-expand var(--ui-duration-entering) var(--ui-ease-decelerate);
+}
+
+.ui-collapse {
+  animation: ui-collapse var(--ui-duration-entering) var(--ui-ease-decelerate) both;
+}
+
+@keyframes ui-expand {
+  from {
+    height: 0;
+  }
+  to {
+    height: auto;
+  }
+}
+
+@keyframes ui-collapse {
+  from {
+    height: auto;
+  }
+  to {
+    height: 0;
+  }
+}
+
+/* Shake (error feedback) */
+
+.ui-shake {
+  animation: ui-shake 0.8s cubic-bezier(0.455, 0.03, 0.515, 0.955);
+}
+
+@keyframes ui-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-10px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-fade-in,
+  .ui-fade-out,
+  .ui-slide-in-top,
+  .ui-slide-out-top,
+  .ui-fade-in-left,
+  .ui-fade-in-right,
+  .ui-fade-out-left,
+  .ui-fade-out-right,
+  .ui-expand,
+  .ui-collapse,
+  .ui-shake {
+    animation: none !important;
+  }
+}
