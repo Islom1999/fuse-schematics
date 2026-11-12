@@ -10,15 +10,18 @@ import { DialogService } from 'primeng/dynamicdialog'
 import { MessageModule } from 'primeng/message'
 import { TagModule } from 'primeng/tag'
 import { CampaignGridService } from '../common/campaign-grid.service'
-import { ICampaign } from '../common/campaign.model'
+import { CAMPAIGN_STATUS_SEVERITY } from '../common/campaign-status'
+import { CampaignStatus, ICampaign } from '../common/campaign.model'
+import { NotificationsTabsComponent } from './notifications-tabs.component'
 
-/** Notification campaigns: list, filter, open the detail page, send a new one. Needs `notification.read`. */
+/** Notification campaigns: list, filter, open the detail page, send or schedule a new one. Needs `notification.read`. */
 @Component({
   selector: 'app-campaigns-list',
   imports: [
     RouterLink,
     GridComponent,
     TableFilterComponent,
+    NotificationsTabsComponent,
     ButtonModule,
     MessageModule,
     TagModule,
@@ -38,6 +41,7 @@ export class CampaignsListComponent extends BaseTableComponent<ICampaign> {
 
   protected readonly canRead = computed(() => this.users.hasPermission('notification.read'))
   protected readonly canWrite = computed(() => this.users.hasPermission('notification.write'))
+  protected readonly statusSeverity = CAMPAIGN_STATUS_SEVERITY
 
   filterConfig: ITableFilterConfig = {
     columns: 3,
@@ -58,7 +62,18 @@ export class CampaignsListComponent extends BaseTableComponent<ICampaign> {
           { label: 'admin.notifications.targets.all', value: 'all' },
           { label: 'admin.notifications.targets.users', value: 'users' },
           { label: 'admin.notifications.targets.platform', value: 'platform' },
+          { label: 'admin.notifications.targets.topic', value: 'topic' },
         ],
+        props: { translate: true, translateSelectOptions: true },
+      },
+      {
+        key: 'status',
+        type: 'select',
+        label: 'admin.notifications.fields.status',
+        options: (Object.keys(CAMPAIGN_STATUS_SEVERITY) as CampaignStatus[]).map((value) => ({
+          label: `admin.notifications.statuses.${value}`,
+          value,
+        })),
         props: { translate: true, translateSelectOptions: true },
       },
     ],
@@ -69,6 +84,8 @@ export class CampaignsListComponent extends BaseTableComponent<ICampaign> {
     { field: 'title', header: 'admin.notifications.fields.title' },
     { field: 'type', header: 'admin.notifications.fields.type' },
     { field: 'target', header: 'admin.notifications.fields.target', template: 'custom' },
+    { field: 'status', header: 'admin.notifications.fields.status', template: 'custom' },
+    { field: 'sendAt', header: 'admin.notifications.fields.sendAt', template: 'date' },
     { field: 'sentCount', header: 'admin.notifications.fields.sentCount' },
     { field: 'failedCount', header: 'admin.notifications.fields.failedCount' },
   ]

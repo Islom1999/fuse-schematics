@@ -1,14 +1,17 @@
 import { DatePipe } from '@angular/common'
-import { ChangeDetectionStrategy, Component, Type, computed, inject, signal } from '@angular/core'
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'
+import { ChangeDetectionStrategy, Component, Type, computed, effect, inject, signal, untracked } from '@angular/core'
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms'
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco'
 import { UserService } from 'app/core/user/user.service'
 import { BaseTableComponent } from 'app/shared/abstracts'
 import { GridComponent, IColumn } from 'app/shared/components/grid'
+import { getFilterValue } from 'app/shared/components/grid/common/grid.service'
 import { ITableFilterConfig, TableFilterComponent } from 'app/shared/components/table-filter'
 import { AdminFeedbackService } from 'app/shared/services/admin-feedback.service'
+import { toTableQuery } from 'app/shared/utils/table-query'
 import { ButtonModule } from 'primeng/button'
 import { CheckboxModule } from 'primeng/checkbox'
+import { DatePickerModule } from 'primeng/datepicker'
 import { DialogModule } from 'primeng/dialog'
 import { DrawerModule } from 'primeng/drawer'
 import { DialogService } from 'primeng/dynamicdialog'
@@ -18,7 +21,14 @@ import { TextareaModule } from 'primeng/textarea'
 import { PaymentGridService } from '../common/payment-grid.service'
 import { PaymentAdminService } from '../common/payment-admin.service'
 import { formatTiyin } from '../common/money'
-import { IPaymentTransaction, PaymentStatus } from '../common/payment.model'
+import {
+  IPaymentSummary,
+  IPaymentSummaryQuery,
+  IPaymentTransaction,
+  PAYMENT_EXPORT_MAX_ROWS,
+  PAYMENT_PROVIDERS,
+  PaymentStatus,
+} from '../common/payment.model'
 import { PaymentsTabsComponent } from './payments-tabs.component'
 
 type TagSeverity = 'success' | 'info' | 'warn' | 'danger' | 'secondary'
@@ -30,17 +40,34 @@ const STATUS_SEVERITY: Record<PaymentStatus, TagSeverity> = {
   failed: 'danger',
 }
 
-/** Payment transactions: filters, a detail drawer with the provider requests, and cancel. Needs `payment.read`; cancel needs `payment.write`. */
+/** Start of the local day. */
+function startOfDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+}
+
+/** Takes a filter out of the grid filters and returns its text value. */
+function takeFilter(filters: Record<string, unknown>, key: string): string | undefined {
+  const value = getFilterValue(filters[key])
+  delete filters[key]
+  return typeof value === 'string' && value ? value : undefined
+}
+
+/**
+ * Payment transactions: summary cards for a period, filters, CSV export, a detail drawer with the
+ * provider requests, and cancel. Needs `payment.read`; cancel needs `payment.write`.
+ */
 @Component({
   selector: 'app-transactions-list',
   imports: [
     DatePipe,
+    FormsModule,
     ReactiveFormsModule,
     GridComponent,
     TableFilterComponent,
     PaymentsTabsComponent,
     ButtonModule,
     CheckboxModule,
+    DatePickerModule,
     DialogModule,
     DrawerModule,
     MessageModule,
@@ -69,6 +96,21 @@ export class TransactionsListComponent extends BaseTableComponent<IPaymentTransa
   protected readonly selected = signal<IPaymentTransaction | null>(null)
   protected readonly cancelOpen = signal(false)
   protected readonly cancelling = signal(false)
+
+  /** Report period (days, local time): `from` is the first day, `to` the last day, both included. */
+  protected readonly from = signal<Date | null>(null)
+  protected readonly to = signal<Date | null>(null)
+  protected readonly summary = signal<IPaymentSummary | null>(null)
+  protected readonly summaryLoading = signal(false)
+  protected readonly exporting = signal(false)
+  /** Result of the last export: `X-Total-Count` and whether `X-Export-Truncated` was `true`. */
+  protected readonly exportInfo = signal<{ count: number | null; truncated: boolean } | null>(null)
+  protected readonly exportMaxRows = PAYMENT_EXPORT_MAX_ROWS
+  protected readonly periodInvalid = computed(() => {
+    const from = this.from()
+    const to = this.to()
+    return !!from && !!to && startOfDay(from).getTime() > startOfDay(to).getTime()
+  })
 
   protected readonly cancelForm = new FormGroup({
     comment: new FormControl('', {
@@ -105,7 +147,7 @@ export class TransactionsListComponent extends BaseTableComponent<IPaymentTransa
         key: 'provider',
         type: 'select',
         label: 'admin.payments.fields.provider',
-        options: ['payme', 'click'].map((value) => ({ label: value, value })),
+        options: PAYMENT_PROVIDERS.map((value) => ({ label: value, value })),
         props: { translate: true },
       },
       {
@@ -128,6 +170,22 @@ export class TransactionsListComponent extends BaseTableComponent<IPaymentTransa
     { field: 'account', header: 'admin.payments.fields.account' },
     { field: 'userId', header: 'admin.payments.fields.userId' },
   ]
+
+  constructor() {
+    super()
+    effect(() => {
+      // Reload the cards when the period changes (the dates are signals, the rest is read untracked).
+      this.from()
+      this.to()
+      if (this.canRead()) untracked(() => this.loadSummary())
+    })
+  }
+
+  /** The summary follows the provider filter, so reload it with the table. */
+  override onFilterChange(filters: Record<string, unknown>): void {
+    super.onFilterChange(filters)
+    this.loadSummary()
+  }
 
   protected getItemId(item: IPaymentTransaction): string | undefined {
     return item.id
@@ -155,6 +213,73 @@ export class TransactionsListComponent extends BaseTableComponent<IPaymentTransa
 
   protected json(value: unknown): string {
     return value === null || value === undefined ? '' : JSON.stringify(value, null, 2)
+  }
+
+  protected refreshSummary(): void {
+    this.loadSummary()
+  }
+
+  /** ISO range for the summary and the export: `to` is exclusive, so it is the start of the day after the last day. */
+  private range(): IPaymentSummaryQuery {
+    const from = this.from()
+    const to = this.to()
+    const result: IPaymentSummaryQuery = {}
+    if (from) result.from = startOfDay(from).toISOString()
+    if (to) {
+      const next = startOfDay(to)
+      next.setDate(next.getDate() + 1)
+      result.to = next.toISOString()
+    }
+    return result
+  }
+
+  private loadSummary(): void {
+    if (!this.canRead()) return
+    if (this.periodInvalid()) {
+      this.summary.set(null)
+      return
+    }
+    const provider = getFilterValue(this.gridService.filterSort.filters['provider'])
+    this.summaryLoading.set(true)
+    this.paymentService
+      .summary({ ...this.range(), ...(typeof provider === 'string' && provider ? { provider } : {}) })
+      .subscribe({
+        next: (summary) => {
+          this.summary.set(summary)
+          this.summaryLoading.set(false)
+        },
+        error: (error: unknown) => {
+          this.summaryLoading.set(false)
+          this.feedback.httpError(error)
+        },
+      })
+  }
+
+  /**
+   * Downloads the CSV with the filters, search and sort of the table and the report period. The
+   * file holds at most 50000 rows: when `X-Export-Truncated` is `true` a warning asks to narrow the filters.
+   */
+  protected exportCsv(): void {
+    if (this.periodInvalid()) return
+    const { filters, sortField, sortOrder } = this.gridService.filterSort
+    const query = toTableQuery({ filters, sortField, sortOrder }, ['purpose'])
+    const rest = { ...(query.filters ?? {}) }
+    // `status` and `provider` are typed parameters of the export route, not column filters.
+    const status = takeFilter(rest, 'status') as PaymentStatus | undefined
+    const provider = takeFilter(rest, 'provider')
+    this.exporting.set(true)
+    this.exportInfo.set(null)
+    this.paymentService.exportCsv({ ...query, filters: rest }, { ...this.range(), provider, status }).subscribe({
+      next: (file) => {
+        this.exporting.set(false)
+        this.exportInfo.set({ count: file.totalCount, truncated: file.truncated })
+        this.feedback.success('admin.payments.export.done', { name: file.filename })
+      },
+      error: (error: unknown) => {
+        this.exporting.set(false)
+        this.feedback.httpError(error)
+      },
+    })
   }
 
   protected openCancel(): void {
@@ -186,6 +311,7 @@ export class TransactionsListComponent extends BaseTableComponent<IPaymentTransa
           this.feedback.success('admin.payments.transactions.cancelled')
           const { pageIndex, pageSize } = this.gridService.pageEvent
           this.gridService.onLoadPage({ pageIndex, pageSize })
+          this.loadSummary()
         },
         error: (error: unknown) => {
           this.cancelling.set(false)

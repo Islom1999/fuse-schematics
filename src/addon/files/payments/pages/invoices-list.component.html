@@ -1,0 +1,118 @@
+@if (canRead()) {
+  <app-grid
+    [title]="'admin.payments.title'"
+    [columns]="columns"
+    [showAddButton]="false"
+    [templateFilters]="tabs"
+    [templateCostumFields]="cell"
+    (onRowSelect)="onRowSelect($event)"
+    [$data]="gridService"
+  >
+    <ng-template #costumTableFilter>
+      <app-table-filter
+        [config]="filterConfig"
+        [debounceTime]="500"
+        (filterChange)="onFilterChange($event)"
+        (filterReset)="onFilterReset()"
+      />
+    </ng-template>
+  </app-grid>
+
+  <ng-template #tabs>
+    <app-payments-tabs />
+  </ng-template>
+
+  <ng-template #cell let-column="column" let-row="row">
+    @if (column.field === 'amount') {
+      <span class="whitespace-nowrap">{{ formatTiyin(row.amount) }}</span>
+    } @else {
+      <p-tag [value]="'admin.payments.statuses.' + row.status | transloco" [severity]="severity(row.status)" />
+    }
+  </ng-template>
+
+  <p-drawer
+    [(visible)]="drawerOpen"
+    position="right"
+    styleClass="!w-full md:!w-[44rem]"
+    [header]="'admin.payments.invoices.details' | transloco"
+  >
+    @if (selected(); as invoice) {
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center gap-2">
+          <h2 class="text-xl font-semibold">{{ formatTiyin(invoice.amount) }}</h2>
+          <p-tag [value]="'admin.payments.statuses.' + invoice.status | transloco" [severity]="severity(invoice.status)" />
+        </div>
+
+        <dl class="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.fields.number' | transloco }}</dt>
+            <dd>{{ invoice.number }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.fields.provider' | transloco }}</dt>
+            <dd>{{ invoice.provider }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.fields.purpose' | transloco }}</dt>
+            <dd>{{ invoice.purpose }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.fields.userId' | transloco }}</dt>
+            <dd class="break-all">{{ invoice.userId }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.fields.target' | transloco }}</dt>
+            <dd class="break-all">{{ invoice.targetType || '-' }} {{ invoice.targetId }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.fields.createdAt' | transloco }}</dt>
+            <dd>{{ invoice.createdAt | date: 'dd.MM.yyyy HH:mm:ss' }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.invoices.expiresAt' | transloco }}</dt>
+            <dd>{{ invoice.expiresAt ? (invoice.expiresAt | date: 'dd.MM.yyyy HH:mm:ss') : '-' }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.invoices.paidAt' | transloco }}</dt>
+            <dd>{{ invoice.paidAt ? (invoice.paidAt | date: 'dd.MM.yyyy HH:mm:ss') : '-' }}</dd>
+          </div>
+        </dl>
+
+        <section>
+          <h3 class="mb-1 font-semibold">{{ 'admin.payments.invoices.transactions' | transloco }}</h3>
+          <p-table [value]="invoice.transactions" size="small">
+            <ng-template #header>
+              <tr>
+                <th>{{ 'admin.payments.fields.createdAt' | transloco }}</th>
+                <th>{{ 'admin.payments.fields.number' | transloco }}</th>
+                <th>{{ 'admin.payments.fields.provider' | transloco }}</th>
+                <th class="text-right">{{ 'admin.payments.fields.amount' | transloco }}</th>
+                <th>{{ 'admin.payments.fields.status' | transloco }}</th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-item>
+              <tr>
+                <td>{{ item.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
+                <td>{{ item.number }}</td>
+                <td>{{ item.provider }}</td>
+                <td class="whitespace-nowrap text-right">{{ formatTiyin(item.amount) }}</td>
+                <td><p-tag [value]="'admin.payments.statuses.' + item.status | transloco" [severity]="severity(item.status)" /></td>
+              </tr>
+            </ng-template>
+            <ng-template #emptymessage>
+              <tr>
+                <td colspan="5" class="text-secondary py-6 text-center">{{ 'admin.grid.noData' | transloco }}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </section>
+      </div>
+    } @else {
+      <p class="text-secondary">{{ 'admin.common.loading' | transloco }}</p>
+    }
+  </p-drawer>
+} @else {
+  <div class="p-6">
+    <p-message severity="warn" [text]="'admin.common.noPermission' | transloco" />
+  </div>
+}

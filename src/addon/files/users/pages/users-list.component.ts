@@ -9,9 +9,9 @@ import { MessageModule } from 'primeng/message'
 import { TagModule } from 'primeng/tag'
 import { UserGridService } from '../common/user-grid.service'
 import { IUser } from '../common/user.model'
-import { UserDetailComponent } from './user-detail.component'
+import { UserFormComponent } from './user-form.component'
 
-/** Client users: search, filter, and a detail dialog with block and device sessions. Needs `user.read`. */
+/** Client users: search, filter, and a dialog to create, edit and delete (`user.write`), block, and see sessions and push devices. Needs `user.read`. */
 @Component({
   selector: 'app-users-list',
   imports: [GridComponent, TableFilterComponent, MessageModule, TagModule, TranslocoPipe],
@@ -24,9 +24,10 @@ export class UsersListComponent extends BaseTableComponent<IUser> {
   private readonly transloco = inject(TranslocoService)
 
   gridService = inject(UserGridService)
-  formComponent = UserDetailComponent
+  formComponent = UserFormComponent
 
   protected readonly canRead = computed(() => this.users.hasPermission('user.read'))
+  protected readonly canWrite = computed(() => this.users.hasPermission('user.write'))
 
   filterConfig: ITableFilterConfig = {
     columns: 3,
@@ -72,13 +73,17 @@ export class UsersListComponent extends BaseTableComponent<IUser> {
   }
 
   protected getCreateHeaderKey(): string {
-    return this.transloco.translate('admin.users.details')
+    return this.transloco.translate('admin.users.create')
   }
 
-  /** The dialog can block a user and revoke sessions, so the page reloads whenever it closes. */
+  /**
+   * The dialog can also block a user and revoke sessions without saving; the base class reloads the
+   * list after a save, so reload here when it closed without one.
+   */
   protected override openFormDialog(id?: string): void {
     super.openFormDialog(id)
-    this.dialogRef?.onClose.subscribe(() => {
+    this.dialogRef?.onClose.subscribe((saved: boolean) => {
+      if (saved) return
       const { pageIndex, pageSize } = this.gridService.pageEvent
       this.gridService.onLoadPage({ pageIndex, pageSize })
     })

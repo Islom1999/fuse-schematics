@@ -2,6 +2,17 @@
   <div class="flex flex-wrap items-center justify-between gap-3">
     <h1 class="text-2xl font-bold sm:text-3xl">{{ 'admin.notifications.details' | transloco }}</h1>
     <div class="flex gap-2">
+      @if (canWrite() && detail()?.campaign?.status === 'scheduled') {
+        <p-button
+          [label]="'admin.notifications.cancelCampaign' | transloco"
+          icon="pi pi-times-circle"
+          severity="danger"
+          [outlined]="true"
+          type="button"
+          [loading]="cancelling()"
+          (onClick)="cancelCampaign()"
+        />
+      }
       <p-button
         [label]="'admin.common.refresh' | transloco"
         icon="pi pi-refresh"
@@ -26,6 +37,10 @@
         <h2 class="text-xl font-semibold">{{ detail.campaign.title }}</h2>
         <p-tag [value]="detail.campaign.type" severity="secondary" />
         <p-tag [value]="'admin.notifications.targets.' + detail.campaign.target | transloco" severity="info" />
+        <p-tag
+          [value]="'admin.notifications.statuses.' + detail.campaign.status | transloco"
+          [severity]="statusSeverity[detail.campaign.status]"
+        />
       </div>
       @if (detail.campaign.body) {
         <p class="whitespace-pre-line">{{ detail.campaign.body }}</p>
@@ -35,6 +50,12 @@
           <dt class="text-secondary text-sm">{{ 'admin.notifications.fields.createdAt' | transloco }}</dt>
           <dd>{{ detail.campaign.createdAt | date: 'dd.MM.yyyy HH:mm' }}</dd>
         </div>
+        @if (detail.campaign.sendAt) {
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.notifications.fields.sendAt' | transloco }}</dt>
+            <dd>{{ detail.campaign.sendAt | date: 'dd.MM.yyyy HH:mm' }}</dd>
+          </div>
+        }
         <div>
           <dt class="text-secondary text-sm">{{ 'admin.notifications.fields.link' | transloco }}</dt>
           <dd class="break-all">{{ detail.campaign.link || '-' }}</dd>
@@ -49,6 +70,12 @@
           <div>
             <dt class="text-secondary text-sm">{{ 'admin.notifications.fields.platform' | transloco }}</dt>
             <dd>{{ detail.campaign.filters?.platform }}</dd>
+          </div>
+        }
+        @if (detail.campaign.filters?.topic; as topic) {
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.notifications.fields.topic' | transloco }}</dt>
+            <dd class="break-all">{{ topic }}</dd>
           </div>
         }
         @if (detail.campaign.filters?.userIds; as ids) {

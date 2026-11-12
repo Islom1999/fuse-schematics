@@ -1,0 +1,280 @@
+<section class="mx-auto flex max-w-screen-xl flex-col gap-6 px-4 py-8 sm:px-8">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-bold sm:text-3xl">{{ 'admin.queue.title' | transloco }}</h1>
+      @if (overview(); as overview) {
+        <p-tag [value]="overview.driver" [severity]="overview.driver === 'redis' ? 'success' : 'warn'" />
+      }
+    </div>
+    @if (canRead()) {
+      <p-button
+        [label]="'admin.common.refresh' | transloco"
+        icon="pi pi-refresh"
+        severity="secondary"
+        [outlined]="true"
+        type="button"
+        [loading]="loadingOverview()"
+        (onClick)="refresh()"
+      />
+    }
+  </div>
+
+  @if (!canRead()) {
+    <p-message severity="warn" [text]="'admin.common.noPermission' | transloco" />
+  } @else {
+    @if (overview()?.driver === 'memory') {
+      <p-message severity="warn" [text]="'admin.queue.memoryDriver' | transloco" />
+    }
+
+    <div class="bg-card rounded-xl p-4 shadow">
+      <p-table [value]="overview()?.queues ?? []" [loading]="loadingOverview()" size="small" [tableStyle]="{ 'min-width': '44rem' }">
+        <ng-template #header>
+          <tr>
+            <th>{{ 'admin.queue.fields.name' | transloco }}</th>
+            <th class="text-right">{{ 'admin.queue.statuses.waiting' | transloco }}</th>
+            <th class="text-right">{{ 'admin.queue.statuses.active' | transloco }}</th>
+            <th class="text-right">{{ 'admin.queue.statuses.delayed' | transloco }}</th>
+            <th class="text-right">{{ 'admin.queue.statuses.completed' | transloco }}</th>
+            <th class="text-right">{{ 'admin.queue.statuses.failed' | transloco }}</th>
+            <th>{{ 'admin.queue.fields.state' | transloco }}</th>
+            @if (canWrite()) {
+              <th></th>
+            }
+          </tr>
+        </ng-template>
+        <ng-template #body let-queue>
+          <tr class="cursor-pointer" [class.bg-primary-50]="queue.name === selected()" (click)="select(queue.name)">
+            <td class="font-medium">{{ queue.name }}</td>
+            <td class="text-right">{{ queue.waiting }}</td>
+            <td class="text-right">{{ queue.active }}</td>
+            <td class="text-right">{{ queue.delayed }}</td>
+            <td class="text-right">{{ queue.completed }}</td>
+            <td class="text-right" [class.text-red-600]="queue.failed > 0">{{ queue.failed }}</td>
+            <td>
+              <p-tag
+                [value]="(queue.paused ? 'admin.queue.paused' : 'admin.queue.running') | transloco"
+                [severity]="queue.paused ? 'warn' : 'success'"
+              />
+            </td>
+            @if (canWrite()) {
+              <td class="text-right">
+                <p-button
+                  [label]="(queue.paused ? 'admin.queue.resume' : 'admin.queue.pause') | transloco"
+                  [icon]="queue.paused ? 'pi pi-play' : 'pi pi-pause'"
+                  [severity]="queue.paused ? 'success' : 'secondary'"
+                  [outlined]="true"
+                  size="small"
+                  type="button"
+                  [loading]="working() === 'pause:' + queue.name"
+                  (onClick)="$event.stopPropagation(); togglePause(queue)"
+                />
+              </td>
+            }
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr>
+            <td colspan="8" class="text-secondary py-6 text-center">{{ 'admin.grid.noData' | transloco }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    @if (selectedInfo(); as queue) {
+      <div class="bg-card flex flex-col gap-4 rounded-xl p-4 shadow">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <h2 class="text-lg font-semibold">{{ 'admin.queue.jobsOf' | transloco: { name: queue.name } }}</h2>
+          <div class="flex flex-wrap items-center gap-3">
+            <label for="queue-status" class="text-secondary text-sm">{{ 'admin.queue.fields.status' | transloco }}</label>
+            <p-select
+              inputId="queue-status"
+              [options]="statusOptions"
+              optionValue="value"
+              [ngModel]="status()"
+              (ngModelChange)="changeStatus($event)"
+            >
+              <ng-template #selectedItem let-option>{{ option.label | transloco }} ({{ count(queue, option.value) }})</ng-template>
+              <ng-template #item let-option>{{ option.label | transloco }} ({{ count(queue, option.value) }})</ng-template>
+            </p-select>
+            @if (canWrite()) {
+              <p-button
+                [label]="'admin.queue.clean' | transloco"
+                icon="pi pi-trash"
+                severity="danger"
+                [outlined]="true"
+                type="button"
+                (onClick)="openClean()"
+              />
+            }
+          </div>
+        </div>
+
+        <p-table
+          [value]="jobs()"
+          [lazy]="true"
+          [lazyLoadOnInit]="false"
+          [paginator]="true"
+          [rows]="pageSize"
+          [first]="first()"
+          [totalRecords]="jobCount()"
+          [loading]="loadingJobs()"
+          (onLazyLoad)="onJobsPage($event)"
+          size="small"
+          [tableStyle]="{ 'min-width': '46rem' }"
+        >
+          <ng-template #header>
+            <tr>
+              <th>{{ 'admin.queue.fields.id' | transloco }}</th>
+              <th>{{ 'admin.queue.fields.job' | transloco }}</th>
+              <th class="text-right">{{ 'admin.queue.fields.attempts' | transloco }}</th>
+              <th>{{ 'admin.queue.fields.failedReason' | transloco }}</th>
+              <th>{{ 'admin.queue.fields.createdAt' | transloco }}</th>
+              <th>{{ 'admin.queue.fields.finishedAt' | transloco }}</th>
+              <th></th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-item>
+            <tr>
+              <td class="break-all">{{ item.id }}</td>
+              <td>{{ item.name }}</td>
+              <td class="text-right">{{ item.attemptsMade }}{{ item.attempts === null ? '' : ' / ' + item.attempts }}</td>
+              <td class="max-w-xs truncate" [attr.title]="item.failedReason">{{ item.failedReason || '-' }}</td>
+              <td class="whitespace-nowrap">{{ item.createdAt ? (item.createdAt | date: 'dd.MM.yyyy HH:mm:ss') : '-' }}</td>
+              <td class="whitespace-nowrap">{{ item.finishedAt ? (item.finishedAt | date: 'dd.MM.yyyy HH:mm:ss') : '-' }}</td>
+              <td class="whitespace-nowrap text-right">
+                <p-button
+                  icon="pi pi-eye"
+                  severity="secondary"
+                  [text]="true"
+                  [rounded]="true"
+                  type="button"
+                  [attr.aria-label]="'admin.queue.details' | transloco"
+                  (onClick)="openJob(item)"
+                />
+                @if (canWrite() && status() === 'failed') {
+                  <p-button
+                    icon="pi pi-replay"
+                    [text]="true"
+                    [rounded]="true"
+                    type="button"
+                    [loading]="working() === 'retry:' + item.id"
+                    [attr.aria-label]="'admin.queue.retry' | transloco"
+                    (onClick)="retry(item)"
+                  />
+                }
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr>
+              <td colspan="7" class="text-secondary py-6 text-center">{{ 'admin.grid.noData' | transloco }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    } @else {
+      <p class="text-secondary">{{ 'admin.queue.selectHint' | transloco }}</p>
+    }
+  }
+
+  <p-drawer
+    [(visible)]="jobOpen"
+    position="right"
+    styleClass="!w-full md:!w-[40rem]"
+    [header]="'admin.queue.details' | transloco"
+  >
+    @if (job(); as job) {
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <h2 class="text-xl font-semibold">{{ job.name }}</h2>
+            <p-tag [value]="'admin.queue.statuses.' + job.status | transloco" severity="secondary" />
+          </div>
+          @if (canWrite() && job.status === 'failed') {
+            <p-button
+              [label]="'admin.queue.retry' | transloco"
+              icon="pi pi-replay"
+              type="button"
+              [loading]="working() === 'retry:' + job.id"
+              (onClick)="retry(job)"
+            />
+          }
+        </div>
+        @if (job.failedReason) {
+          <p-message severity="error" [text]="job.failedReason" />
+        }
+        <dl class="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.queue.fields.id' | transloco }}</dt>
+            <dd class="break-all">{{ job.id }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.queue.fields.attempts' | transloco }}</dt>
+            <dd>{{ job.attemptsMade }}{{ job.attempts === null ? '' : ' / ' + job.attempts }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.queue.fields.createdAt' | transloco }}</dt>
+            <dd>{{ job.createdAt ? (job.createdAt | date: 'dd.MM.yyyy HH:mm:ss') : '-' }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.queue.fields.processedAt' | transloco }}</dt>
+            <dd>{{ job.processedAt ? (job.processedAt | date: 'dd.MM.yyyy HH:mm:ss') : '-' }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.queue.fields.finishedAt' | transloco }}</dt>
+            <dd>{{ job.finishedAt ? (job.finishedAt | date: 'dd.MM.yyyy HH:mm:ss') : '-' }}</dd>
+          </div>
+        </dl>
+        <section>
+          <h3 class="mb-1 font-semibold">{{ 'admin.queue.fields.data' | transloco }}</h3>
+          <pre class="max-h-96 overflow-auto rounded-lg bg-gray-100 p-3 text-xs">{{ json(job.data) || ('admin.queue.noData' | transloco) }}</pre>
+        </section>
+      </div>
+    }
+  </p-drawer>
+
+  <p-dialog
+    [(visible)]="cleanOpen"
+    [modal]="true"
+    [style]="{ width: '28rem' }"
+    [breakpoints]="{ '640px': '95vw' }"
+    [header]="'admin.queue.clean' | transloco"
+  >
+    <form [formGroup]="cleanForm" (ngSubmit)="submitClean()" class="flex flex-col gap-4">
+      <div class="flex flex-col gap-2">
+        <label for="queue-clean-status" class="text-sm font-medium">{{ 'admin.queue.fields.status' | transloco }}</label>
+        <p-select
+          inputId="queue-clean-status"
+          formControlName="status"
+          [options]="cleanOptions"
+          optionValue="value"
+          styleClass="w-full"
+        >
+          <ng-template #selectedItem let-option>{{ option.label | transloco }}</ng-template>
+          <ng-template #item let-option>{{ option.label | transloco }}</ng-template>
+        </p-select>
+      </div>
+      <div class="flex flex-col gap-2">
+        <label for="queue-clean-age" class="text-sm font-medium">{{ 'admin.queue.cleanOlderThan' | transloco }}</label>
+        <p-inputnumber inputId="queue-clean-age" formControlName="olderThanMinutes" [min]="0" [useGrouping]="false" styleClass="w-full" inputStyleClass="w-full" />
+        <small class="text-secondary">{{ 'admin.queue.cleanHint' | transloco }}</small>
+      </div>
+      <div class="flex justify-end gap-3 border-t pt-4">
+        <p-button
+          [label]="'admin.common.cancel' | transloco"
+          severity="secondary"
+          [outlined]="true"
+          type="button"
+          (onClick)="cleanOpen.set(false)"
+        />
+        <p-button
+          [label]="'admin.queue.clean' | transloco"
+          severity="danger"
+          type="submit"
+          [disabled]="cleanForm.invalid || cleaning()"
+          [loading]="cleaning()"
+        />
+      </div>
+    </form>
+  </p-dialog>
+</section>

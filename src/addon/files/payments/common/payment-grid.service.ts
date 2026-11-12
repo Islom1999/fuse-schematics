@@ -5,7 +5,7 @@ import { TableQueryDTO } from 'app/shared/services/base-crud.service'
 import { toTableQuery } from 'app/shared/utils/table-query'
 import { Observable, map } from 'rxjs'
 import { PaymentAdminService } from './payment-admin.service'
-import { IPaymentTransaction, IWallet } from './payment.model'
+import { IPaymentInvoice, IPaymentTransaction, IWallet } from './payment.model'
 
 @Injectable()
 export class PaymentGridService extends GridService<IPaymentTransaction> {
@@ -27,6 +27,20 @@ export class WalletGridService extends GridService<IWallet> {
 
   override getAllData(params: TableQueryDTO): Observable<GridResponse<IWallet>> {
     return this.paymentService.wallets(toTableQuery(params)).pipe(
+      map((response) => ({
+        count: response.count,
+        data: Array.isArray(response.data) ? response.data : [],
+      })),
+    )
+  }
+}
+
+@Injectable()
+export class InvoiceGridService extends GridService<IPaymentInvoice> {
+  private readonly paymentService = inject(PaymentAdminService)
+
+  override getAllData(params: TableQueryDTO): Observable<GridResponse<IPaymentInvoice>> {
+    return this.paymentService.invoices(toTableQuery(params, ['status', 'provider', 'purpose'])).pipe(
       map((response) => ({
         count: response.count,
         data: Array.isArray(response.data) ? response.data : [],

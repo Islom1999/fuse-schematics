@@ -7,7 +7,7 @@ import { UserService } from 'app/core/user/user.service'
 import { AdminFeedbackService } from 'app/shared/services/admin-feedback.service'
 import { ButtonModule } from 'primeng/button'
 import { MessageModule } from 'primeng/message'
-import { IBroadcast, CampaignPlatform, CampaignTarget } from '../common/campaign.model'
+import { CampaignPlatform, CampaignTarget, IBroadcast, TOPIC_PATTERN } from '../common/campaign.model'
 import { NotificationAdminService } from '../common/notification-admin.service'
 
 /** What the form edits; `userIds` is free text (ids separated by spaces, commas or new lines). */
@@ -15,6 +15,9 @@ interface SendModel {
   target: CampaignTarget
   userIds?: string
   platform?: CampaignPlatform
+  topic?: string
+  /** Optional: a future date and time schedules the campaign. */
+  sendAt?: Date | null
   type?: string
   title?: string
   body?: string
@@ -30,7 +33,7 @@ export function parseUserIds(text: string | undefined): string[] {
   return [...new Set((text ?? '').split(/[\s,;]+/).filter(Boolean))]
 }
 
-/** Send form: all users, chosen users (by id) or one platform. Needs `notification.write`. */
+/** Send form: all users, chosen users (by id), one platform or a topic, now or at a chosen time. Needs `notification.write`. */
 @Component({
   selector: 'app-campaign-send',
   imports: [ReactiveFormsModule, RouterLink, FormlyModule, ButtonModule, MessageModule, TranslocoPipe],
@@ -60,6 +63,7 @@ export class CampaignSendComponent {
           { label: 'admin.notifications.targets.all', value: 'all' },
           { label: 'admin.notifications.targets.users', value: 'users' },
           { label: 'admin.notifications.targets.platform', value: 'platform' },
+          { label: 'admin.notifications.targets.topic', value: 'topic' },
         ],
         translate: true,
         translateSelectOptions: true,
@@ -98,6 +102,21 @@ export class CampaignSendComponent {
       },
     },
     {
+      key: 'topic',
+      type: 'input',
+      props: {
+        label: 'admin.notifications.fields.topic',
+        maxLength: 100,
+        pattern: TOPIC_PATTERN,
+        translate: true,
+      },
+      expressions: {
+        hide: (field: FormlyFieldConfig) => field.model?.target !== 'topic',
+        'props.required': (field: FormlyFieldConfig) => field.model?.target === 'topic',
+      },
+      validation: { messages: { pattern: 'admin.notifications.errors.topic' } },
+    },
+    {
       key: 'type',
       type: 'input',
       props: {
@@ -134,6 +153,24 @@ export class CampaignSendComponent {
       },
       validation: { messages: { pattern: 'admin.notifications.errors.image' } },
     },
+    {
+      key: 'sendAt',
+      type: 'datepicker',
+      props: {
+        label: 'admin.notifications.fields.sendAt',
+        showTime: true,
+        showIcon: true,
+        showButtonBar: true,
+        dateFormat: 'dd.mm.yy',
+        translate: true,
+      },
+      validators: {
+        future: {
+          expression: (control: { value: Date | null }) => !control.value || control.value.getTime() > Date.now(),
+          message: 'admin.notifications.errors.sendAt',
+        },
+      },
+    },
   ]
 
   protected send(): void {
@@ -146,7 +183,7 @@ export class CampaignSendComponent {
     this.service.broadcast(body).subscribe({
       next: (campaign) => {
         this.sending.set(false)
-        this.feedback.success('admin.notifications.sent')
+        this.feedback.success(campaign.status === 'scheduled' ? 'admin.notifications.scheduled' : 'admin.notifications.sent')
         void this.router.navigate(['/notifications', campaign.id])
       },
       error: (error: unknown) => {
@@ -161,6 +198,8 @@ export class CampaignSendComponent {
     const body: IBroadcast = { target: model.target, title: (model.title ?? '').trim() }
     if (model.target === 'users') body.userIds = parseUserIds(model.userIds)
     if (model.target === 'platform' && model.platform) body.platform = model.platform
+    if (model.target === 'topic') body.topic = (model.topic ?? '').trim()
+    if (model.sendAt) body.sendAt = model.sendAt.toISOString()
     for (const key of ['type', 'body', 'link', 'image'] as const) {
       const value = model[key]?.trim()
       if (value) body[key] = value

@@ -1,15 +1,20 @@
+import { HttpClient } from '@angular/common/http'
 import { Injectable, inject } from '@angular/core'
 import { IPagination } from 'app/core/services/base.model'
 import { BaseApiService } from 'app/core/services/base.service'
+import { DITokens } from 'app/core/utils/di-tokens'
 import { ISession } from 'app/shared/models/session.model'
 import { TableQueryDTO } from 'app/shared/services/base-crud.service'
 import { Observable } from 'rxjs'
-import { IUser } from './user.model'
+import { IPushDevice, IUser, IUserCreate, IUserDeleted, IUserUpdate } from './user.model'
 
-/** Client users. The back-end only reads users, blocks them and manages their device sessions. */
+/** Client users: full CRUD, block, device sessions and push devices. */
 @Injectable({ providedIn: 'root' })
 export class UserAdminService {
   private readonly baseApi = inject(BaseApiService)
+  // BaseApiService has no PATCH; the update route is a PATCH.
+  private readonly http = inject(HttpClient)
+  private readonly apiBaseUrl = inject(DITokens.API_BASE_URL)
   private readonly endpoint = 'admin/users'
 
   getAllPagination(params: TableQueryDTO): Observable<IPagination<IUser[]>> {
@@ -18,6 +23,21 @@ export class UserAdminService {
 
   getById(id: string): Observable<IUser> {
     return this.baseApi.get<IUser>(`${this.endpoint}/${id}`)
+  }
+
+  /** 409 when the phone or the email is taken. */
+  create(body: IUserCreate): Observable<IUser> {
+    return this.baseApi.post<IUser>(this.endpoint, body)
+  }
+
+  /** `PATCH`; 409 when the phone or the email is taken. `isBlocked: true` ends all sessions. */
+  update(id: string, body: IUserUpdate): Observable<IUser> {
+    return this.http.patch<IUser>(`${this.apiBaseUrl}/${this.endpoint}/${id}`, body)
+  }
+
+  /** Soft delete: phone and email become free again and every session is revoked. */
+  delete(id: string): Observable<IUserDeleted> {
+    return this.baseApi.delete<IUserDeleted>(`${this.endpoint}/${id}`)
   }
 
   /** Blocking ends all sessions of the user. */
@@ -35,5 +55,10 @@ export class UserAdminService {
 
   revokeSession(id: string, sessionId: string): Observable<{ success: boolean }> {
     return this.baseApi.delete<{ success: boolean }>(`${this.endpoint}/${id}/sessions/${sessionId}`)
+  }
+
+  /** Needs `notification.read` and the back-end `notifications` add-on. */
+  pushDevices(id: string): Observable<IPushDevice[]> {
+    return this.baseApi.get<IPushDevice[]>(`${this.endpoint}/${id}/push-devices`)
   }
 }

@@ -3,6 +3,7 @@
     [title]="'admin.notifications.title'"
     [columns]="columns"
     [showAddButton]="false"
+    [templateFilters]="tabs"
     [templateCostumFields]="cell"
     (onRowSelect)="onRowSelect($event)"
     [$data]="gridService"
@@ -26,8 +27,16 @@
     </ng-template>
   </app-grid>
 
-  <ng-template #cell let-row="row">
-    <p-tag [value]="'admin.notifications.targets.' + row.target | transloco" severity="info" />
+  <ng-template #tabs>
+    <app-notifications-tabs />
+  </ng-template>
+
+  <ng-template #cell let-column="column" let-row="row">
+    @if (column.field === 'status') {
+      <p-tag [value]="'admin.notifications.statuses.' + row.status | transloco" [severity]="statusSeverity[row.status]" />
+    } @else {
+      <p-tag [value]="'admin.notifications.targets.' + row.target | transloco" severity="info" />
+    }
   </ng-template>
 } @else {
   <div class="p-6">

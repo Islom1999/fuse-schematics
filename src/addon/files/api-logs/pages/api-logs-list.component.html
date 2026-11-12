@@ -8,6 +8,18 @@
     (onRowSelect)="onRowSelect($event)"
     [$data]="gridService"
   >
+    <ng-container titleRight>
+      <p-button
+        [label]="'admin.grid.actions.exportCsv' | transloco"
+        icon="pi pi-download"
+        severity="secondary"
+        [outlined]="true"
+        type="button"
+        [loading]="exporting()"
+        (onClick)="exportCsv()"
+      />
+    </ng-container>
+
     <ng-template #costumTableFilter>
       <app-table-filter
         [config]="filterConfig"

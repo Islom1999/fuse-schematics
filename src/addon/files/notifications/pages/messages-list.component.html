@@ -1,0 +1,127 @@
+@if (canRead()) {
+  <app-grid
+    [title]="'admin.notifications.title'"
+    [columns]="columns"
+    [showAddButton]="false"
+    [templateFilters]="tabs"
+    [templateCostumFields]="cell"
+    (onRowSelect)="onRowSelect($event)"
+    [$data]="gridService"
+  >
+    <ng-container titleRight>
+      @if (canWrite()) {
+        <a pButton routerLink="/notifications/send">
+          <i class="pi pi-send"></i>
+          {{ 'admin.notifications.send' | transloco }}
+        </a>
+      }
+    </ng-container>
+
+    <ng-template #costumTableFilter>
+      <app-table-filter
+        [config]="filterConfig"
+        [debounceTime]="500"
+        (filterChange)="onFilterChange($event)"
+        (filterReset)="onFilterReset()"
+      />
+    </ng-template>
+  </app-grid>
+
+  <ng-template #tabs>
+    <app-notifications-tabs />
+  </ng-template>
+
+  <ng-template #cell let-row="row">
+    <p-tag [value]="'admin.notifications.pushStatuses.' + row.pushStatus | transloco" [severity]="pushSeverity[row.pushStatus]" />
+  </ng-template>
+
+  <p-drawer
+    [(visible)]="drawerOpen"
+    position="right"
+    styleClass="!w-full md:!w-[40rem]"
+    [header]="'admin.notifications.messages.details' | transloco"
+  >
+    @if (selected(); as item) {
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-xl font-semibold">{{ item.title }}</h2>
+            <p-tag [value]="item.type" severity="secondary" />
+            <p-tag [value]="'admin.notifications.pushStatuses.' + item.pushStatus | transloco" [severity]="pushSeverity[item.pushStatus]" />
+          </div>
+          @if (canWrite()) {
+            <div class="flex gap-2">
+              <p-button
+                [label]="'admin.notifications.messages.resend' | transloco"
+                icon="pi pi-replay"
+                type="button"
+                [disabled]="working()"
+                (onClick)="resend()"
+              />
+              <p-button
+                [label]="'admin.common.delete' | transloco"
+                icon="pi pi-trash"
+                severity="danger"
+                [outlined]="true"
+                type="button"
+                [disabled]="working()"
+                (onClick)="remove()"
+              />
+            </div>
+          }
+        </div>
+
+        @if (item.body) {
+          <p class="whitespace-pre-line">{{ item.body }}</p>
+        }
+        @if (item.pushError) {
+          <p-message severity="error" [text]="item.pushError" />
+        }
+
+        <dl class="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.notifications.fields.userId' | transloco }}</dt>
+            <dd class="break-all">{{ item.userId }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.notifications.fields.createdAt' | transloco }}</dt>
+            <dd>{{ item.createdAt | date: 'dd.MM.yyyy HH:mm:ss' }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.notifications.fields.readAt' | transloco }}</dt>
+            <dd>{{ item.readAt ? (item.readAt | date: 'dd.MM.yyyy HH:mm:ss') : '-' }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.notifications.fields.pushAttempts' | transloco }}</dt>
+            <dd>{{ item.pushAttempts }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.notifications.fields.link' | transloco }}</dt>
+            <dd class="break-all">{{ item.link || '-' }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.notifications.fields.campaign' | transloco }}</dt>
+            <dd class="break-all">
+              @if (item.campaignId) {
+                <a class="text-primary underline" [routerLink]="['/notifications', item.campaignId]">{{ item.campaignId }}</a>
+              } @else {
+                -
+              }
+            </dd>
+          </div>
+        </dl>
+
+        @if (item.meta) {
+          <section>
+            <h3 class="mb-1 font-semibold">{{ 'admin.notifications.fields.meta' | transloco }}</h3>
+            <pre class="max-h-60 overflow-auto rounded-lg bg-gray-100 p-3 text-xs">{{ json(item.meta) }}</pre>
+          </section>
+        }
+      </div>
+    }
+  </p-drawer>
+} @else {
+  <div class="p-6">
+    <p-message severity="warn" [text]="'admin.common.noPermission' | transloco" />
+  </div>
+}

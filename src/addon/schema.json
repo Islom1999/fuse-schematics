@@ -6,7 +6,7 @@
   "properties": {
     "name": {
       "type": "string",
-      "description": "Admin page for a back-end add-on: users (client users and their device sessions), api-logs (server API logs), notifications (campaigns and send form), payments (transactions and wallets) or ai (usage statistics).",
+      "description": "Admin page for a back-end add-on: users (client users, their sessions and push devices), api-logs (server API logs), notifications (campaigns and send form), payments (transactions, invoices and wallets) ai (usage statistics and quota usage) or queue (background queues and jobs).",
       "$default": {
         "$source": "argv",
         "index": 0
@@ -15,11 +15,12 @@
         "message": "Which admin page do you want to add?",
         "type": "list",
         "items": [
-          { "value": "users", "label": "users - client users and their device sessions" },
+          { "value": "users", "label": "users - client users, sessions and push devices" },
           { "value": "api-logs", "label": "api-logs - server API logs" },
           { "value": "notifications", "label": "notifications - campaigns and send form" },
-          { "value": "payments", "label": "payments - transactions and wallets" },
-          { "value": "ai", "label": "ai - usage statistics" }
+          { "value": "payments", "label": "payments - transactions, invoices and wallets" },
+          { "value": "ai", "label": "ai - usage statistics" },
+          { "value": "queue", "label": "queue - background queues and jobs" }
         ]
       }
     },

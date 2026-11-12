@@ -48,6 +48,13 @@ export const ADDONS: Record<AddonName, AddonDefinition> = {
     permission: 'ai.read',
     backend: 'ai',
   },
+  queue: {
+    name: 'queue',
+    title: 'Queues',
+    icon: 'heroicons_outline:queue-list',
+    permission: 'queue.read / queue.write',
+    backend: 'queue',
+  },
 };
 
 /**

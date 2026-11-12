@@ -1,0 +1,30 @@
+import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { RouterLink, RouterLinkActive } from '@angular/router'
+import { TranslocoPipe } from '@jsverse/transloco'
+
+/** Links between the campaigns page and the page of delivered notifications. */
+@Component({
+  selector: 'app-notifications-tabs',
+  imports: [RouterLink, RouterLinkActive, TranslocoPipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <nav class="mb-4 flex gap-2" [attr.aria-label]="'admin.notifications.title' | transloco">
+      <a
+        routerLink="/notifications"
+        routerLinkActive="bg-primary text-white"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="rounded-full border border-gray-300 px-4 py-1.5 text-sm font-medium"
+      >
+        {{ 'admin.notifications.campaigns' | transloco }}
+      </a>
+      <a
+        routerLink="/notifications/messages"
+        routerLinkActive="bg-primary text-white"
+        class="rounded-full border border-gray-300 px-4 py-1.5 text-sm font-medium"
+      >
+        {{ 'admin.notifications.messages.title' | transloco }}
+      </a>
+    </nav>
+  `,
+})
+export class NotificationsTabsComponent {}
