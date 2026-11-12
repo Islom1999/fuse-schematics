@@ -1,5 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http'
-import { computed, inject, Injectable, signal } from '@angular/core'
+import { computed, effect, inject, Injectable, signal, untracked } from '@angular/core'
+import { UserService } from 'app/core/user/user.service'
 import { DITokens } from 'app/core/utils/di-tokens'
 import { environment } from 'environments/environment'
 import { catchError, map, Observable, of, tap, throwError } from 'rxjs'
@@ -24,6 +25,14 @@ export class NotificationsService {
    * session. The bell hides itself then.
    */
   readonly available = this._available.asReadonly()
+
+  constructor() {
+    // Signing out resets the user; drop the previous user's notifications with it.
+    const user = inject(UserService).user
+    effect(() => {
+      if (!user()) untracked(() => this._notifications.set([]))
+    })
+  }
 
   /** Loads the list. A 404 marks the feature unavailable; errors still reach the caller. */
   getAll(): Observable<AppNotification[]> {

@@ -2,6 +2,8 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http'
 import { Injectable, inject } from '@angular/core'
 import { DITokens } from '../utils/di-tokens'
 
+type QueryParams = Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>
+
 @Injectable({
   providedIn: 'root',
 })
@@ -13,7 +15,7 @@ export class BaseApiService {
   get<T>(
     path: string,
     obj?: {
-      queryParams?: any
+      queryParams?: QueryParams
       params?: HttpParams
       responseType?: 'json'
       headers?:
@@ -33,9 +35,9 @@ export class BaseApiService {
 
   post<T>(
     path: string,
-    body: any,
+    body: unknown,
     options?: {
-      queryParams?: any
+      queryParams?: QueryParams
       params?: HttpParams
       headers?:
         | HttpHeaders
@@ -55,7 +57,7 @@ export class BaseApiService {
 
   put<T>(
     path: string,
-    body: any,
+    body: unknown,
     options?: {
       headers?:
         | HttpHeaders

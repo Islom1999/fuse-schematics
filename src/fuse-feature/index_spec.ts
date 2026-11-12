@@ -180,7 +180,7 @@ describe("fuse-feature --fields", () => {
   it("adds i18n keys for every field to every language file", () => {
     for (const file of [EN, TR]) {
       const json = JSON.parse(tree.readText(file));
-      expect(json["welcome-back"]).withContext(file).toBeDefined();
+      expect(json.layout).withContext(file).toBeDefined();
       const keys = json.admin.mahsulot;
       for (const k of ["title", "addNew", "create", "edit", "name", "namePlaceholder"]) {
         expect(keys[k]).withContext(`${file} ${k}`).toEqual(jasmine.any(String));

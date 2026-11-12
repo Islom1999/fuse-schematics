@@ -8,7 +8,8 @@ import { environment } from 'environments/environment'
 import { map, mergeMap, Observable, throwError, timer } from 'rxjs'
 
 /*
- * Development-only fake backend for sign-in, session refresh, the current user and the navigation.
+ * Development-only fake backend for sign-in, session refresh, the current user, the navigation
+ * and an empty notifications list.
  * Enable it with `environment.devMock`. Every other request goes to the network untouched.
  * Delete this folder (and its entry in `withInterceptors`) to drop it.
  */
@@ -129,12 +130,14 @@ function handle(req: HttpRequest<unknown>, path: string): Observable<HttpEvent<u
       return sessionOf(bearer(req)) ? reply(req, USER) : fail(req, path, 401, 'Unauthorized')
     case 'GET navigation':
       return reply(req, buildNavigation())
+    case 'GET notifications':
+      return reply(req, [])
     default:
       return null
   }
 }
 
-/** Serves the auth, user and navigation endpoints in development when `environment.devMock` is on. */
+/** Serves the auth, user, navigation and notifications endpoints in development when `environment.devMock` is on. */
 export const devMockInterceptor: HttpInterceptorFn = (req, next) => {
   if (!environment.devMock) return next(req)
   if (!isDevMode()) {

@@ -1,7 +1,6 @@
-/* eslint-disable */
-import { FuseNavigationItem } from '@fuse/components/navigation';
+import { UiNavigationItem } from '@ui/navigation/navigation.types';
 
-export const defaultNavigation: FuseNavigationItem[] = [
+export const defaultNavigation: UiNavigationItem[] = [
     {
         id   : 'example',
         title: 'Example',
@@ -10,7 +9,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
         link : '/example'
     }
 ];
-export const compactNavigation: FuseNavigationItem[] = [
+export const compactNavigation: UiNavigationItem[] = [
     {
         id   : 'example',
         title: 'Example',
@@ -19,7 +18,7 @@ export const compactNavigation: FuseNavigationItem[] = [
         link : '/example'
     }
 ];
-export const futuristicNavigation: FuseNavigationItem[] = [
+export const futuristicNavigation: UiNavigationItem[] = [
     {
         id   : 'example',
         title: 'Example',
@@ -28,7 +27,7 @@ export const futuristicNavigation: FuseNavigationItem[] = [
         link : '/example'
     }
 ];
-export const horizontalNavigation: FuseNavigationItem[] = [
+export const horizontalNavigation: UiNavigationItem[] = [
     {
         id   : 'example',
         title: 'Example',

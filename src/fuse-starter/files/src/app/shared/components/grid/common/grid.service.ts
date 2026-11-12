@@ -1,7 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import { Observable } from 'rxjs'
-import { FuseLoadingService } from '@fuse/services/loading'
+import { UiLoadingService } from '@ui/components/loading-bar'
 import { GridResponse } from './grid.model'
 import { TableQueryDTO } from 'app/shared/services/base-crud.service'
 
@@ -53,7 +53,7 @@ export abstract class GridService<T = unknown> {
 
   protected $route = inject(ActivatedRoute)
   protected $router = inject(Router)
-  protected _fuseProgressBarService = inject(FuseLoadingService)
+  protected loadingService = inject(UiLoadingService)
 
   routes: unknown[] = []
   params: Record<string, unknown> = {}
@@ -174,7 +174,7 @@ export abstract class GridService<T = unknown> {
       requestParams.sortOrder = this.filterSort.sortOrder
     }
 
-    this._fuseProgressBarService.show()
+    this.loadingService.show()
     this.isLoading.set(true)
 
     this.getAllData(requestParams, this.isArchiveView()).subscribe({
@@ -193,7 +193,7 @@ export abstract class GridService<T = unknown> {
           length: count,
         }
 
-        this._fuseProgressBarService.hide()
+        this.loadingService.hide()
         this.isLoading.set(false)
       },
       error: () => {
@@ -205,7 +205,7 @@ export abstract class GridService<T = unknown> {
           length: count,
         }
         this.isLoading.set(false)
-        this._fuseProgressBarService.hide()
+        this.loadingService.hide()
       },
     })
 

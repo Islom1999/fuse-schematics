@@ -1,5 +1,150 @@
 {
-    "welcome-back": "Hoşgeldin",
-    "Project": "Proje",
-    "Analytics": "Analitik"
+    "layout": {
+        "logoAlt": "Logo",
+        "mainNavigation": "Ana menü",
+        "toggleNavigation": "Menüyü aç/kapat",
+        "toggleAppearance": "Menü görünümünü değiştir",
+        "fullscreen": "Tam ekranı aç/kapat",
+        "footer": {
+            "copyright": "Admin © {{year}}"
+        }
+    },
+    "settings": {
+        "open": "Ayarlar",
+        "title": "Ayarlar",
+        "close": "Ayarları kapat",
+        "theme": "Tema",
+        "scheme": "Renk şeması",
+        "layout": "Yerleşim",
+        "themes": {
+            "default": "Varsayılan",
+            "brand": "Marka",
+            "teal": "Camgöbeği",
+            "rose": "Gül",
+            "purple": "Mor",
+            "amber": "Kehribar"
+        },
+        "schemes": {
+            "auto": "Otomatik",
+            "dark": "Koyu",
+            "light": "Açık",
+            "autoTooltip": "Şemayı, 'prefers-color-scheme' medya sorgusunu kullanarak işletim sisteminin renk şeması tercihine göre otomatik olarak ayarlar."
+        },
+        "layouts": {
+            "empty": "Boş",
+            "classic": "Klasik",
+            "classy": "Şık",
+            "compact": "Kompakt",
+            "dense": "Yoğun",
+            "futuristic": "Fütüristik",
+            "thin": "İnce",
+            "centered": "Ortalanmış",
+            "enterprise": "Kurumsal",
+            "material": "Material",
+            "modern": "Modern"
+        }
+    },
+    "languages": {
+        "menu": "Dil",
+        "en": "İngilizce",
+        "tr": "Türkçe"
+    },
+    "search": {
+        "open": "Ara",
+        "placeholder": "Ara...",
+        "close": "Aramayı kapat",
+        "noResults": "Sonuç bulunamadı!",
+        "groups": {
+            "pages": "Sayfalar",
+            "contacts": "Kişiler",
+            "tasks": "Görevler"
+        }
+    },
+    "notifications": {
+        "open": "Bildirimler",
+        "title": "Bildirimler",
+        "markAllAsRead": "Tümünü okundu olarak işaretle",
+        "markAsRead": "Okundu olarak işaretle",
+        "markAsUnread": "Okunmadı olarak işaretle",
+        "remove": "Kaldır",
+        "close": "Kapat",
+        "empty": {
+            "title": "Bildirim yok",
+            "text": "Bildirimleriniz olduğunda burada görünecek."
+        }
+    },
+    "user": {
+        "menu": "Kullanıcı menüsü",
+        "signedInAs": "Oturum açan",
+        "profile": "Profil",
+        "settings": "Ayarlar",
+        "status": "Durum",
+        "statuses": {
+            "online": "Çevrimiçi",
+            "away": "Uzakta",
+            "busy": "Meşgul",
+            "invisible": "Görünmez"
+        },
+        "signOut": "Çıkış yap"
+    },
+    "auth": {
+        "logoAlt": "Logo",
+        "emailLabel": "E-posta adresi",
+        "passwordLabel": "Şifre",
+        "passwordConfirmLabel": "Şifre (Tekrar)",
+        "showPassword": "Şifreyi göster",
+        "hidePassword": "Şifreyi gizle",
+        "validation": {
+            "emailRequired": "E-posta adresi zorunludur",
+            "emailInvalid": "Lütfen geçerli bir e-posta adresi girin",
+            "passwordRequired": "Şifre zorunludur",
+            "passwordMinLength": "Şifre en az {{min}} karakter olmalıdır",
+            "passwordConfirmRequired": "Şifre tekrarı zorunludur",
+            "passwordsMustMatch": "Şifreler eşleşmelidir"
+        },
+        "errors": {
+            "generic": "Bir şeyler ters gitti, lütfen tekrar deneyin.",
+            "checkForm": "Lütfen formu kontrol edin"
+        },
+        "signIn": {
+            "title": "Giriş yap",
+            "rememberMe": "Beni hatırla",
+            "forgotPassword": "Şifrenizi mi unuttunuz?",
+            "submit": "Giriş yap",
+            "wrongCredentials": "E-posta veya şifre hatalı",
+            "tooManyAttempts": "Çok fazla deneme yapıldı. Lütfen birkaç dakika bekleyip tekrar deneyin."
+        },
+        "forgotPassword": {
+            "title": "Şifrenizi mi unuttunuz?",
+            "subtitle": "Şifrenizi sıfırlamak için formu doldurun",
+            "submit": "Sıfırlama bağlantısı gönder",
+            "sent": "Şifre sıfırlama isteği gönderildi! Sistemimizde kayıtlıysanız bir e-posta alacaksınız."
+        },
+        "resetPassword": {
+            "title": "Şifrenizi sıfırlayın",
+            "subtitle": "Hesabınız için yeni bir şifre oluşturun",
+            "submit": "Şifremi sıfırla",
+            "success": "Şifreniz sıfırlandı.",
+            "invalidToken": "Bu sıfırlama bağlantısı geçersiz veya süresi dolmuş."
+        },
+        "returnTo": "Geri dön:",
+        "signInLink": "giriş yap",
+        "signOut": {
+            "title": "Oturumunuz kapatıldı!",
+            "redirectingIn": "{{seconds}} saniye içinde yönlendiriliyorsunuz",
+            "redirectingInOne": "1 saniye içinde yönlendiriliyorsunuz",
+            "redirecting": "Şimdi yönlendiriliyorsunuz!",
+            "goToSignIn": "Giriş sayfasına git"
+        },
+        "panel": {
+            "title1": "Hoş geldiniz",
+            "title2": "Admin",
+            "text": "Uygulamanızı yönetmek için giriş yapın."
+        }
+    },
+    "errors": {
+        "network": "Sunucuya ulaşılamıyor",
+        "forbidden": "Bu işlem için yetkiniz yok",
+        "server": "Bir şeyler ters gitti, lütfen tekrar deneyin."
+    }
 }

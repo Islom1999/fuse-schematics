@@ -1,7 +1,7 @@
 import { Directive, inject, OnInit } from '@angular/core'
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog'
-import { FuseLoadingService } from '@fuse/services/loading'
-import { FuseConfirmationService } from '@fuse/services/confirmation'
+import { UiLoadingService } from '@ui/components/loading-bar'
+import { UiConfirmationService } from '@ui/services/confirmation'
 import { GridService } from '../components/grid/common/grid.service'
 import { IColumn } from '../components/grid/common/column.model'
 import { ITableFilterConfig } from '../components/table-filter'
@@ -9,8 +9,8 @@ import { Type } from '@angular/core'
 
 @Directive()
 export abstract class BaseTableComponent<T> implements OnInit {
-  protected loadingService = inject(FuseLoadingService)
-  protected confirmationService = inject(FuseConfirmationService)
+  protected loadingService = inject(UiLoadingService)
+  protected confirmationService = inject(UiConfirmationService)
   protected dialogService = inject(DialogService)
 
   protected dialogRef?: DynamicDialogRef

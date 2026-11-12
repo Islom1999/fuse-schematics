@@ -1,15 +1,15 @@
 import { Directive, inject, OnInit, ChangeDetectorRef } from '@angular/core'
 import { FormGroup } from '@angular/forms'
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog'
-import { FuseLoadingService } from '@fuse/services/loading'
-import { FuseConfirmationService } from '@fuse/services/confirmation'
+import { UiLoadingService } from '@ui/components/loading-bar'
+import { UiConfirmationService } from '@ui/services/confirmation'
 import { FormlyFieldConfig } from '@ngx-formly/core'
 import { Observable } from 'rxjs'
 
 @Directive()
 export abstract class BaseFormComponent<T> implements OnInit {
-  protected loadingService = inject(FuseLoadingService)
-  protected confirmationService = inject(FuseConfirmationService)
+  protected loadingService = inject(UiLoadingService)
+  protected confirmationService = inject(UiConfirmationService)
   protected dialogRef = inject(DynamicDialogRef, { optional: true })
   protected dialogConfig = inject(DynamicDialogConfig, { optional: true })
   protected cdr = inject(ChangeDetectorRef)

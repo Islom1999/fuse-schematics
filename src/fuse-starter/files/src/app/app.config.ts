@@ -12,13 +12,15 @@ import {
   withInMemoryScrolling,
   withPreloading,
 } from '@angular/router'
-import { provideFuse } from '@fuse'
+import { provideUi, uiLoadingInterceptor } from '@ui'
 import { provideTransloco, TranslocoService } from '@jsverse/transloco'
 import { firstValueFrom } from 'rxjs'
 import { appRoutes } from 'app/app.routes'
-import { provideAuth } from 'app/core/auth/auth.provider'
-import { provideIcons } from 'app/core/icons/icons.provider'
-import { mockApiServices } from 'app/mock-api'
+import { authInterceptor } from 'app/core/auth/auth.interceptor'
+import { devMockInterceptor } from 'app/core/dev-mock/dev-mock.interceptor'
+import { errorInterceptor } from 'app/core/http/error.interceptor'
+import { MessageService } from 'primeng/api'
+import { LANGUAGE_STORAGE_KEY } from 'app/layout/common/languages/languages.component'
 import { TranslocoHttpLoader } from './core/transloco/transloco.http-loader'
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async'
 import { providePrimeNG } from 'primeng/config'
@@ -35,7 +37,6 @@ import { TypeTextArea } from './shared/ngx-formly/type-textarea'
 import { TypeUpload } from './shared/ngx-formly/type-upload.component'
 import { environment } from 'environments/environment.development'
 import { DITokens } from './core/utils/di-tokens'
-import { authInterceptor } from './core/auth/auth.interceptor'
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -44,7 +45,11 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideBrowserGlobalErrorListeners(),
 
-    provideHttpClient(withInterceptors([authInterceptor])),
+    // Order matters: the loading bar counts a request once, errors are toasted after the auth
+    // retry, and the dev-mock answers innermost, like the real backend would.
+    provideHttpClient(
+      withInterceptors([uiLoadingInterceptor, errorInterceptor, authInterceptor, devMockInterceptor]),
+    ),
     provideRouter(
       appRoutes,
       withPreloading(PreloadAllModules),
@@ -56,6 +61,7 @@ export const appConfig: ApplicationConfig = {
       useValue: environment.apiUrl,
     },
 
+    MessageService,
     provideAnimationsAsync(),
     providePrimeNG({
       ripple: true,
@@ -139,60 +145,33 @@ export const appConfig: ApplicationConfig = {
       },
       loader: TranslocoHttpLoader,
     }),
+    // Restore the language chosen in the languages menu, else use the default one.
     provideAppInitializer(() => {
-      const initializerFn = (() => {
-        const translocoService = inject(TranslocoService)
-        const defaultLang = translocoService.getDefaultLang()
-        translocoService.setActiveLang(defaultLang)
-
-        return () => firstValueFrom(translocoService.load(defaultLang))
-      })()
-      return initializerFn()
+      const transloco = inject(TranslocoService)
+      let lang = transloco.getDefaultLang()
+      try {
+        const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY)
+        if (stored && transloco.isLang(stored)) lang = stored
+      } catch {
+        // storage unavailable
+      }
+      transloco.setActiveLang(lang)
+      return firstValueFrom(transloco.load(lang))
     }),
 
-    // Fuse
-    provideAuth(),
-    provideIcons(),
-    provideFuse({
-      mockApi: {
-        delay: 0,
-        services: mockApiServices,
-      },
-      fuse: {
+    provideUi({
+      config: {
         layout: 'classy',
         scheme: 'light',
-        screens: {
-          sm: '600px',
-          md: '960px',
-          lg: '1280px',
-          xl: '1440px',
-        },
+        screens: { sm: '600px', md: '960px', lg: '1280px', xl: '1440px' },
         theme: 'theme-default',
         themes: [
-          {
-            id: 'theme-default',
-            name: 'Default',
-          },
-          {
-            id: 'theme-brand',
-            name: 'Brand',
-          },
-          {
-            id: 'theme-teal',
-            name: 'Teal',
-          },
-          {
-            id: 'theme-rose',
-            name: 'Rose',
-          },
-          {
-            id: 'theme-purple',
-            name: 'Purple',
-          },
-          {
-            id: 'theme-amber',
-            name: 'Amber',
-          },
+          { id: 'theme-default', name: 'Default' },
+          { id: 'theme-brand', name: 'Brand' },
+          { id: 'theme-teal', name: 'Teal' },
+          { id: 'theme-rose', name: 'Rose' },
+          { id: 'theme-purple', name: 'Purple' },
+          { id: 'theme-amber', name: 'Amber' },
         ],
       },
     }),

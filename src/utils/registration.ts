@@ -251,7 +251,7 @@ export function addNavigationItem(
     };
   }
 
-  // Fuse ships navigation.ts with aligned keys (`id   : 'x'`); mirror that.
+  // The starter ships navigation.ts with aligned keys (`id   : 'x'`); mirror that.
   const aligned = /\n\s*id\s+:/.test(source);
   const quote = /\n\s*id\s*:\s*"/.test(source) ? '"' : "'";
   const entries: [string, string][] = [

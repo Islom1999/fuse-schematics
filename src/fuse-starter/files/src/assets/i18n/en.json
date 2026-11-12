@@ -1,5 +1,150 @@
 {
-    "welcome-back": "Welcome back",
-    "Project": "Project",
-    "Analytics": "Analytics"
+    "layout": {
+        "logoAlt": "Logo",
+        "mainNavigation": "Main navigation",
+        "toggleNavigation": "Toggle navigation",
+        "toggleAppearance": "Toggle navigation appearance",
+        "fullscreen": "Toggle fullscreen",
+        "footer": {
+            "copyright": "Admin © {{year}}"
+        }
+    },
+    "settings": {
+        "open": "Settings",
+        "title": "Settings",
+        "close": "Close settings",
+        "theme": "Theme",
+        "scheme": "Scheme",
+        "layout": "Layout",
+        "themes": {
+            "default": "Default",
+            "brand": "Brand",
+            "teal": "Teal",
+            "rose": "Rose",
+            "purple": "Purple",
+            "amber": "Amber"
+        },
+        "schemes": {
+            "auto": "Auto",
+            "dark": "Dark",
+            "light": "Light",
+            "autoTooltip": "Automatically sets the scheme based on user's operating system's color scheme preference using 'prefers-color-scheme' media query."
+        },
+        "layouts": {
+            "empty": "Empty",
+            "classic": "Classic",
+            "classy": "Classy",
+            "compact": "Compact",
+            "dense": "Dense",
+            "futuristic": "Futuristic",
+            "thin": "Thin",
+            "centered": "Centered",
+            "enterprise": "Enterprise",
+            "material": "Material",
+            "modern": "Modern"
+        }
+    },
+    "languages": {
+        "menu": "Language",
+        "en": "English",
+        "tr": "Turkish"
+    },
+    "search": {
+        "open": "Search",
+        "placeholder": "Search...",
+        "close": "Close search",
+        "noResults": "No results found!",
+        "groups": {
+            "pages": "Pages",
+            "contacts": "Contacts",
+            "tasks": "Tasks"
+        }
+    },
+    "notifications": {
+        "open": "Notifications",
+        "title": "Notifications",
+        "markAllAsRead": "Mark all as read",
+        "markAsRead": "Mark as read",
+        "markAsUnread": "Mark as unread",
+        "remove": "Remove",
+        "close": "Close",
+        "empty": {
+            "title": "No notifications",
+            "text": "When you have notifications, they will appear here."
+        }
+    },
+    "user": {
+        "menu": "User menu",
+        "signedInAs": "Signed in as",
+        "profile": "Profile",
+        "settings": "Settings",
+        "status": "Status",
+        "statuses": {
+            "online": "Online",
+            "away": "Away",
+            "busy": "Busy",
+            "invisible": "Invisible"
+        },
+        "signOut": "Sign out"
+    },
+    "auth": {
+        "logoAlt": "Logo",
+        "emailLabel": "Email address",
+        "passwordLabel": "Password",
+        "passwordConfirmLabel": "Password (Confirm)",
+        "showPassword": "Show password",
+        "hidePassword": "Hide password",
+        "validation": {
+            "emailRequired": "Email address is required",
+            "emailInvalid": "Please enter a valid email address",
+            "passwordRequired": "Password is required",
+            "passwordMinLength": "Password must be at least {{min}} characters",
+            "passwordConfirmRequired": "Password confirmation is required",
+            "passwordsMustMatch": "Passwords must match"
+        },
+        "errors": {
+            "generic": "Something went wrong, please try again.",
+            "checkForm": "Please check the form"
+        },
+        "signIn": {
+            "title": "Sign in",
+            "rememberMe": "Remember me",
+            "forgotPassword": "Forgot password?",
+            "submit": "Sign in",
+            "wrongCredentials": "Wrong email or password",
+            "tooManyAttempts": "Too many attempts. Please wait a few minutes and try again."
+        },
+        "forgotPassword": {
+            "title": "Forgot password?",
+            "subtitle": "Fill the form to reset your password",
+            "submit": "Send reset link",
+            "sent": "Password reset sent! You'll receive an email if you are registered on our system."
+        },
+        "resetPassword": {
+            "title": "Reset your password",
+            "subtitle": "Create a new password for your account",
+            "submit": "Reset your password",
+            "success": "Your password has been reset.",
+            "invalidToken": "This reset link is invalid or has expired."
+        },
+        "returnTo": "Return to",
+        "signInLink": "sign in",
+        "signOut": {
+            "title": "You have signed out!",
+            "redirectingIn": "Redirecting in {{seconds}} seconds",
+            "redirectingInOne": "Redirecting in 1 second",
+            "redirecting": "You are now being redirected!",
+            "goToSignIn": "Go to sign in"
+        },
+        "panel": {
+            "title1": "Welcome to",
+            "title2": "Admin",
+            "text": "Sign in to manage your application."
+        }
+    },
+    "errors": {
+        "network": "Cannot reach the server",
+        "forbidden": "You don't have permission to do that",
+        "server": "Something went wrong, please try again."
+    }
 }

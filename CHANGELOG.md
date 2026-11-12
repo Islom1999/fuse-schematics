@@ -5,6 +5,21 @@ Barcha muhim o'zgarishlar ushbu faylda hujjatlashtiriladi.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) ga asoslangan,
 va bu loyiha [Semantic Versioning](https://semver.org/spec/v2.0.0.html) dan foydalanadi.
 
+## [Unreleased]
+
+### O'zgardi
+
+- `fuse-starter`: `src/@fuse` kutubxonasi o'chirildi, o'rniga yangidan yozilgan `src/@ui` (navigatsiya, komponentlar, servislar, Tailwind plaginlari). 11 ta layout, header widget'lari (languages, search, notifications, user, settings) va auth qatlami yangidan yozildi; ko'rinish avvalgidek
+- PrimeNG endi tanlangan mavzu (theme) va dark rejimga ergashadi
+- Auth: access + refresh token, `authGuard`/`noAuthGuard`, sign-in, sign-out, forgot-password, reset-password sahifalari
+- Neytral "A" logotipi, initsiallar bilan avatarlar
+
+### Olib tashlandi
+
+- `mock-api` (o'rniga development uchun kichik dev-mock), quick-chat, messages, shortcuts, landing sahifasi, sign-up/unlock-session/confirmation-required sahifalari
+- Ishlatilmagan paketlar: `crypto-js`, `lodash-es`, `lodash`, `luxon`, `perfect-scrollbar`, `chroma-js` (va ularning `@types`)
+- Ishlatilmagan rasmlar va ikonka to'plamlari (avatars, material-*, feather)
+
 ## [2.0.0] - 2026-11-12
 
 ### Qo'shildi

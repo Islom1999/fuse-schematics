@@ -117,12 +117,13 @@ schematics @islom1999/fuse-schematics:fuse-starter <loyiha-nomi> [opsiyalar]
 - ✅ Angular 20.3 standalone komponentlar bilan
 - ✅ **Zoneless** change detection (`provideZonelessChangeDetection()`, zone.js yo'q)
 - ✅ Signal API'lari: `input()`, `output()`, `viewChild()`/`contentChild()`, `computed`, yangi control flow (`@if`, `@for`)
-- ✅ To'liq `@fuse` kutubxonasi (layoutlar, komponentlar, servislar)
+- ✅ O'zimizning `@ui` kutubxonasi: vertikal/gorizontal navigatsiya, 11 ta layout, loading bar, fullscreen, alert, confirmation, config/media servislari
 - ✅ PrimeNG 20 + `@primeuix/themes`
-- ✅ Tailwind CSS 3 (`tailwind.config.js` va Fuse plaginlari bilan)
+- ✅ Tailwind CSS 3 (`tailwind.config.js` va `@ui/tailwind` plaginlari: palitra, mavzular, utilitalar)
 - ✅ `@jsverse/transloco` i18n (en, tr)
 - ✅ ngx-formly 7 + PrimeNG maxsus turlari (input-number, textarea, datepicker, select, upload, ...)
-- ✅ Autentifikatsiya guardlari va interceptorlari
+- ✅ Autentifikatsiya: access + refresh token, funksional guardlar, interceptorlar; sign-in, sign-out, forgot/reset password sahifalari
+- ✅ Dev-mock (`environment.devMock`, faqat development): login, user, navigation va bo'sh notifications. Test login: `admin@example.com` / `admin`
 - ✅ Qorong'u/yorug' tema
 - ✅ ESLint 9 (flat config), Prettier, Husky + lint-staged
 
@@ -131,7 +132,7 @@ schematics @islom1999/fuse-schematics:fuse-starter <loyiha-nomi> [opsiyalar]
 ```
 mening-admin-loyiham/
 ├── src/
-│   ├── @fuse/                    # Fuse kutubxonasi (+ tailwind plaginlari)
+│   ├── @ui/                      # UI kutubxonasi (+ tailwind plaginlari)
 │   ├── app/
 │   │   ├── core/                 # Auth, navigatsiya, servislar
 │   │   ├── layout/               # Layout komponentlari

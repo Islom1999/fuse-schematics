@@ -77,5 +77,5 @@ All owner questions were answered on 2026-11-12.
 | A4 | Landing route | Redirect `/` to `/example`. There is no `home` route. |
 | A5 | Token refresh | Design `AuthService` around an access token and a refresh token. On a 401, try the refresh once, then sign out. The exact endpoint is aligned with the nest-schematics auth work in phase 2 (B3). Until then, keep it behind one method, `refresh()`. |
 | A6 | Legacy bugs | Do not reproduce them. Examples: the session is marked authenticated when the token check fails, and other bugs listed in the specs. |
-| A7 | Dev-mock | `environment.devMock` (default `false` in production, `true` in `environment.development.ts`). It serves login, user and navigation only. Test login: `admin@example.com` / `admin`. |
+| A7 | Dev-mock | `environment.devMock` (default `false` in production, `true` in `environment.development.ts`). It serves login, user, navigation and an empty notifications list. Test login: `admin@example.com` / `admin`. |
 | A8 | Guards and state | Functional guards (`CanActivateFn`), signals for state, no `BehaviorSubject`. |
