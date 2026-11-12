@@ -1,12 +1,16 @@
-Copyright (c) 2025-2026 Islom Karimov. All rights reserved.
+MIT License
 
-PROPRIETARY AND CONFIDENTIAL
+Copyright (c) 2025-2026 Islom Karimov
 
-This package ("@islom1999/fuse-schematics") is private software distributed
-only through a private registry to persons explicitly authorized by the
-copyright holder. No license is granted to copy, modify, publish, distribute,
-sublicense or sell this software, in whole or in part, except as agreed in
-writing with the copyright holder.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -16,23 +20,5 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
--------------------------------------------------------------------------------
-THIRD-PARTY NOTICE: Fuse Admin template
--------------------------------------------------------------------------------
-
-The project template in `src/fuse-starter/files/` (and the code it generates)
-is derived from the "Fuse - Angular Admin Template" by Withinpixels (srcn),
-sold on ThemeForest:
-
-  https://themeforest.net/user/srcn
-  https://themeforest.net/licenses/standard
-
-That template has been substantially modified (PrimeNG instead of Angular
-Material, Angular 20, zoneless, signal APIs, etc.), but the original parts
-remain the copyright of their author and are used under the Envato Market
-license. The copyright holder of this package does not claim ownership of
-those parts and cannot grant any rights to them.
-
-Every person or team that uses this package to generate a project must hold
-their own valid Fuse license (one Regular/Extended license per end product,
-as required by the Envato license terms).
+Third-party assets bundled in the project template are listed, with their
+licenses, in src/fuse-starter/files/THIRD-PARTY-NOTICES.md.

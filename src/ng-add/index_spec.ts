@@ -50,7 +50,7 @@ describe("ng-add", () => {
     expect(tree!.files.length).toBe(before);
     expect(logs.messages.filter((m) => m.level === "warn")).toEqual([]);
     const info = logs.messages.map((m) => m.message).join("\n");
-    expect(info).toContain("ng g @islom1999/fuse-schematics:crud <name>");
+    expect(info).toContain("ng g fuse-schematics:crud <name>");
     expect(info).toContain('project "fuse"');
     expect(info).toContain("fuse-schematics.json");
   });

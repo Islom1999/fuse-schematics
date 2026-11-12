@@ -9,6 +9,9 @@ va bu loyiha [Semantic Versioning](https://semver.org/spec/v2.0.0.html) dan foyd
 
 ### O'zgardi
 
+- Litsenziya yana MIT (`LICENSE`); uchinchi tomon resurslari `THIRD-PARTY-NOTICES.md` da
+- Paket nomi yana `fuse-schematics` (ochiq npm, npmjs.org; GitHub Packages'dan voz kechildi)
+- Fuse shablon eslatmasi olib tashlandi: starter shabloni to'liq yangidan yozilgan, Fuse/ThemeForest litsenziyasi endi talab qilinmaydi
 - `fuse-starter`: `src/@fuse` kutubxonasi o'chirildi, o'rniga yangidan yozilgan `src/@ui` (navigatsiya, komponentlar, servislar, Tailwind plaginlari). 11 ta layout, header widget'lari (languages, search, notifications, user, settings) va auth qatlami yangidan yozildi; ko'rinish avvalgidek
 - PrimeNG endi tanlangan mavzu (theme) va dark rejimga ergashadi
 - Auth: access + refresh token, `authGuard`/`noAuthGuard`, sign-in, sign-out, forgot-password, reset-password sahifalari

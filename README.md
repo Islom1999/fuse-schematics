@@ -1,18 +1,16 @@
 # Fuse Schematics
 
 [![CI](https://github.com/Islom1999/fuse-schematics/actions/workflows/ci.yml/badge.svg)](https://github.com/Islom1999/fuse-schematics/actions/workflows/ci.yml)
-![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)
-![Registry: GitHub Packages](https://img.shields.io/badge/registry-GitHub%20Packages-blue.svg)
+[![npm](https://img.shields.io/npm/v/fuse-schematics.svg)](https://www.npmjs.com/package/fuse-schematics)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Fuse Admin (Angular 20) loyihalarini va CRUD feature modullarini avtomatik generatsiya qiluvchi Angular schematics to'plami.
-
-> **Private paket.** Faqat GitHub Packages orqali, ruxsat berilgan foydalanuvchilar uchun tarqatiladi. Yaratilgan loyiha Fuse Admin shabloniga asoslangan, shuning uchun har bir foydalanuvchida (jamoada) o'zining amaldagi [Fuse litsenziyasi](https://themeforest.net/licenses/standard) bo'lishi shart. Batafsil: [LICENSE](LICENSE).
+Angular 20 + PrimeNG + Tailwind admin starter loyihalarini va CRUD feature modullarini avtomatik generatsiya qiluvchi Angular schematics to'plami.
 
 > English version: [see below](#english)
 
 ## Xususiyatlari
 
-- **Tez loyiha yaratish** — to'liq sozlangan Fuse Admin Angular 20 loyihasi bitta buyruq bilan (`npm install` va `git init` ham avtomatik)
+- **Tez loyiha yaratish** — to'liq sozlangan Angular 20 + PrimeNG + Tailwind admin starter loyihasi bitta buyruq bilan (`npm install` va `git init` ham avtomatik)
 - **CRUD generatori** — grid, forma, model va servislar bilan feature modul
 - **`--fields` bilan maydonlardan generatsiya** — model, formly maydonlari, grid ustunlari va filtrlar bitta ta'rifdan
 - **OpenAPI/Swagger'dan generatsiya** — backend Swagger hujjatidagi barcha resurslar uchun CRUD modullar bitta buyruq bilan
@@ -42,46 +40,29 @@ Fuse Admin (Angular 20) loyihalarini va CRUD feature modullarini avtomatik gener
 
 ## O'rnatish
 
-### 1. GitHub Packages'ga ulanish (bir marta)
-
-Paket GitHub Packages'da turadi, shuning uchun `read:packages` huquqli GitHub token kerak ([Settings → Developer settings → Personal access tokens (classic)](https://github.com/settings/tokens)). Repozitoriyaga ham o'qish ruxsatingiz bo'lishi kerak.
-
-`~/.npmrc` (yoki loyiha ildizidagi `.npmrc`) fayliga qo'shing:
-
-```ini
-@islom1999:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
-```
-
-va tokenni muhit o'zgaruvchisiga yozing (tokenni `.npmrc` ichiga to'g'ridan-to'g'ri yozib, git'ga commit qilmang):
-
-```bash
-export GITHUB_TOKEN=ghp_xxxxxxxxxxxx
-```
-
-### 2. Global o'rnatish (tavsiya etiladi)
+### 1. Global o'rnatish (tavsiya etiladi)
 
 ```bash
 npm install -g @angular-devkit/schematics-cli
-npm install -g @islom1999/fuse-schematics
+npm install -g fuse-schematics
 ```
 
-### 3. Mavjud Angular loyihaga qo'shish
+### 2. Mavjud Angular loyihaga qo'shish
 
 ```bash
-ng add @islom1999/fuse-schematics
+ng add fuse-schematics
 ```
 
 ## Tezkor boshlash
 
 ```bash
 # 1. Yangi loyiha (npm install va git init avtomatik bajariladi)
-schematics @islom1999/fuse-schematics:new elektron-tijorat-admin
+schematics fuse-schematics:new elektron-tijorat-admin
 cd elektron-tijorat-admin
 
 # 2. CRUD modullar — route, menyu va tarjimalar avtomatik qo'shiladi
-schematics @islom1999/fuse-schematics:crud mahsulot --fields "name:string,price:number,active:boolean,status:enum(active|blocked)"
-schematics @islom1999/fuse-schematics:crud kategoriya
+schematics fuse-schematics:crud mahsulot --fields "name:string,price:number,active:boolean,status:enum(active|blocked)"
+schematics fuse-schematics:crud kategoriya
 
 # 3. Ishga tushirish
 npm start
@@ -90,17 +71,17 @@ npm start
 Angular CLI orqali ham ishlaydi:
 
 ```bash
-ng g @islom1999/fuse-schematics:crud mahsulot --fields "name:string,price:number"
+ng g fuse-schematics:crud mahsulot --fields "name:string,price:number"
 ```
 
 ## Schematicslar
 
 ### 1. fuse-starter
 
-To'liq Fuse Admin Angular 20 starter loyihasini yaratadi.
+To'liq Angular 20 + PrimeNG + Tailwind admin starter loyihasini yaratadi.
 
 ```bash
-schematics @islom1999/fuse-schematics:fuse-starter <loyiha-nomi> [opsiyalar]
+schematics fuse-schematics:fuse-starter <loyiha-nomi> [opsiyalar]
 ```
 
 **Aliaslar:** `fuse-starter`, `starter`, `new`
@@ -151,7 +132,7 @@ mening-admin-loyiham/
 Grid, forma, model va servislar bilan to'liq CRUD feature modulini yaratadi va uni loyihaga ulaydi.
 
 ```bash
-schematics @islom1999/fuse-schematics:crud <feature-nomi> [opsiyalar]
+schematics fuse-schematics:crud <feature-nomi> [opsiyalar]
 ```
 
 **Aliaslar:** `fuse-feature`, `feature`, `crud`
@@ -205,13 +186,13 @@ OpenAPI/Swagger hujjatidagi har bir `admin/<nom>` resursi uchun CRUD modul yarat
 
 ```bash
 # fuse-nest-schematics backend uchun
-schematics @islom1999/fuse-schematics:openapi --openapi http://localhost:3000/docs-json
+schematics fuse-schematics:openapi --openapi http://localhost:3000/docs-json
 
 # Fayldan, faqat tanlangan resurslar
-schematics @islom1999/fuse-schematics:openapi --openapi ./swagger.json --include mahsulot,kategoriya
+schematics fuse-schematics:openapi --openapi ./swagger.json --include mahsulot,kategoriya
 
 # Bitta modul, aniq sxemadan
-schematics @islom1999/fuse-schematics:crud buyurtma --openapi ./swagger.json --schema CreateBuyurtmaDto
+schematics fuse-schematics:crud buyurtma --openapi ./swagger.json --schema CreateBuyurtmaDto
 ```
 
 **Alias:** `openapi`
@@ -229,10 +210,10 @@ Resurslar yo'llardan topiladi: `/admin/<nom>` va `/admin/<nom>/{id}` (global pre
 ### 4. ng-add
 
 ```bash
-ng add @islom1999/fuse-schematics
+ng add fuse-schematics
 ```
 
-Paketni `devDependencies` ga qo'shadi, workspace Angular (va Fuse) loyihasi ekanini tekshiradi va foydalanish bo'yicha yo'riqnoma chiqaradi. Hech qanday faylni o'zgartirmaydi.
+Paketni `devDependencies` ga qo'shadi, workspace Angular loyihasi ekanini tekshiradi va foydalanish bo'yicha yo'riqnoma chiqaradi. Hech qanday faylni o'zgartirmaydi.
 
 ## `--fields` sintaksisi
 
@@ -248,7 +229,7 @@ Vergul bilan ajratilgan `nom:tur` juftliklari. Oxiridagi `?` maydonni ixtiyoriy 
 | `enum(a\|b)` | `'a' \| 'b'` | `select` | select |
 
 ```bash
-schematics @islom1999/fuse-schematics:crud mahsulot \
+schematics fuse-schematics:crud mahsulot \
   --fields "name:string,price:number,active:boolean,note:text?,status:enum(active|blocked),soldAt:date?"
 ```
 
@@ -326,17 +307,9 @@ npx ng build
 
 CI (`.github/workflows/ci.yml`) har bir push va PR'da unit testlarni ishga tushiradi, so'ng loyiha yaratib, CRUD modul qo'shib `ng build` qiladi.
 
-### GitHub Packages'ga yuklash
+### Nashr qilish
 
-`write:packages` huquqli token bilan (registry `package.json` dagi `publishConfig` dan olinadi):
-
-```bash
-export GITHUB_TOKEN=ghp_xxxxxxxxxxxx   # write:packages
-npm test
-npm publish
-```
-
-Paket repozitoriya bilan bog'langan: repo private bo'lsa, paket ham private bo'ladi va faqat repo'ga ruxsati borlar o'rnata oladi.
+Paket npmjs.org'ga muallif tomonidan nashr qilinadi: `npm test && npm publish`.
 
 ## Talablar va moslik
 
@@ -344,23 +317,21 @@ Paket repozitoriya bilan bog'langan: repo private bo'lsa, paket ham private bo'l
 - **npm**: 9.0.0 yoki undan yuqori
 - **Angular**: 20.x
 
-| Fuse Schematics | Angular | Fuse Admin shablon |
-|----------------|---------|---------------------|
-| 2.x.x          | 20.x    | 19.0.0 (Angular 20 ga yangilangan) |
-| 1.x.x          | 19.x    | 19.0.0             |
+| Fuse Schematics | Angular |
+|----------------|---------|
+| 2.x.x          | 20.x    |
+| 1.x.x          | 19.x    |
 
 ## Muammolarni hal qilish
 
-**`404 Not Found` yoki `401 Unauthorized` (o'rnatishda)** — `.npmrc` da `@islom1999:registry` qatori borligini, `GITHUB_TOKEN` o'rnatilganini va tokenda `read:packages` huquqi hamda repo'ga ruxsat borligini tekshiring.
-
 **Buyruq topilmadi**
 ```bash
-npm install -g @angular-devkit/schematics-cli @islom1999/fuse-schematics
+npm install -g @angular-devkit/schematics-cli fuse-schematics
 ```
 
 **Ruxsat rad etildi (Linux/Mac)**
 ```bash
-sudo npm install -g @islom1999/fuse-schematics
+sudo npm install -g fuse-schematics
 ```
 
 **Route/menyu qo'shilmadi** — `app.routes.ts` da `resolve: { initialData }` yoki `example` child route'li admin route, `navigation.ts` da esa `defaultNavigation` kabi eksportlar bo'lishi kerak. Aks holda ogohlantirish chiqadi; route'ni qo'lda qo'shing yoki `--skipRoute`/`--skipNav` ishlating.
@@ -394,14 +365,16 @@ sudo npm install -g @islom1999/fuse-schematics
 
 ## Litsenziya
 
-Proprietary © Islom Karimov. Barcha huquqlar himoyalangan; paketni faqat muallif ruxsati bilan ishlatish mumkin.
+MIT © Islom Karimov. Batafsil: [LICENSE](LICENSE).
 
-`src/fuse-starter/files/` dagi shablon Withinpixels (srcn) muallifligidagi [Fuse Angular Admin Template](https://themeforest.net/item/fuse-angular-angular-admin-template/9851916) asosida qayta ishlangan. Bu qismlar asl muallifga tegishli va [Envato litsenziyasi](https://themeforest.net/licenses/standard) bo'yicha ishlatiladi: har bir foydalanuvchida o'z Fuse litsenziyasi bo'lishi shart. Tafsilotlar: [LICENSE](LICENSE).
+Uchinchi tomon resurslari (Heroicons, Flagpack, Inter) `src/fuse-starter/files/THIRD-PARTY-NOTICES.md` faylida keltirilgan.
+
+Starter'ning layout ko'rinishi keng tarqalgan admin dashboardlardan ilhomlangan, barcha kod original. Paket nomidagi "Fuse" tarixiy bo'lib, loyiha Fuse shabloni yoki uning muallifi bilan bog'liq emas.
 
 ## Minnatdorchilik
 
 - [Angular Schematics](https://angular.dev/tools/cli/schematics)
-- [Fuse Admin shablon](https://themeforest.net/item/fuse-angular-angular-admin-template/9851916)
+- [Heroicons](https://heroicons.com/), [Flagpack](https://flagpack.xyz/), [Inter](https://rsms.me/inter/)
 - [PrimeNG](https://primeng.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
 
@@ -409,35 +382,26 @@ Proprietary © Islom Karimov. Barcha huquqlar himoyalangan; paketni faqat mualli
 
 ## English
 
-Angular schematics that scaffold **Fuse Admin (Angular 20)** projects and full **CRUD feature modules**.
+Angular schematics that scaffold **Angular 20 + PrimeNG + Tailwind admin starter** projects and full **CRUD feature modules**.
 
-> **Private package**, distributed via GitHub Packages to authorized users only. The generated project is based on the Fuse Admin template, so every user/team needs their own valid [Fuse license](https://themeforest.net/licenses/standard). See [LICENSE](LICENSE).
-
-Setup: add to `~/.npmrc`
-
-```ini
-@islom1999:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
-```
-
-and export a GitHub token with `read:packages` (and access to the repository) as `GITHUB_TOKEN`. Then:
+Install and use:
 
 ```bash
-npm install -g @angular-devkit/schematics-cli @islom1999/fuse-schematics
+npm install -g @angular-devkit/schematics-cli fuse-schematics
 
 # New project (runs npm install and git init; use --skip-install / --skip-git to opt out)
-schematics @islom1999/fuse-schematics:new my-admin
+schematics fuse-schematics:new my-admin
 
 # CRUD feature — also registers the route, the menu item and i18n keys (idempotent)
 cd my-admin
-schematics @islom1999/fuse-schematics:crud product --fields "name:string,price:number,active:boolean,status:enum(active|blocked)"
+schematics fuse-schematics:crud product --fields "name:string,price:number,active:boolean,status:enum(active|blocked)"
 
 # All CRUD resources from an OpenAPI/Swagger document (file or URL, JSON or YAML)
-schematics @islom1999/fuse-schematics:openapi --openapi http://localhost:3000/docs-json
+schematics fuse-schematics:openapi --openapi http://localhost:3000/docs-json
 
 # Existing Angular workspace
-ng add @islom1999/fuse-schematics
-ng g @islom1999/fuse-schematics:crud product
+ng add fuse-schematics
+ng g fuse-schematics:crud product
 ```
 
 **Schematics**
@@ -453,6 +417,8 @@ The generated app is **zoneless** (`provideZonelessChangeDetection()`, no zone.j
 
 **Config file**: `fuse-schematics.json` at the workspace root, `{ "fuse-feature": { "path": "...", "prefix": "..." } }`; CLI flags win.
 
-**Requirements**: Node.js ≥ 20.19, Angular 20. License: proprietary (see [LICENSE](LICENSE)); the Fuse-derived template requires a Fuse license.
+**Requirements**: Node.js ≥ 20.19, Angular 20.
 
-**Publishing**: `npm publish` with a `write:packages` token (the registry comes from `publishConfig`).
+**License**: MIT (see [LICENSE](LICENSE)). Third-party assets (Heroicons, Flagpack, Inter) are listed in `src/fuse-starter/files/THIRD-PARTY-NOTICES.md`. The starter's layout look is inspired by common admin dashboards; all code is original. "Fuse" in the package name is historical, and the project is not affiliated with the Fuse template or its author.
+
+**Publishing**: done by the package owner with `npm publish` (public on npmjs.org).

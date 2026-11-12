@@ -2,10 +2,10 @@ import { Rule, SchematicContext, SchematicsException, Tree } from "@angular-devk
 import { Schema } from "./schema";
 import { CONFIG_FILE, getProjectInfo, joinPath, readJson } from "../utils/workspace";
 
-const PACKAGE = "@islom1999/fuse-schematics";
+const PACKAGE = "fuse-schematics";
 
 /**
- * `ng add @islom1999/fuse-schematics`: the package is saved as a devDependency by the
+ * `ng add fuse-schematics`: the package is saved as a devDependency by the
  * Angular CLI (see `ng-add.save` in package.json). This schematic only checks
  * that the workspace is an Angular (ideally Fuse) project and prints usage.
  * It does not modify any file.
@@ -17,7 +17,7 @@ export function ngAdd(options: Schema): Rule {
     if (!tree.exists("/angular.json")) {
       throw new SchematicsException(
         `${PACKAGE}: angular.json not found. Run \`ng add ${PACKAGE}\` from the root of an Angular workspace, ` +
-          `or create a new Fuse project with \`npx @angular-devkit/schematics-cli ${PACKAGE}:fuse-starter <name>\`.`
+          `or create a new starter project with \`npx @angular-devkit/schematics-cli ${PACKAGE}:fuse-starter <name>\`.`
       );
     }
 

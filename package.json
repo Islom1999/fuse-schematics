@@ -1,5 +1,5 @@
 {
-  "name": "@islom1999/fuse-schematics",
+  "name": "fuse-schematics",
   "version": "2.0.0",
   "description": "Fuse Admin (Angular 20) loyihalarini va CRUD feature modullarini avtomatik generatsiya qiluvchi Angular schematics to'plami",
   "main": "src/collection.json",
@@ -44,7 +44,7 @@
     "url": "https://github.com/Islom1999/fuse-schematics/issues"
   },
   "homepage": "https://github.com/Islom1999/fuse-schematics#readme",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
