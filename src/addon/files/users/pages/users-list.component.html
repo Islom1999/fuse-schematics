@@ -2,8 +2,11 @@
   <app-grid
     [title]="'admin.users.title'"
     [columns]="columns"
-    [showAddButton]="false"
+    [addButtonText]="'admin.users.addNew'"
+    addButtonIcon="pi pi-plus"
+    [showAddButton]="canWrite()"
     [templateCostumFields]="cell"
+    (onClickAdd)="onAddClick()"
     (onRowSelect)="onRowSelect($event)"
     [$data]="gridService"
   >

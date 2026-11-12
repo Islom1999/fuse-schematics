@@ -16,6 +16,10 @@ export class AdminFeedbackService {
     this.messages.add({ severity: 'success', summary: this.transloco.translate(key, params), life: 3000 })
   }
 
+  error(key: string, params?: Record<string, unknown>): void {
+    this.messages.add({ severity: 'error', summary: this.transloco.translate(key, params), life: 5000 })
+  }
+
   /**
    * Shows the message of a failed request. The error interceptor already toasts network errors,
    * 403 and 5xx, so only the other statuses (400, 404, 409, ...) are shown here.

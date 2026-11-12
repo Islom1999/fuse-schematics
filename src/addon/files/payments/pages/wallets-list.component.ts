@@ -1,4 +1,5 @@
 import { DatePipe } from '@angular/common'
+import { HttpErrorResponse } from '@angular/common/http'
 import { ChangeDetectionStrategy, Component, Type, computed, inject, signal } from '@angular/core'
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco'
@@ -18,12 +19,21 @@ import { TextareaModule } from 'primeng/textarea'
 import { WalletGridService } from '../common/payment-grid.service'
 import { PaymentAdminService } from '../common/payment-admin.service'
 import { formatTiyin, sumToTiyin } from '../common/money'
-import { IWallet, IWalletTransaction } from '../common/payment.model'
+import {
+  IWallet,
+  IWalletTransaction,
+  WALLET_REVERSE_ERRORS,
+  WALLET_REVERSIBLE_TYPES,
+  WalletReverseError,
+} from '../common/payment.model'
 import { PaymentsTabsComponent } from './payments-tabs.component'
 
 const PAGE_SIZE = 10
 
-/** Wallets: balances, a drawer with the wallet transactions, and manual adjust. Needs `payment.read`; adjust needs `payment.write`. */
+/**
+ * Wallets: balances, a drawer with the wallet transactions, manual adjust and reverse of a ledger
+ * row. Needs `payment.read`; adjust and reverse need `payment.write`.
+ */
 @Component({
   selector: 'app-wallets-list',
   imports: [
@@ -72,6 +82,16 @@ export class WalletsListComponent extends BaseTableComponent<IWallet> {
     /** In sum; sent as whole tiyin. Negative debits the wallet. */
     amount: new FormControl<number | null>(null, [Validators.required]),
     note: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.minLength(3), Validators.maxLength(200)],
+    }),
+  })
+
+  protected readonly reverseOpen = signal(false)
+  protected readonly reversing = signal(false)
+  protected readonly reverseTarget = signal<IWalletTransaction | null>(null)
+  protected readonly reverseForm = new FormGroup({
+    comment: new FormControl('', {
       nonNullable: true,
       validators: [Validators.required, Validators.minLength(3), Validators.maxLength(200)],
     }),
@@ -170,6 +190,52 @@ export class WalletsListComponent extends BaseTableComponent<IWallet> {
           this.feedback.httpError(error)
         },
       })
+  }
+
+  /** Adjust, purchase and refund rows can be reversed; a reversal row or a row of a provider payment cannot. */
+  protected canReverse(item: IWalletTransaction): boolean {
+    return this.canWrite() && WALLET_REVERSIBLE_TYPES.includes(item.type) && !item.paymentTransactionId
+  }
+
+  protected openReverse(item: IWalletTransaction): void {
+    this.reverseTarget.set(item)
+    this.reverseForm.reset({ comment: '' })
+    this.reverseOpen.set(true)
+  }
+
+  protected submitReverse(): void {
+    const wallet = this.selected()
+    const target = this.reverseTarget()
+    if (!wallet || !target || this.reverseForm.invalid) return
+    this.reversing.set(true)
+    this.paymentService.reverse(target.id, { comment: this.reverseForm.controls.comment.value.trim() }).subscribe({
+      next: (reversal) => {
+        this.reversing.set(false)
+        this.reverseOpen.set(false)
+        this.selected.set({ ...wallet, balance: reversal.balanceAfter })
+        this.feedback.success('admin.payments.wallets.reversed')
+        this.loadTransactions()
+        const { pageIndex, pageSize } = this.gridService.pageEvent
+        this.gridService.onLoadPage({ pageIndex, pageSize })
+      },
+      error: (error: unknown) => {
+        this.reversing.set(false)
+        const code = this.reverseErrorCode(error)
+        if (code) {
+          this.feedback.error(`admin.payments.wallets.reverseErrors.${code}`)
+        } else {
+          this.feedback.httpError(error)
+        }
+      },
+    })
+  }
+
+  /** The 409 code (`already_reversed`, `insufficient_funds`, `not_reversible`) is in the message or in a `code` field. */
+  private reverseErrorCode(error: unknown): WalletReverseError | null {
+    if (!(error instanceof HttpErrorResponse) || error.status !== 409) return null
+    const body = error.error as { message?: string | string[]; code?: string } | null
+    const text = [body?.code, ...(Array.isArray(body?.message) ? body.message : [body?.message])].filter(Boolean).join(' ')
+    return WALLET_REVERSE_ERRORS.find((code) => text.includes(code)) ?? null
   }
 
   private loadTransactions(): void {

@@ -7,18 +7,20 @@ import { BaseTableComponent } from 'app/shared/abstracts'
 import { GridComponent, IColumn } from 'app/shared/components/grid'
 import { ITableFilterConfig, TableFilterComponent } from 'app/shared/components/table-filter'
 import { AdminFeedbackService } from 'app/shared/services/admin-feedback.service'
+import { ButtonModule } from 'primeng/button'
 import { DialogService } from 'primeng/dynamicdialog'
 import { DrawerModule } from 'primeng/drawer'
 import { MessageModule } from 'primeng/message'
 import { SelectModule } from 'primeng/select'
 import { TagModule } from 'primeng/tag'
 import { ApiLogGridService } from '../common/api-log-grid.service'
+import { splitApiLogQuery } from '../common/api-log-query'
 import { IApiLog, IApiLogStats } from '../common/api-log.model'
 import { ApiLogService } from '../common/api-log.service'
 
 type TagSeverity = 'success' | 'info' | 'warn' | 'danger' | 'secondary'
 
-/** Read-only API log: summary cards, filters, and a drawer with the full log. Needs `server_api_log.read`. */
+/** Read-only API log: summary cards, filters, CSV export, and a drawer with the full log. Needs `server_api_log.read`. */
 @Component({
   selector: 'app-api-logs-list',
   imports: [
@@ -27,6 +29,7 @@ type TagSeverity = 'success' | 'info' | 'warn' | 'danger' | 'secondary'
     FormsModule,
     GridComponent,
     TableFilterComponent,
+    ButtonModule,
     DrawerModule,
     MessageModule,
     SelectModule,
@@ -52,6 +55,8 @@ export class ApiLogsListComponent extends BaseTableComponent<IApiLog> {
   protected readonly hours = signal(24)
   protected readonly hourOptions = [1, 24, 72, 168, 720].map((value) => ({ label: `${value} h`, value }))
   protected readonly stats = signal<IApiLogStats | null>(null)
+
+  protected readonly exporting = signal(false)
 
   protected readonly drawerOpen = signal(false)
   protected readonly selected = signal<IApiLog | null>(null)
@@ -82,6 +87,8 @@ export class ApiLogsListComponent extends BaseTableComponent<IApiLog> {
         props: { translate: true },
       },
       { key: 'statusCode', type: 'number', label: 'admin.apiLogs.fields.statusCode', props: { translate: true } },
+      { key: 'path', type: 'input', label: 'admin.apiLogs.fields.path', props: { translate: true } },
+      { key: 'minDurationMs', type: 'number', label: 'admin.apiLogs.fields.minDurationMs', props: { translate: true } },
       { key: 'module', type: 'input', label: 'admin.apiLogs.fields.module', props: { translate: true } },
       { key: 'userId', type: 'input', label: 'admin.apiLogs.fields.userId', props: { translate: true } },
       { key: 'requestId', type: 'input', label: 'admin.apiLogs.fields.requestId', props: { translate: true } },
@@ -108,6 +115,23 @@ export class ApiLogsListComponent extends BaseTableComponent<IApiLog> {
         next: (stats) => this.stats.set(stats),
         error: (error: unknown) => this.feedback.httpError(error),
       })
+    })
+  }
+
+  /** Downloads the CSV with the search, filters and sort of the table (at most 5000 rows by default). */
+  protected exportCsv(): void {
+    const { filters, sortField, sortOrder } = this.gridService.filterSort
+    const { table, typed } = splitApiLogQuery({ filters, sortField, sortOrder })
+    this.exporting.set(true)
+    this.apiLogService.exportCsv(table, typed).subscribe({
+      next: (file) => {
+        this.exporting.set(false)
+        this.feedback.success('admin.apiLogs.exported', { name: file.filename })
+      },
+      error: (error: unknown) => {
+        this.exporting.set(false)
+        this.feedback.httpError(error)
+      },
     })
   }
 

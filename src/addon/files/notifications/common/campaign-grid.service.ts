@@ -12,7 +12,7 @@ export class CampaignGridService extends GridService<ICampaign> {
   private readonly notificationService = inject(NotificationAdminService)
 
   override getAllData(params: TableQueryDTO): Observable<GridResponse<ICampaign>> {
-    return this.notificationService.campaigns(toTableQuery(params, ['target'])).pipe(
+    return this.notificationService.campaigns(toTableQuery(params, ['target', 'status'])).pipe(
       map((response) => ({
         count: response.count,
         data: Array.isArray(response.data) ? response.data : [],

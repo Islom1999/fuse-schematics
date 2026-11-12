@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
 import { RouterLink, RouterLinkActive } from '@angular/router'
 import { TranslocoPipe } from '@jsverse/transloco'
 
-/** Links between the transactions page and the wallets page. */
+/** Links between the transactions, invoices and wallets pages. */
 @Component({
   selector: 'app-payments-tabs',
   imports: [RouterLink, RouterLinkActive, TranslocoPipe],
@@ -16,6 +16,13 @@ import { TranslocoPipe } from '@jsverse/transloco'
         class="rounded-full border border-gray-300 px-4 py-1.5 text-sm font-medium"
       >
         {{ 'admin.payments.transactions.title' | transloco }}
+      </a>
+      <a
+        routerLink="/payments/invoices"
+        routerLinkActive="bg-primary text-white"
+        class="rounded-full border border-gray-300 px-4 py-1.5 text-sm font-medium"
+      >
+        {{ 'admin.payments.invoices.title' | transloco }}
       </a>
       <a
         routerLink="/payments/wallets"

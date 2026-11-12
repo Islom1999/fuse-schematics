@@ -1,5 +1,5 @@
 export interface Schema {
-  /** Add-on page: `users`, `api-logs`, `notifications`, `payments` or `ai`. */
+  /** Add-on page: `users`, `api-logs`, `notifications`, `payments`, `ai` or `queue`. */
   name: string;
   /** Directory the page folder is created in. Default: `<sourceRoot>/app/modules/admin`. */
   path?: string;

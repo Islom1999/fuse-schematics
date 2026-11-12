@@ -259,4 +259,74 @@ describe("addon", () => {
       }
     });
   });
+
+  describe("v2 back-end routes", () => {
+    const addonFile = (name: string, file: string) => fs.readFileSync(path.join(filesRoot, name, file), "utf-8");
+    const allText = (name: string) => templateFiles(name).map((f) => addonFile(name, f)).join("\n");
+
+    it("registers the queue add-on with its own menu item and read/write permissions", () => {
+      expect(ADDON_NAMES).toContain("queue" as AddonName);
+      expect(ADDONS.queue.permission).toBe("queue.read / queue.write");
+      expect(ADDONS.queue.icon).toBe("heroicons_outline:queue-list");
+    });
+
+    it("queue: lists queues and jobs, and gates retry, clean, pause and resume with queue.write", () => {
+      const service = addonFile("queue", "common/queue-admin.service.ts");
+      expect(service).toContain("admin/queues");
+      for (const action of ["retry", "clean", "pause", "resume"]) expect(service).toContain(action);
+      const page = allText("queue");
+      expect(page).toContain("queue.write");
+      expect(page).toContain("queue.read");
+      expect(page).toMatch(/limit/);
+    });
+
+    it("users: full CRUD on admin/users with PATCH, soft delete and push devices", () => {
+      const service = addonFile("users", "common/user-admin.service.ts");
+      expect(service).toContain("admin/users");
+      expect(service).toContain("push-devices");
+      expect(service).toMatch(/\.patch</);
+      expect(service).toMatch(/\bdelete\(/);
+      expect(allText("users")).toContain("user.write");
+    });
+
+    it("payments: invoices, summary, CSV export and wallet reverse", () => {
+      const service = addonFile("payments", "common/payment-admin.service.ts");
+      expect(service).toContain("admin/payments/invoices");
+      expect(service).toContain("admin/payments/summary");
+      expect(service).toContain("admin/payments/export");
+      expect(service).toContain("admin/wallets/transactions/");
+      expect(service).toContain("/reverse");
+      expect(allText("payments")).toContain("already_reversed");
+      expect(addonFile("payments", "pages/transactions-list.component.html")).toContain("truncated");
+    });
+
+    it("notifications: topic target, sendAt, resend and delete", () => {
+      const text = allText("notifications");
+      expect(text).toContain("topic");
+      expect(text).toContain("sendAt");
+      expect(addonFile("notifications", "common/notification-admin.service.ts")).toMatch(/resend/);
+      expect(addonFile("notifications", "common/notification-admin.service.ts")).toMatch(/delete/);
+    });
+
+    it("ai: reads admin/ai/usage; api-logs: exports CSV", () => {
+      expect(addonFile("ai", "common/ai-admin.service.ts")).toContain("admin/ai/usage");
+      expect(addonFile("api-logs", "common/api-log.service.ts")).toContain("admin/server-api-logs/export");
+    });
+
+    it("the CSV helper in the starter uses blob responses and the Content-Disposition filename", () => {
+      const helper = readStarter("src/app/shared/utils/csv-download.ts");
+      expect(helper).toContain("responseType: 'blob'");
+      expect(helper).toContain("observe: 'response'");
+      expect(helper).toContain('Content-Disposition');
+      expect(helper).toContain('X-Total-Count');
+      expect(helper).toContain('X-Export-Truncated');
+      expect(readStarter("src/app/shared/index.ts")).toContain("utils/csv-download");
+    });
+
+    it("pages use the shared CSV helper instead of their own download code", () => {
+      for (const [name, file] of [["payments", "common/payment-admin.service.ts"], ["api-logs", "common/api-log.service.ts"]]) {
+        expect(addonFile(name, file)).withContext(name).toContain("CsvDownloadService");
+      }
+    });
+  });
 });

@@ -1,0 +1,109 @@
+<div class="flex flex-col gap-6 p-2">
+  @if (user(); as user) {
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <h2 class="text-xl font-semibold">{{ user.name || user.accountNo }}</h2>
+        <p-tag
+          [value]="(user.isBlocked ? 'admin.users.blocked' : 'admin.users.active') | transloco"
+          [severity]="user.isBlocked ? 'danger' : 'success'"
+        />
+      </div>
+      @if (canWrite) {
+        <p-button
+          [label]="(user.isBlocked ? 'admin.users.unblock' : 'admin.users.block') | transloco"
+          [icon]="user.isBlocked ? 'pi pi-lock-open' : 'pi pi-ban'"
+          [severity]="user.isBlocked ? 'success' : 'danger'"
+          [outlined]="true"
+          type="button"
+          (onClick)="toggleBlocked()"
+        />
+      }
+    </div>
+
+    <dl class="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+      <div>
+        <dt class="text-secondary text-sm">{{ 'admin.users.fields.accountNo' | transloco }}</dt>
+        <dd>{{ user.accountNo }}</dd>
+      </div>
+      @for (identity of identities(); track identity.label) {
+        <div>
+          <dt class="text-secondary text-sm">{{ identity.label }}</dt>
+          <dd class="break-all">{{ identity.value }}</dd>
+        </div>
+      }
+      <div>
+        <dt class="text-secondary text-sm">{{ 'admin.users.fields.lastLoginAt' | transloco }}</dt>
+        <dd>{{ user.lastLoginAt | date: 'dd.MM.yyyy HH:mm' }}</dd>
+      </div>
+      <div>
+        <dt class="text-secondary text-sm">{{ 'admin.users.fields.createdAt' | transloco }}</dt>
+        <dd>{{ user.createdAt | date: 'dd.MM.yyyy HH:mm' }}</dd>
+      </div>
+    </dl>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <formly-form [form]="form" [fields]="fields" [model]="model" />
+
+    @if (canWrite) {
+      <form-action-buttons
+        [isEditMode]="isEditMode"
+        [isFormValid]="form.valid"
+        (delete)="onDelete()"
+        (cancel)="onCancel()"
+        (submit)="onSubmit()"
+      />
+    } @else {
+      <div class="mt-6 flex justify-end border-t pt-4">
+        <p-button
+          [label]="'admin.common.close' | transloco"
+          severity="secondary"
+          [outlined]="true"
+          type="button"
+          (onClick)="onCancel()"
+        />
+      </div>
+    }
+  </form>
+
+  @if (isEditMode && id) {
+    @if (canReadPush) {
+      <section class="flex flex-col gap-2">
+        <h3 class="font-semibold">{{ 'admin.users.pushDevices.title' | transloco }}</h3>
+        <p-table [value]="pushDevices()" [loading]="loadingPush()" size="small">
+          <ng-template #header>
+            <tr>
+              <th>{{ 'admin.users.pushDevices.platform' | transloco }}</th>
+              <th>{{ 'admin.users.pushDevices.device' | transloco }}</th>
+              <th>{{ 'admin.users.pushDevices.appVersion' | transloco }}</th>
+              <th>{{ 'admin.users.pushDevices.token' | transloco }}</th>
+              <th>{{ 'admin.users.pushDevices.lastSeenAt' | transloco }}</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-device>
+            <tr>
+              <td>{{ device.platform || '-' }}</td>
+              <td>{{ device.deviceName || '-' }}</td>
+              <td>{{ device.appVersion || '-' }}</td>
+              <td class="font-mono text-xs">{{ device.tokenMasked }}</td>
+              <td>{{ device.lastSeenAt ? (device.lastSeenAt | date: 'dd.MM.yyyy HH:mm') : '-' }}</td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr>
+              <td colspan="5" class="text-secondary py-4 text-center">{{ 'admin.users.pushDevices.empty' | transloco }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </section>
+    }
+
+    <app-sessions-panel
+      [sessions]="sessions()"
+      [loading]="loadingSessions()"
+      [canRevoke]="canWrite"
+      (revoke)="revoke($event)"
+      (revokeAll)="revokeAll()"
+    />
+  }
+</div>

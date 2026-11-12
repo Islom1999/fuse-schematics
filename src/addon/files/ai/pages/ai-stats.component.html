@@ -1,10 +1,12 @@
 <section class="mx-auto flex max-w-screen-xl flex-col gap-6 px-4 py-8 sm:px-8">
+  <app-ai-tabs />
+
   <div class="flex flex-wrap items-center justify-between gap-3">
     <div>
       <h1 class="text-2xl font-bold sm:text-3xl">{{ 'admin.ai.title' | transloco }}</h1>
       @if (stats(); as stats) {
         <p class="text-secondary mt-1 text-sm">
-          {{ 'admin.ai.since' | transloco }} {{ stats.since | date: 'dd.MM.yyyy HH:mm' }}
+          {{ 'admin.ai.period' | transloco }}: {{ stats.from }} - {{ stats.to }}
         </p>
       }
     </div>
@@ -12,7 +14,28 @@
     @if (canRead()) {
       <div class="flex flex-wrap items-center gap-3">
         <label for="ai-days" class="text-secondary text-sm">{{ 'admin.ai.days' | transloco }}</label>
-        <p-select inputId="ai-days" [options]="dayOptions" optionLabel="label" optionValue="value" [(ngModel)]="days" />
+        <p-select
+          inputId="ai-days"
+          [options]="dayOptions"
+          optionLabel="label"
+          optionValue="value"
+          [disabled]="!!from()"
+          [(ngModel)]="days"
+        />
+        <label for="ai-from" class="text-secondary text-sm">{{ 'admin.ai.from' | transloco }}</label>
+        <input id="ai-from" pInputText type="date" [value]="from()" [max]="to() || null" (input)="onDate('from', $event)" />
+        <label for="ai-to" class="text-secondary text-sm">{{ 'admin.ai.to' | transloco }}</label>
+        <input id="ai-to" pInputText type="date" [value]="to()" [min]="from() || null" (input)="onDate('to', $event)" />
+        @if (from() || to()) {
+          <p-button
+            icon="pi pi-times"
+            severity="secondary"
+            [text]="true"
+            type="button"
+            [attr.aria-label]="'admin.ai.clearPeriod' | transloco"
+            (onClick)="clearPeriod()"
+          />
+        }
         <label for="ai-top" class="text-secondary text-sm">{{ 'admin.ai.top' | transloco }}</label>
         <p-select inputId="ai-top" [options]="topOptions" optionLabel="label" optionValue="value" [(ngModel)]="top" />
         <p-button
@@ -30,6 +53,8 @@
 
   @if (!canRead()) {
     <p-message severity="warn" [text]="'admin.common.noPermission' | transloco" />
+  } @else if (!periodValid()) {
+    <p-message severity="warn" [text]="'admin.ai.periodInvalid' | transloco" />
   } @else if (stats(); as stats) {
     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       @for (card of cards(); track card.key) {
@@ -75,6 +100,19 @@
           </tr>
         </ng-template>
       </p-table>
+    </div>
+
+    <div class="bg-card rounded-xl p-4 shadow">
+      <h2 class="mb-3 text-lg font-semibold">{{ 'admin.ai.costByDay' | transloco }}</h2>
+      <div class="max-h-72 overflow-auto">
+        @for (row of stats.costByDay; track row.day) {
+          <div class="flex items-center gap-3 py-0.5 text-sm">
+            <span class="w-24 shrink-0">{{ row.day }}</span>
+            <div class="bg-primary h-2 rounded" [style.width.%]="(row.costUsd / maxDayCost()) * 100"></div>
+            <span class="whitespace-nowrap">$ {{ row.costUsd | number: '1.2-4' }}</span>
+          </div>
+        }
+      </div>
     </div>
 
     <div class="grid gap-6 lg:grid-cols-2">

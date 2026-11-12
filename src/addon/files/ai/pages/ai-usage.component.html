@@ -1,0 +1,161 @@
+<section class="mx-auto flex max-w-screen-xl flex-col gap-6 px-4 py-8 sm:px-8">
+  <app-ai-tabs />
+
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <h1 class="text-2xl font-bold sm:text-3xl">{{ 'admin.ai.usageTitle' | transloco }}</h1>
+
+    @if (canRead()) {
+      <div class="flex flex-wrap items-end gap-3">
+        <div class="flex flex-col gap-1">
+          <label for="ai-usage-user" class="text-secondary text-sm">{{ 'admin.ai.columns.userId' | transloco }}</label>
+          <input id="ai-usage-user" pInputText maxlength="64" [value]="userId()" (input)="onInput('userId', $event)" (keyup.enter)="load()" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="ai-usage-from" class="text-secondary text-sm">{{ 'admin.ai.from' | transloco }}</label>
+          <input id="ai-usage-from" pInputText type="date" [value]="from()" (input)="onInput('from', $event)" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="ai-usage-to" class="text-secondary text-sm">{{ 'admin.ai.to' | transloco }}</label>
+          <input id="ai-usage-to" pInputText type="date" [value]="to()" (input)="onInput('to', $event)" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="ai-usage-limit" class="text-secondary text-sm">{{ 'admin.ai.limit' | transloco }}</label>
+          <p-select inputId="ai-usage-limit" [options]="limitOptions" optionLabel="label" optionValue="value" [(ngModel)]="limit" />
+        </div>
+        <p-button
+          [label]="'admin.common.refresh' | transloco"
+          icon="pi pi-refresh"
+          severity="secondary"
+          [outlined]="true"
+          type="button"
+          [loading]="loading()"
+          [disabled]="!periodValid()"
+          (onClick)="load()"
+        />
+      </div>
+    }
+  </div>
+
+  @if (!canRead()) {
+    <p-message severity="warn" [text]="'admin.common.noPermission' | transloco" />
+  } @else if (!periodValid()) {
+    <p-message severity="warn" [text]="'admin.ai.periodInvalid' | transloco" />
+  } @else if (unavailable()) {
+    <p-message severity="info" [text]="'admin.ai.quotaMissing' | transloco" />
+  } @else if (usage(); as usage) {
+    <p class="text-secondary text-sm">{{ 'admin.ai.period' | transloco }}: {{ usage.from }} - {{ usage.to }}</p>
+
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      @for (card of cards(); track card.key) {
+        <div class="rounded-xl border border-gray-200 bg-white p-4">
+          <div class="text-secondary text-sm">{{ 'admin.ai.usageCards.' + card.key | transloco }}</div>
+          <div class="text-2xl font-semibold">{{ card.value | number: '1.0-0' }}</div>
+        </div>
+      }
+    </div>
+
+    @if (usage.current; as current) {
+      <div class="bg-card flex flex-col gap-3 rounded-xl p-4 shadow">
+        <h2 class="text-lg font-semibold">{{ 'admin.ai.current.title' | transloco }}</h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <div class="text-secondary text-sm">{{ 'admin.ai.current.daily' | transloco }} ({{ current.day }})</div>
+            <div class="text-xl font-semibold">
+              {{ current.dailyMessages | number: '1.0-0' }}
+              @if (current.dailyMessageLimit > 0) {
+                / {{ current.dailyMessageLimit | number: '1.0-0' }}
+              } @else {
+                <span class="text-secondary text-sm">{{ 'admin.ai.current.noLimit' | transloco }}</span>
+              }
+            </div>
+            @if (current.dailyMessageLimit > 0) {
+              <div class="mt-1 h-2 rounded bg-gray-100">
+                <div class="bg-primary h-2 rounded" [style.width.%]="percent(current.dailyMessages, current.dailyMessageLimit)"></div>
+              </div>
+            }
+            <div class="text-secondary mt-1 text-xs">
+              {{ 'admin.ai.current.resetAt' | transloco }} {{ current.dailyResetAt | date: 'dd.MM.yyyy HH:mm' }}
+            </div>
+          </div>
+          <div>
+            <div class="text-secondary text-sm">{{ 'admin.ai.current.monthly' | transloco }} ({{ current.month }})</div>
+            <div class="text-xl font-semibold">
+              {{ current.monthlyTokens | number: '1.0-0' }}
+              @if (current.monthlyTokenLimit > 0) {
+                / {{ current.monthlyTokenLimit | number: '1.0-0' }}
+              } @else {
+                <span class="text-secondary text-sm">{{ 'admin.ai.current.noLimit' | transloco }}</span>
+              }
+            </div>
+            @if (current.monthlyTokenLimit > 0) {
+              <div class="mt-1 h-2 rounded bg-gray-100">
+                <div class="bg-primary h-2 rounded" [style.width.%]="percent(current.monthlyTokens, current.monthlyTokenLimit)"></div>
+              </div>
+            }
+            <div class="text-secondary mt-1 text-xs">
+              {{ 'admin.ai.current.resetAt' | transloco }} {{ current.monthlyResetAt | date: 'dd.MM.yyyy HH:mm' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="bg-card rounded-xl p-4 shadow">
+        <h2 class="mb-3 text-lg font-semibold">{{ 'admin.ai.daily' | transloco }}</h2>
+        <p-table [value]="usage.daily" size="small" [scrollable]="true" scrollHeight="24rem">
+          <ng-template #header>
+            <tr>
+              <th>{{ 'admin.ai.columns.day' | transloco }}</th>
+              <th>{{ 'admin.ai.columns.userId' | transloco }}</th>
+              <th class="text-right">{{ 'admin.ai.columns.messages' | transloco }}</th>
+              <th class="text-right">{{ 'admin.ai.columns.tokens' | transloco }}</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-row>
+            <tr>
+              <td>{{ row.day }}</td>
+              <td class="break-all">{{ row.userId }}</td>
+              <td class="text-right">{{ row.messages | number: '1.0-0' }}</td>
+              <td class="text-right">{{ row.tokens | number: '1.0-0' }}</td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr>
+              <td colspan="4" class="text-secondary py-6 text-center">{{ 'admin.grid.noData' | transloco }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <div class="bg-card rounded-xl p-4 shadow">
+        <h2 class="mb-3 text-lg font-semibold">{{ 'admin.ai.monthly' | transloco }}</h2>
+        <p-table [value]="usage.monthly" size="small" [scrollable]="true" scrollHeight="24rem">
+          <ng-template #header>
+            <tr>
+              <th>{{ 'admin.ai.columns.month' | transloco }}</th>
+              <th>{{ 'admin.ai.columns.userId' | transloco }}</th>
+              <th class="text-right">{{ 'admin.ai.columns.messages' | transloco }}</th>
+              <th class="text-right">{{ 'admin.ai.columns.tokens' | transloco }}</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-row>
+            <tr>
+              <td>{{ row.month }}</td>
+              <td class="break-all">{{ row.userId }}</td>
+              <td class="text-right">{{ row.messages | number: '1.0-0' }}</td>
+              <td class="text-right">{{ row.tokens | number: '1.0-0' }}</td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr>
+              <td colspan="4" class="text-secondary py-6 text-center">{{ 'admin.grid.noData' | transloco }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  } @else {
+    <p class="text-secondary">{{ 'admin.common.loading' | transloco }}</p>
+  }
+</section>

@@ -10,7 +10,7 @@ export interface LocalizedTree {
  * keys) so a project made from an older starter still gets working labels.
  */
 export declare const COMMON_TRANSLATIONS: LocalizedTree;
-export declare const ADDON_NAMES: readonly ["users", "api-logs", "notifications", "payments", "ai"];
+export declare const ADDON_NAMES: readonly ["users", "api-logs", "notifications", "payments", "ai", "queue"];
 export type AddonName = (typeof ADDON_NAMES)[number];
 /** Translation keys of each add-on page, under `admin.<camelCasedName>`. */
 export declare const ADDON_TRANSLATIONS: Record<AddonName, LocalizedTree>;
