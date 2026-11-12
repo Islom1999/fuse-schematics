@@ -18,6 +18,12 @@
       "schema": "./fuse-feature/schema.json",
       "aliases": ["feature", "crud"]
     },
+    "addon": {
+      "description": "Add an admin page for a back-end add-on (users, api-logs, notifications, payments, ai)",
+      "factory": "./addon/index#addon",
+      "schema": "./addon/schema.json",
+      "aliases": ["admin-addon"]
+    },
     "fuse-openapi": {
       "description": "Generate a CRUD feature for every resource of an OpenAPI/Swagger document",
       "factory": "./fuse-openapi/index#fuseOpenapi",

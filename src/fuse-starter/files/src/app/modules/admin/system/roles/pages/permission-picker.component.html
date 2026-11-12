@@ -1,0 +1,45 @@
+<div class="flex flex-col gap-3">
+  @if (canGrantAll()) {
+    <div class="flex items-center gap-2 font-medium">
+      <p-checkbox
+        inputId="perm-all"
+        [binary]="true"
+        [ngModel]="all()"
+        [disabled]="disabled()"
+        (ngModelChange)="toggleAll($event)"
+      />
+      <label for="perm-all">{{ 'admin.system.roles.allPermissions' | transloco }}</label>
+    </div>
+  }
+
+  <div class="grid gap-2 md:grid-cols-2">
+    @for (group of catalog(); track group.resource) {
+      <div class="rounded-lg border p-3">
+        <div class="mb-2 flex items-center gap-2 font-semibold">
+          <p-checkbox
+            [inputId]="'perm-group-' + group.resource"
+            [binary]="true"
+            [ngModel]="isGroupChecked(group)"
+            [disabled]="disabled() || all()"
+            (ngModelChange)="toggleGroup(group, $event)"
+          />
+          <label [for]="'perm-group-' + group.resource">{{ group.resource }}</label>
+        </div>
+        <div class="flex flex-wrap gap-x-4 gap-y-1">
+          @for (action of group.actions; track action) {
+            <div class="flex items-center gap-2 text-sm">
+              <p-checkbox
+                [inputId]="'perm-' + key(group, action)"
+                [binary]="true"
+                [ngModel]="isChecked(key(group, action))"
+                [disabled]="isDisabled(key(group, action))"
+                (ngModelChange)="toggle(key(group, action), $event)"
+              />
+              <label [for]="'perm-' + key(group, action)">{{ action }}</label>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

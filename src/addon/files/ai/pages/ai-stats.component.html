@@ -1,0 +1,145 @@
+<section class="mx-auto flex max-w-screen-xl flex-col gap-6 px-4 py-8 sm:px-8">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-bold sm:text-3xl">{{ 'admin.ai.title' | transloco }}</h1>
+      @if (stats(); as stats) {
+        <p class="text-secondary mt-1 text-sm">
+          {{ 'admin.ai.since' | transloco }} {{ stats.since | date: 'dd.MM.yyyy HH:mm' }}
+        </p>
+      }
+    </div>
+
+    @if (canRead()) {
+      <div class="flex flex-wrap items-center gap-3">
+        <label for="ai-days" class="text-secondary text-sm">{{ 'admin.ai.days' | transloco }}</label>
+        <p-select inputId="ai-days" [options]="dayOptions" optionLabel="label" optionValue="value" [(ngModel)]="days" />
+        <label for="ai-top" class="text-secondary text-sm">{{ 'admin.ai.top' | transloco }}</label>
+        <p-select inputId="ai-top" [options]="topOptions" optionLabel="label" optionValue="value" [(ngModel)]="top" />
+        <p-button
+          icon="pi pi-refresh"
+          severity="secondary"
+          [outlined]="true"
+          type="button"
+          [loading]="loading()"
+          [attr.aria-label]="'admin.common.refresh' | transloco"
+          (onClick)="refresh()"
+        />
+      </div>
+    }
+  </div>
+
+  @if (!canRead()) {
+    <p-message severity="warn" [text]="'admin.common.noPermission' | transloco" />
+  } @else if (stats(); as stats) {
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      @for (card of cards(); track card.key) {
+        <div class="rounded-xl border border-gray-200 bg-white p-4">
+          <div class="text-secondary text-sm">{{ 'admin.ai.cards.' + card.key | transloco }}</div>
+          <div class="text-2xl font-semibold">
+            @if (card.value === null) {
+              -
+            } @else {
+              {{ card.prefix }}{{ card.value | number: card.format }}{{ card.suffix }}
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="bg-card rounded-xl p-4 shadow">
+      <h2 class="mb-3 text-lg font-semibold">{{ 'admin.ai.byModel' | transloco }}</h2>
+      <p-table [value]="stats.byModel" size="small" [tableStyle]="{ 'min-width': '40rem' }">
+        <ng-template #header>
+          <tr>
+            <th>{{ 'admin.ai.columns.provider' | transloco }}</th>
+            <th>{{ 'admin.ai.columns.model' | transloco }}</th>
+            <th class="text-right">{{ 'admin.ai.columns.requests' | transloco }}</th>
+            <th class="text-right">{{ 'admin.ai.columns.tokens' | transloco }}</th>
+            <th class="text-right">{{ 'admin.ai.columns.costUsd' | transloco }}</th>
+            <th class="text-right">{{ 'admin.ai.columns.avgLatencyMs' | transloco }}</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-row>
+          <tr>
+            <td>{{ row.provider }}</td>
+            <td>{{ row.model }}</td>
+            <td class="text-right">{{ row.requests | number: '1.0-0' }}</td>
+            <td class="text-right">{{ row.tokens | number: '1.0-0' }}</td>
+            <td class="text-right">$ {{ row.costUsd | number: '1.2-4' }}</td>
+            <td class="text-right">{{ row.avgLatencyMs === null ? '-' : (row.avgLatencyMs | number: '1.0-0') + ' ms' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr>
+            <td colspan="6" class="text-secondary py-6 text-center">{{ 'admin.grid.noData' | transloco }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="bg-card rounded-xl p-4 shadow">
+        <h2 class="mb-3 text-lg font-semibold">{{ 'admin.ai.byDay' | transloco }}</h2>
+        <p-table [value]="stats.byDay" size="small" [scrollable]="true" scrollHeight="24rem">
+          <ng-template #header>
+            <tr>
+              <th>{{ 'admin.ai.columns.day' | transloco }}</th>
+              <th class="w-1/3">{{ 'admin.ai.columns.requests' | transloco }}</th>
+              <th class="text-right">{{ 'admin.ai.columns.errors' | transloco }}</th>
+              <th class="text-right">{{ 'admin.ai.columns.tokens' | transloco }}</th>
+              <th class="text-right">{{ 'admin.ai.columns.costUsd' | transloco }}</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-row>
+            <tr>
+              <td>{{ row.day }}</td>
+              <td>
+                <div class="flex items-center gap-2">
+                  <div class="bg-primary h-2 rounded" [style.width.%]="(row.requests / maxDayRequests()) * 100"></div>
+                  <span class="text-sm">{{ row.requests | number: '1.0-0' }}</span>
+                </div>
+              </td>
+              <td class="text-right">{{ row.errors | number: '1.0-0' }}</td>
+              <td class="text-right">{{ row.tokens | number: '1.0-0' }}</td>
+              <td class="text-right">$ {{ row.costUsd | number: '1.2-4' }}</td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr>
+              <td colspan="5" class="text-secondary py-6 text-center">{{ 'admin.grid.noData' | transloco }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <div class="bg-card rounded-xl p-4 shadow">
+        <h2 class="mb-3 text-lg font-semibold">{{ 'admin.ai.topUsers' | transloco }}</h2>
+        <p-table [value]="stats.topUsers" size="small" [scrollable]="true" scrollHeight="24rem">
+          <ng-template #header>
+            <tr>
+              <th>{{ 'admin.ai.columns.userId' | transloco }}</th>
+              <th class="text-right">{{ 'admin.ai.columns.requests' | transloco }}</th>
+              <th class="text-right">{{ 'admin.ai.columns.tokens' | transloco }}</th>
+              <th class="text-right">{{ 'admin.ai.columns.costUsd' | transloco }}</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-row>
+            <tr>
+              <td class="break-all">{{ row.userId }}</td>
+              <td class="text-right">{{ row.requests | number: '1.0-0' }}</td>
+              <td class="text-right">{{ row.tokens | number: '1.0-0' }}</td>
+              <td class="text-right">$ {{ row.costUsd | number: '1.2-4' }}</td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr>
+              <td colspan="4" class="text-secondary py-6 text-center">{{ 'admin.grid.noData' | transloco }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  } @else {
+    <p class="text-secondary">{{ 'admin.common.loading' | transloco }}</p>
+  }
+</section>

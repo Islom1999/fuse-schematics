@@ -146,5 +146,134 @@
         "network": "Cannot reach the server",
         "forbidden": "You don't have permission to do that",
         "server": "Something went wrong, please try again."
+    },
+    "active": {
+        "data": "Active"
+    },
+    "archive": {
+        "data": "Archive"
+    },
+    "form": {
+        "validation": {
+            "required": "This field is required"
+        }
+    },
+    "admin": {
+        "common": {
+            "create": "Create",
+            "update": "Update",
+            "delete": "Delete",
+            "cancel": "Cancel",
+            "close": "Close",
+            "confirm": "Confirm",
+            "saved": "Saved",
+            "deleted": "Deleted",
+            "refresh": "Refresh",
+            "noPermission": "You do not have permission to view this page.",
+            "yes": "Yes",
+            "no": "No",
+            "none": "None",
+            "id": "ID",
+            "status": "Status",
+            "createdAt": "Created",
+            "updatedAt": "Updated",
+            "details": "Details",
+            "search": "Search",
+            "notAvailable": "n/a",
+            "back": "Back",
+            "loading": "Loading...",
+            "filters": "Filters"
+        },
+        "grid": {
+            "noData": "No data",
+            "total": "Total: {{count}}",
+            "filter": {
+                "yes": "Yes",
+                "no": "No"
+            },
+            "actions": {
+                "exportExcel": "Export to Excel",
+                "exportCsv": "Export to CSV",
+                "clearFilter": "Clear filter",
+                "resetFilters": "Reset filters"
+            }
+        },
+        "sessions": {
+            "title": "Device sessions",
+            "device": "Device",
+            "ip": "IP address",
+            "lastUsedAt": "Last used",
+            "expiresAt": "Expires",
+            "current": "Current",
+            "empty": "No active sessions",
+            "revoke": "Revoke session",
+            "revoked": "Session revoked",
+            "revokeAll": "Revoke all",
+            "revokedCount": "{{count}} session(s) revoked",
+            "revokeAllConfirm": {
+                "title": "Revoke all sessions",
+                "message": "Every device will be signed out. Continue?"
+            }
+        },
+        "system": {
+            "admins": {
+                "title": "Admins",
+                "addNew": "Add admin",
+                "create": "Create admin",
+                "edit": "Edit admin",
+                "search": "Search",
+                "searchPlaceholder": "Email, name or role",
+                "blocked": "Blocked",
+                "active": "Active",
+                "security": "Security",
+                "block": "Block",
+                "unblock": "Unblock",
+                "blockedHint": "This admin is blocked and cannot sign in.",
+                "activeHint": "Blocking ends all sessions of this admin.",
+                "blockConfirm": {
+                    "title": "Block admin",
+                    "message": "The admin is signed out of every device and cannot sign in again until unblocked."
+                },
+                "unblockConfirm": {
+                    "title": "Unblock admin",
+                    "message": "The admin will be able to sign in again."
+                },
+                "blockedDone": "Admin blocked",
+                "unblockedDone": "Admin unblocked",
+                "newPassword": "New password",
+                "setPassword": "Set password",
+                "passwordHint": "8 to 200 characters. All sessions of the admin end.",
+                "passwordChanged": "Password changed",
+                "deleteTitle": "Delete admin",
+                "deleteMessage": "Delete \"{{name}}\"? This cannot be undone.",
+                "fields": {
+                    "email": "Email",
+                    "name": "Name",
+                    "password": "Password",
+                    "role": "Role",
+                    "isBlocked": "Status",
+                    "lastLoginAt": "Last sign-in",
+                    "createdAt": "Created"
+                }
+            },
+            "roles": {
+                "title": "Roles",
+                "addNew": "Add role",
+                "create": "Create role",
+                "edit": "Edit role",
+                "search": "Search",
+                "searchPlaceholder": "Role name",
+                "allPermissions": "All permissions",
+                "permissionCount": "{{count}} permission(s)",
+                "deleteTitle": "Delete role",
+                "deleteMessage": "Delete \"{{name}}\"? Admins with this role lose its permissions.",
+                "fields": {
+                    "name": "Name",
+                    "permissions": "Permissions",
+                    "createdAt": "Created",
+                    "updatedAt": "Updated"
+                }
+            }
+        }
     }
 }

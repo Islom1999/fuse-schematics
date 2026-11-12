@@ -1,0 +1,33 @@
+<div class="flex flex-col gap-4 p-2">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <formly-form [form]="form" [fields]="fields" [model]="model" />
+
+    <h3 class="mb-2 mt-4 text-lg font-semibold">{{ 'admin.system.roles.fields.permissions' | transloco }}</h3>
+    <app-permission-picker
+      [catalog]="catalog()"
+      [selected]="model.permissions ?? []"
+      [disabled]="!canWrite"
+      (selectedChange)="onPermissionsChange($event)"
+    />
+
+    @if (canWrite) {
+      <form-action-buttons
+        [isEditMode]="isEditMode"
+        [isFormValid]="form.valid"
+        (delete)="onDelete()"
+        (cancel)="onCancel()"
+        (submit)="onSubmit()"
+      />
+    } @else {
+      <div class="mt-6 flex justify-end border-t pt-4">
+        <p-button
+          [label]="'admin.common.close' | transloco"
+          severity="secondary"
+          [outlined]="true"
+          type="button"
+          (onClick)="onCancel()"
+        />
+      </div>
+    }
+  </form>
+</div>

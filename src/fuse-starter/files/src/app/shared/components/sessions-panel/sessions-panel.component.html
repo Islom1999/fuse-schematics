@@ -1,0 +1,71 @@
+<div class="flex flex-col gap-3">
+  <div class="flex items-center justify-between gap-3">
+    <h3 class="text-lg font-semibold">{{ 'admin.sessions.title' | transloco }}</h3>
+    @if (canRevoke() && sessions().length) {
+      <p-button
+        [label]="'admin.sessions.revokeAll' | transloco"
+        icon="pi pi-sign-out"
+        severity="danger"
+        [outlined]="true"
+        size="small"
+        type="button"
+        (onClick)="revokeAll.emit()"
+      />
+    }
+  </div>
+
+  <p-table [value]="sessions()" [loading]="loading()" [tableStyle]="{ 'min-width': '40rem' }" size="small">
+    <ng-template #header>
+      <tr>
+        <th>{{ 'admin.sessions.device' | transloco }}</th>
+        <th>{{ 'admin.sessions.ip' | transloco }}</th>
+        <th>{{ 'admin.sessions.lastUsedAt' | transloco }}</th>
+        <th>{{ 'admin.sessions.expiresAt' | transloco }}</th>
+        @if (canRevoke()) {
+          <th class="w-16"></th>
+        }
+      </tr>
+    </ng-template>
+    <ng-template #body let-session>
+      <tr>
+        <td>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="font-medium">{{ session.deviceName || session.deviceId }}</span>
+            @if (session.isCurrent) {
+              <p-tag [value]="'admin.sessions.current' | transloco" severity="success" />
+            }
+          </div>
+          <div class="text-secondary text-sm">
+            {{ session.platform }} {{ session.os }}
+            @if (session.appVersion) {
+              <span>· v{{ session.appVersion }}</span>
+            }
+          </div>
+        </td>
+        <td>{{ session.ip }}</td>
+        <td>{{ session.lastUsedAt | date: 'dd.MM.yyyy HH:mm' }}</td>
+        <td>{{ session.expiresAt | date: 'dd.MM.yyyy HH:mm' }}</td>
+        @if (canRevoke()) {
+          <td class="text-right">
+            <p-button
+              icon="pi pi-times"
+              severity="danger"
+              [text]="true"
+              [rounded]="true"
+              type="button"
+              [attr.aria-label]="'admin.sessions.revoke' | transloco"
+              (onClick)="revoke.emit(session)"
+            />
+          </td>
+        }
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td [attr.colspan]="canRevoke() ? 5 : 4" class="text-secondary py-6 text-center">
+          {{ 'admin.sessions.empty' | transloco }}
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

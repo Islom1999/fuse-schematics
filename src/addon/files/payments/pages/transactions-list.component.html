@@ -1,0 +1,174 @@
+@if (canRead()) {
+  <app-grid
+    [title]="'admin.payments.title'"
+    [columns]="columns"
+    [showAddButton]="false"
+    [templateFilters]="tabs"
+    [templateCostumFields]="cell"
+    (onRowSelect)="onRowSelect($event)"
+    [$data]="gridService"
+  >
+    <ng-template #costumTableFilter>
+      <app-table-filter
+        [config]="filterConfig"
+        [debounceTime]="500"
+        (filterChange)="onFilterChange($event)"
+        (filterReset)="onFilterReset()"
+      />
+    </ng-template>
+  </app-grid>
+
+  <ng-template #tabs>
+    <app-payments-tabs />
+  </ng-template>
+
+  <ng-template #cell let-column="column" let-row="row">
+    @if (column.field === 'amount') {
+      <span class="whitespace-nowrap">{{ formatTiyin(row.amount) }}</span>
+    } @else {
+      <p-tag [value]="'admin.payments.statuses.' + row.status | transloco" [severity]="severity(row.status)" />
+    }
+  </ng-template>
+
+  <p-drawer
+    [(visible)]="drawerOpen"
+    position="right"
+    styleClass="!w-full md:!w-[44rem]"
+    [header]="'admin.payments.transactions.details' | transloco"
+  >
+    @if (selected(); as tx) {
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <h2 class="text-xl font-semibold">{{ formatTiyin(tx.amount) }}</h2>
+            <p-tag [value]="'admin.payments.statuses.' + tx.status | transloco" [severity]="severity(tx.status)" />
+          </div>
+          @if (canWrite() && (tx.status === 'pending' || tx.status === 'paid')) {
+            <p-button
+              [label]="'admin.payments.transactions.cancel' | transloco"
+              icon="pi pi-times-circle"
+              severity="danger"
+              [outlined]="true"
+              type="button"
+              (onClick)="openCancel()"
+            />
+          }
+        </div>
+
+        <dl class="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.fields.number' | transloco }}</dt>
+            <dd>{{ tx.number }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.fields.provider' | transloco }}</dt>
+            <dd>{{ tx.provider }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.fields.externalId' | transloco }}</dt>
+            <dd class="break-all">{{ tx.externalId || '-' }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.fields.purpose' | transloco }}</dt>
+            <dd>{{ tx.purpose }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.fields.account' | transloco }}</dt>
+            <dd class="break-all">{{ tx.account || '-' }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.fields.userId' | transloco }}</dt>
+            <dd class="break-all">{{ tx.userId || '-' }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.fields.target' | transloco }}</dt>
+            <dd class="break-all">{{ tx.targetType || '-' }} {{ tx.targetId }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.fields.invoiceId' | transloco }}</dt>
+            <dd class="break-all">{{ tx.invoiceId || '-' }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.fields.createdAt' | transloco }}</dt>
+            <dd>{{ tx.createdAt | date: 'dd.MM.yyyy HH:mm:ss' }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.fields.performedAt' | transloco }}</dt>
+            <dd>{{ tx.performedAt ? (tx.performedAt | date: 'dd.MM.yyyy HH:mm:ss') : '-' }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.fields.cancelledAt' | transloco }}</dt>
+            <dd>{{ tx.cancelledAt ? (tx.cancelledAt | date: 'dd.MM.yyyy HH:mm:ss') : '-' }}</dd>
+          </div>
+          <div>
+            <dt class="text-secondary text-sm">{{ 'admin.payments.fields.reason' | transloco }}</dt>
+            <dd>{{ tx.reason ?? '-' }}</dd>
+          </div>
+        </dl>
+
+        <section>
+          <h3 class="mb-1 font-semibold">{{ 'admin.payments.transactions.raw' | transloco }}</h3>
+          <pre class="max-h-96 overflow-auto rounded-lg bg-gray-100 p-3 text-xs">{{ json(tx.raw) || ('admin.payments.transactions.noRaw' | transloco) }}</pre>
+        </section>
+      </div>
+    } @else {
+      <p class="text-secondary">{{ 'admin.common.loading' | transloco }}</p>
+    }
+  </p-drawer>
+
+  <p-dialog
+    [(visible)]="cancelOpen"
+    [modal]="true"
+    [style]="{ width: '30rem' }"
+    [breakpoints]="{ '640px': '95vw' }"
+    [header]="'admin.payments.transactions.cancel' | transloco"
+  >
+    <form [formGroup]="cancelForm" (ngSubmit)="submitCancel()" class="flex flex-col gap-4">
+      <div class="flex flex-col gap-2">
+        <label for="payment-cancel-comment" class="text-sm font-medium">
+          {{ 'admin.payments.transactions.comment' | transloco }}
+        </label>
+        <textarea
+          id="payment-cancel-comment"
+          pTextarea
+          rows="3"
+          maxlength="255"
+          formControlName="comment"
+          class="w-full"
+        ></textarea>
+        <small class="text-secondary">{{ 'admin.payments.transactions.commentHint' | transloco }}</small>
+      </div>
+
+      @if (selected()?.status === 'paid') {
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center gap-2">
+            <p-checkbox inputId="payment-cancel-external" [binary]="true" formControlName="refundedExternally" />
+            <label for="payment-cancel-external">{{ 'admin.payments.transactions.refundedExternally' | transloco }}</label>
+          </div>
+          <small class="text-secondary">{{ 'admin.payments.transactions.refundedExternallyHint' | transloco }}</small>
+        </div>
+      }
+
+      <div class="flex justify-end gap-3 border-t pt-4">
+        <p-button
+          [label]="'admin.common.cancel' | transloco"
+          severity="secondary"
+          [outlined]="true"
+          type="button"
+          (onClick)="cancelOpen.set(false)"
+        />
+        <p-button
+          [label]="'admin.payments.transactions.confirmCancel' | transloco"
+          severity="danger"
+          type="submit"
+          [disabled]="!canSubmitCancel() || cancelling()"
+          [loading]="cancelling()"
+        />
+      </div>
+    </form>
+  </p-dialog>
+} @else {
+  <div class="p-6">
+    <p-message severity="warn" [text]="'admin.common.noPermission' | transloco" />
+  </div>
+}
