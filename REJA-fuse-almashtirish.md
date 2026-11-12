@@ -9,18 +9,16 @@
 
 ---
 
-## 0. Ish boshlanishidan oldin sizdan kerakli qarorlar
+## 0. Qabul qilingan qarorlar
 
-| # | Savol | Mening tavsiyam |
+| # | Savol | Qaror |
 |---|---|---|
-| Q1 | 11 ta layout'dan qaysilari qoladi? | **3 ta:** `vertical` (yon menyu, hozirgi `classy` o'rniga), `horizontal` (tepada menyu), `empty` (auth sahifalari uchun). Qolgan 8 tasi yozilmaydi. |
-| Q2 | Header'dagi qaysi widget'lar qoladi? | **Qoladi:** languages, fullscreen, user menyusi, notifications, search. **Tushib qoladi:** quick-chat, messages, shortcuts (demo narsalar). |
-| Q3 | Mock API nima bo'ladi? | **O'chiriladi.** Auth va navigation haqiqiy backend'ga (`environment.apiUrl`, masalan `fuse-nest-schematics`) ulanadi. Backendsiz sinash uchun kichik "dev mock" (faqat login va user) o'zimiz yoziladi. |
-| Q4 | Qaysi auth sahifalari qoladi? | **Qoladi:** sign-in, sign-out, forgot-password, reset-password. **Tushib qoladi:** sign-up, unlock-session, confirmation-required. |
-| Q5 | Ko'rinish o'zgarishiga rozimisiz? | Rang, menyu va header ko'rinishi Fuse'dan farq qiladi (PrimeNG va Tailwind uslubida). Funksiyalar saqlanadi. |
-| Q6 | Ishni boshlashdan oldin hozirgi o'zgarishlarni commit qilaymi? | **Ha, shart.** Subagentlar alohida worktree'larda ishlaydi, worktree esa faqat commit qilingan kodni ko'radi. |
-
----
+| Q1 | Layout'lar | **11 tasi ham qoladi** (empty, classic, classy, compact, dense, futuristic, thin, centered, enterprise, material, modern) |
+| Q2 | Header widget'lari | languages, fullscreen, search, notifications, user va sozlamalar paneli qoladi. **quick-chat, messages, shortcuts olib tashlanadi** |
+| Q3 | Mock API | **O'chiriladi.** Haqiqiy backend (`environment.apiUrl`) va kichik, yoqib-o'chiriladigan dev-mock (login, user, navigation) |
+| Q4 | Auth sahifalari | sign-in, sign-out, forgot-password, reset-password qoladi. sign-up, unlock-session, confirmation-required olib tashlanadi |
+| Q5 | Dizayn | **Imkon qadar hozirgidek qoladi.** Subagentlar `ref/` dagi 26 ta skrinshot va o'lchangan qiymatlar bo'yicha ishlaydi. Fuse logotipi, demo rasmlar va reklama matnlari neytral matn va rasmlar bilan almashtiriladi |
+| Q6 | Commit | `a13afb3` commit qilingan, ish `refactor/own-ui` branch'ida |
 
 ## 1. Ish qoidalari (barcha subagentlar uchun)
 
@@ -36,10 +34,15 @@
 
 ## 2. Bosqichlar
 
-### 0-bosqich: poydevor (men, ketma-ket, ~1 soat)
+### 0-bosqich: poydevor (men va 4 ta spetsifikatsiya agenti)
 
-Subagentlar shunga tayanadi, shuning uchun buni parallel qilib bo'lmaydi.
+Subagentlar shunga tayanadi, shuning uchun buni 1-bosqich bilan parallel qilib bo'lmaydi.
 
+- **Skrinshotlar** (bajarildi): 11 ta layout, auth sahifalari, ochilgan widget'lar, sozlamalar, dark rejim, mobil.
+- **Spetsifikatsiya agentlari** eski kodni o'qib, `docs/ui-spec/` ga faqat tavsif yozadi: `navigation.md`, `core.md`, `theming.md`, `layouts.md`, `widgets.md`, `auth.md`. Ular koddan nusxa olmaydi.
+
+- **Bajarildi:** spetsifikatsiyalar `docs/ui-spec/*.md` da, ochiq savollar bo'yicha qarorlar `docs/ui-spec/DECISIONS.md` da.
+- **Bajarildi (umumiy poydevor):** `@ui/navigation/navigation.types.ts`, `@ui/navigation/navigation.service.ts`, `@ui/components/icon/ui-icon.component.ts`, `@ui/services/utils/ui-utils.ts`; ESLint'da `src/@ui` uchun `ui` prefiksi.
 - `src/@ui/` tuzilmasi va `provideUi()` provider skeleti.
 - **Kontraktlar (`src/@ui/types`):**
   - `NavigationItem` turi. Hozirgi `navigation.ts` formati (`id`, `title`, `type`, `icon`, `link`, `children`...) saqlanadi, chunki `crud` generatori aynan shu formatga yozadi.
@@ -59,11 +62,12 @@ Subagentlar shunga tayanadi, shuning uchun buni parallel qilib bo'lmaydi.
 | **A4. Servislar** | `UiConfigService` (signal asosida, localStorage'da saqlanadi), `UiMediaWatcherService` (matchMedia, signallar), `UiPlatformService`, `UiSplashScreenService`, `UiConfirmationService` (PrimeNG ustida), `mustMatch` validator, kerakli animatsiyalar (CSS orqali) | `src/@ui/services/*`, `src/@ui/validators`, `src/@ui/animations` | o'rta |
 | **A5. Mavzu va stillar** | Fuse'ning Tailwind plaginlari (palette, theming, utilities, icon-size) o'rniga o'z Tailwind konfiguratsiyasi va CSS o'zgaruvchilari; PrimeNG preset bilan ulash; light/dark rejim; yangi splash-screen | `tailwind.config.js`, `src/@ui/styles`, `src/@ui/tailwind`, `src/styles/*`, `src/assets/styles/splash-screen.css` | o'rta |
 
-### 2-bosqich: ilova qatlami (3 ta parallel subagent, 1-bosqichdan keyin)
+### 2-bosqich: ilova qatlami (4 ta parallel subagent, 1-bosqichdan keyin)
 
 | Vazifa | Nima yoziladi | Papka |
 |---|---|---|
-| **B1. Layout'lar** | `layout.component` va Q1 bo'yicha tanlangan layout'lar; sozlamalar paneli (mavzu, light/dark, layout tanlash) `p-drawer` ichida | `src/app/layout/layout.component.*`, `src/app/layout/layouts/**`, `src/app/layout/common/settings` |
+| **B1a. Vertikal layout'lar** | classic, classy, compact, dense, futuristic, thin | `src/app/layout/layouts/vertical/**` |
+| **B1b. Gorizontal layout'lar va karkas** | centered, enterprise, material, modern, empty; `layout.component`; sozlamalar paneli (`p-drawer` ichida) | `src/app/layout/layouts/horizontal/**`, `src/app/layout/layouts/empty`, `src/app/layout/layout.component.*`, `src/app/layout/common/settings` |
 | **B2. Header widget'lari** | Q2 bo'yicha tanlangan widget'lar PrimeNG `p-popover` va `p-menu` asosida | `src/app/layout/common/*` (settings'dan tashqari) |
 | **B3. Auth** | `core/auth` (servis, guard'lar, interceptor, haqiqiy API), `core/user`, Q4 bo'yicha sahifalar PrimeNG formalari bilan, kichik dev-mock | `src/app/core/auth`, `src/app/core/user`, `src/app/modules/auth/**`, `src/app/mock-api` |
 
@@ -86,4 +90,4 @@ Subagentlar shunga tayanadi, shuning uchun buni parallel qilib bo'lmaydi.
 - **Ko'rinish o'zgaradi.** Bu Fuse'ning nusxasi emas, yangi dizayn bo'ladi. Funksiyalar (menyu, mavzular, dark mode, responsiv) saqlanadi.
 - **Generatsiya qilinadigan CRUD kodi** (`fuse-feature`) `@fuse` ga bog'liq emas, u o'zgarmaydi. Faqat `navigation.ts` dagi tur importi yangilanadi.
 - **Nom.** Fuse kodi to'liq chiqib ketgach, paket nomidagi "fuse" so'zi chalg'itishi mumkin, chunki bu Fuse muallifining mahsulot nomi. Keyinchalik nomni o'zgartirishni o'ylab ko'rish mumkin, lekin bu shart emas.
-- **Hajm.** Bu jami 8 ta subagent vazifasi va mening ikki bosqichim. Har bir subagent alohida worktree'da ishlaydi, natijalarni men birlashtiraman va tekshiraman.
+- **Hajm.** Bu jami 4 ta spetsifikatsiya agenti, 9 ta yozuvchi subagent va mening ikki bosqichim. Har bir subagent alohida worktree'da ishlaydi, natijalarni men birlashtiraman va tekshiraman.
