@@ -37,7 +37,7 @@ import { TypeMultiSelect } from './shared/ngx-formly/type-multiselect'
 import { TypeRelationSelect } from './shared/ngx-formly/type-relation-select'
 import { TypeTextArea } from './shared/ngx-formly/type-textarea'
 import { TypeUpload } from './shared/ngx-formly/type-upload.component'
-import { environment } from 'environments/environment.development'
+import { environment } from 'environments/environment'
 import { DITokens } from './core/utils/di-tokens'
 
 export const appConfig: ApplicationConfig = {
