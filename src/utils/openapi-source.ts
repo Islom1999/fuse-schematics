@@ -45,7 +45,7 @@ async function fetchText(url: string): Promise<string> {
     const cause = (e as any)?.cause?.code || (e as Error).message;
     throw new SchematicsException(
       `Could not download the OpenAPI document from ${url} (${cause}). Is the backend running? ` +
-        'For a fuse-nest-schematics API the JSON is served at http://localhost:3000/docs-json.'
+        'For a nest-schematics API the admin JSON is served at http://localhost:3000/docs/admin-json.'
     );
   }
   if (!response.ok) {

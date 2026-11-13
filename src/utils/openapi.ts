@@ -129,7 +129,7 @@ export function parseOpenApiText(text: string, source = 'OpenAPI document'): any
   if (/^</.test(trimmed)) {
     throw new OpenApiError(
       `${source} is HTML, not an OpenAPI document (is it the Swagger UI page?). ` +
-        'Point to the JSON endpoint instead, e.g. http://localhost:3000/docs-json.'
+        'Point to the JSON endpoint instead, e.g. http://localhost:3000/docs/admin-json.'
     );
   }
   if (trimmed.startsWith('{') || trimmed.startsWith('[')) {

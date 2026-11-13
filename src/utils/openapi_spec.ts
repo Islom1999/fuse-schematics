@@ -54,7 +54,7 @@ describe("openapi: loading", () => {
 
   it("gives clear errors for empty, HTML and malformed input", () => {
     expect(() => parseOpenApiText("  ")).toThrowError(OpenApiError, /empty/);
-    expect(() => parseOpenApiText("<!DOCTYPE html><html>")).toThrowError(OpenApiError, /docs-json/);
+    expect(() => parseOpenApiText("<!DOCTYPE html><html>")).toThrowError(OpenApiError, /admin-json/);
     expect(() => parseOpenApiText('{"openapi":')).toThrowError(OpenApiError, /not valid JSON/);
     expect(() => parseOpenApiText("a: b: c")).toThrowError(OpenApiError, /export the document as JSON/i);
   });
@@ -305,7 +305,7 @@ describe("openapi: schemaToFields", () => {
 });
 
 describe("openapi: discoverResources", () => {
-  it("finds the fuse-nest-schematics resources behind the /api prefix, from the Create DTOs", () => {
+  it("finds the nest-schematics resources behind the /api prefix, from the Create DTOs", () => {
     const doc = loadOpenApiDocument(nestOpenApi());
     const resources = discoverResources(doc);
     expect(resources.map((r) => [r.name, r.path, r.sourceSchema])).toEqual([

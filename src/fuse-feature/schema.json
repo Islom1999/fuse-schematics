@@ -32,7 +32,7 @@
     },
     "openapi": {
       "type": "string",
-      "description": "OpenAPI 3.x / Swagger 2.0 document (JSON or YAML) to take the fields from when --fields is not given: a path relative to the workspace root or an http(s) URL, e.g. http://localhost:3000/docs-json. Without --schema the fields come from the CRUD resource matching the feature name (`/admin/<name>` paths)."
+      "description": "OpenAPI 3.x / Swagger 2.0 document (JSON or YAML) to take the fields from when --fields is not given: a path relative to the workspace root or an http(s) URL, e.g. http://localhost:3000/docs/admin-json. Without --schema the fields come from the CRUD resource matching the feature name (`/admin/<name>` paths)."
     },
     "schema": {
       "type": "string",

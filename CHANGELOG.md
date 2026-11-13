@@ -5,10 +5,46 @@ Barcha muhim o'zgarishlar ushbu faylda hujjatlashtiriladi.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) ga asoslangan,
 va bu loyiha [Semantic Versioning](https://semver.org/spec/v2.0.0.html) dan foydalanadi.
 
-## [Unreleased]
+## [2.0.0] - 2026-11-13
+
+Bu reliz npmjs.org'da `fuse-schematics` nomi ostida chiqadi (ochiq, MIT). Asosiy o'zgarishlar:
+
+- **Fuse kodi o'zimizning `@ui` kutubxonamiz bilan almashtirildi.** Starter endi `src/@fuse` o'rniga yangidan yozilgan `src/@ui` (navigatsiya, komponentlar, servislar, Tailwind plaginlari) dan foydalanadi; ko'rinish avvalgidek. Fuse/ThemeForest litsenziyasi endi talab qilinmaydi.
+- **Litsenziya MIT** (`LICENSE`), uchinchi tomon resurslari (Heroicons, Flagpack, Inter) generatsiya qilingan loyihaning `THIRD-PARTY-NOTICES.md` faylida.
+- **Paket nomi yana `fuse-schematics`** (`@islom1999/fuse-schematics` va GitHub Packages'dan voz kechildi).
+- **Yangi:** `addon` schematic (users, queue, payments, notifications, ai, api-logs admin sahifalari), backend rejimi (`environment.apiUrl`, `devMock`, `features.*`), relation va fayl maydonlari (`relation(X)`, `file(kind)`), fayl yuklash (`multipart` / `tus`), nest-schematics backend bilan to'liq moslik.
+
+### Breaking changes
+
+Starter va generatsiya qilingan kod uchun (generator buyruqlari — `new`, `crud`, `openapi` — o'zgarmagan):
+
+- `@fuse` kutubxonasi o'chirildi, o'rniga `@ui` (tsconfig alias `@ui`, `@ui/*`): `provideFuse({ mockApi, fuse })` → `provideUi({ config })`, `FuseConfigService` → `UiConfigService` (`config` endi signal, o'zgartirish `set(patch)` orqali; `config$` saqlangan), `FuseLoadingService` → `UiLoadingService`, `FuseMediaWatcherService` → `UiMediaWatcherService`, `FusePlatformService` → `UiPlatformService`, `FuseSplashScreenService` → `UiSplashScreenService`, `FuseConfirmationService` → `UiConfirmationService`, `FuseNavigationItem` → `UiNavigationItem` (`@ui/navigation/navigation.types`), `FusePrimePreset` → `UiPrimePreset`
+- Selectorlar va klasslar: `fuse-*` → `ui-*` (`fuse-alert` → `ui-alert`, `fuse-vertical-navigation` → `ui-vertical-navigation`, ...), `Fuse*` → `Ui*`; CSS o'zgaruvchilari `--fuse-*` → `--ui-*`; `icon-size-*` Tailwind klassi o'rniga `size-*`; layout selectorlari `classic-layout` → `app-classic-layout` (va hokazo)
+- Tailwind: `src/@fuse/tailwind/plugins/*` o'rniga `@ui/tailwind` (`uiTheming`, `uiUtilities`); `tailwind.config.js` qayta yozilgan
+- `mock-api` (`app/mock-api`, `core/mock.ts`, `FuseMockApiService`) olib tashlandi; o'rniga `environment.devMock` bilan yoqiladigan dev-mock interceptor (`app/core/dev-mock`)
+- Auth oqimi qayta yozildi: `provideAuth()` va `core/auth/auth.provider.ts` yo'q; access + refresh token (`auth.storage.ts`), `authGuard` / `noAuthGuard` (`noAuth.guard.ts` → `no-auth.guard.ts`), interceptorlar `core/interceptors` → `core/http`; `GET /navigation`, `POST /search`, `GET admin/me/notifications` backend kontrakti (nest-schematics)
+- Olib tashlangan sahifalar va widget'lar: landing, sign-up, unlock-session, confirmation-required, quick-chat, messages, shortcuts; `/` endi `/example` ga yo'naltiriladi
+- `core/icons` (`provideIcons()`) o'rniga `provideUi({ icons })`; `core/config/constant.config.ts`, `shared/enums/file_type.ts` va eski `upload-file` komponenti o'rniga `core/upload` (`UploadService`) va `upload` formly turi
+- Konfiguratsiya: `environment.ts` / `environment.development.ts` endi `apiUrl`, `devMock`, `upload`, `tusEndpoint`, `features.*` kalitlarini o'z ichiga oladi
+- Ishlatilmagan paketlar olib tashlandi: `crypto-js`, `lodash-es`, `lodash`, `luxon`, `perfect-scrollbar`, `chroma-js` (loyihangiz ularni import qilsa, o'zingiz qo'shing)
+
+### Migrating from 1.0.2
+
+Avtomatik migratsiya **yo'q**: Fuse kodi to'liq almashtirilgani uchun 1.x loyihani joyida yangilab bo'lmaydi.
+
+1. 2.0.0 starter bilan yangi loyiha yarating: `schematics fuse-schematics:new yangi-admin`
+2. O'z feature modullaringizdan (biznes mantiq, maxsus komponentlar) `src/app/modules/admin` ga ko'chiring va `@fuse` / `fuse-*` / `Fuse*` havolalarini yuqoridagi `@ui` ekvivalentlariga almashtiring
+3. CRUD modullarni qayta generatsiya qiling: `schematics fuse-schematics:crud <nom> --fields "..."` (route, menyu va tarjimalar o'zi ro'yxatdan o'tadi). Qo'lda o'zgartirilgan fayllarni oldin saqlab qo'ying: mavjud papkani o'chirib qayta yaratish kerak bo'lishi mumkin
+4. `environment.ts` / `environment.development.ts` da `apiUrl` ni sozlang; haqiqiy backend bilan `devMock: false`
+5. `@islom1999/fuse-schematics` (GitHub Packages) o'rnatilgan bo'lsa, uni olib tashlab, `fuse-schematics` ni npm'dan o'rnating
 
 ### Qo'shildi
 
+- `addon` schematic (alias `admin-addon`): `schematics fuse-schematics:addon <users|queue|payments|notifications|ai|api-logs>` — nest-schematics add-on'lariga (`auth-client`, `queue`, `payment`, `notifications`, `ai`, `api-logs`) mos admin sahifalari; route, menyu va tarjimalarni avtomatik qo'shadi (`--path`, `--project`, `--skipRoute`, `--skipNav`, `--skipI18n`)
+- Backend rejimi: `environment.apiUrl`, `devMock` (dev-mock interceptor), `features.navigation` (`'static'` | `'backend'`), `features.search` (`'client'` | `'backend'`), `features.notifications`, `features.userStatus`
+- Fayl yuklash: `UploadService`, `environment.upload` (`'multipart'` | `'tus'`) va `tusEndpoint`, `upload` formly turi
+- Admin tizim sahifalari: adminlar va rollar (`/admins`, `/roles`)
+- README: backend rejimi, deploy (`dist/fuse/browser`, SPA fallback) va nest-schematics bilan birga ishlash bo'limlari
 - `--fields` va OpenAPI: backend (nest-schematics) bilan umumiy sintaksis (`src/utils/fields.ts` + `fields-contract.json` nusxasi): `relation(Entity)`, `relation(Entity[])`, `file(kind)`, `file(kind)[]`, `int`, `decimal(p,s)`, `json`, `string(N)` va `unique/index/default/min/max/label/cascade/set-null` modifikatorlari
 - Relation maydoni `categoryId` / `tagIds` bo'lib, starterdagi yangi `relation-select` formly turi (`p-select` / `p-multiselect`, `GET admin/<resurs>/options?search=&ids=&limit=&label=`) orqali yuklanadi; gridda bog'langan qator yorlig'i (`template: 'relation'`)
 - Fayl maydoni (`imageId` / `docIds`) mavjud `upload` turiga `kind` / `multiple` bilan ulanadi
@@ -16,10 +52,11 @@ va bu loyiha [Semantic Versioning](https://semver.org/spec/v2.0.0.html) dan foyd
 
 ### O'zgardi
 
+- Backend paketi nomi `nest-schematics` (avval `fuse-nest-schematics`); OpenAPI manzil namunasi `http://localhost:3000/docs/admin-json`
 - `--fields`: maydon turlari endi backend parseri bilan bir xil; OpenAPI enum qiymatlari faqat `A-Za-z0-9_-` bo'lsa enum bo'ladi (aks holda string)
 - Litsenziya yana MIT (`LICENSE`); uchinchi tomon resurslari `THIRD-PARTY-NOTICES.md` da
 - Paket nomi yana `fuse-schematics` (ochiq npm, npmjs.org; GitHub Packages'dan voz kechildi)
-- `publishConfig.access: public`; CI `v*` tegida npmjs.org'ga `npm publish --provenance` qiladi (`NPM_TOKEN` secret kerak)
+- `publishConfig.access: public`; CI `v*` tegida (teg `package.json` versiyasiga mos bo'lishi shart) npmjs.org'ga npm trusted publishing (OIDC) bilan `npm publish --access public` qiladi; `NPM_TOKEN` kerak emas, provenance avtomatik
 - Fuse shablon eslatmasi olib tashlandi: starter shabloni to'liq yangidan yozilgan, Fuse/ThemeForest litsenziyasi endi talab qilinmaydi
 - `fuse-starter`: `src/@fuse` kutubxonasi o'chirildi, o'rniga yangidan yozilgan `src/@ui` (navigatsiya, komponentlar, servislar, Tailwind plaginlari). 11 ta layout, header widget'lari (languages, search, notifications, user, settings) va auth qatlami yangidan yozildi; ko'rinish avvalgidek
 - PrimeNG endi tanlangan mavzu (theme) va dark rejimga ergashadi
@@ -32,7 +69,9 @@ va bu loyiha [Semantic Versioning](https://semver.org/spec/v2.0.0.html) dan foyd
 - Ishlatilmagan paketlar: `crypto-js`, `lodash-es`, `lodash`, `luxon`, `perfect-scrollbar`, `chroma-js` (va ularning `@types`)
 - Ishlatilmagan rasmlar va ikonka to'plamlari (avatars, material-*, feather)
 
-## [2.0.0] - 2026-11-12
+## Avvalgi ichki 2.0.0 build - 2026-11-12 (GitHub Packages, npm'ga chiqmagan)
+
+> Shu sanadagi private build; uning o'zgarishlari yuqoridagi 2.0.0 relizga kiradi.
 
 ### Qo'shildi
 

@@ -6,7 +6,7 @@
   "properties": {
     "openapi": {
       "type": "string",
-      "description": "OpenAPI 3.x / Swagger 2.0 document (JSON or YAML): a path relative to the workspace root or an http(s) URL, e.g. ./swagger.json or http://localhost:3000/docs-json.",
+      "description": "OpenAPI 3.x / Swagger 2.0 document (JSON or YAML): a path relative to the workspace root or an http(s) URL, e.g. ./swagger.json or http://localhost:3000/docs/admin-json.",
       "$default": {
         "$source": "argv",
         "index": 0

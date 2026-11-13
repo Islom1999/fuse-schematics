@@ -40,7 +40,7 @@ function snapshot(tree: Tree): Record<string, string> {
 describe("fuse-openapi", () => {
   const runner = new SchematicTestRunner("fuse-schematics", collectionPath);
 
-  describe("on the fuse-nest-schematics document", () => {
+  describe("on the nest-schematics document", () => {
     let tree: UnitTestTree;
 
     beforeAll(async () => {

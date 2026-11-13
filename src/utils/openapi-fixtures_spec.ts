@@ -7,7 +7,7 @@ import * as path from "path";
  */
 
 /**
- * The real `@nestjs/swagger` output of a fuse-nest-schematics API (global
+ * The real `@nestjs/swagger` output of a nest-schematics API (global
  * prefix `api`), exported without a database (`NestFactory.create(ApiModule,
  * { preview: true })` + `SwaggerModule.createDocument`) after:
  *   nest-starter shop-api --apps api
