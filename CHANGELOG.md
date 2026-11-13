@@ -5,6 +5,13 @@ Barcha muhim o'zgarishlar ushbu faylda hujjatlashtiriladi.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) ga asoslangan,
 va bu loyiha [Semantic Versioning](https://semver.org/spec/v2.0.0.html) dan foydalanadi.
 
+## [2.0.1] - 2026-11-13
+
+### Tuzatildi
+
+- Production build `environments/environment.ts` dagi `apiUrl` ni o'qiydi (`app.config` avval development qiymatini ishlatardi).
+- README va hujjatlar to'liq yangilandi: eski `fuse-nest-schematics` nomi `nest-schematics` ga almashtirildi, addon sahifalari, backend rejimi, upload/tus va deploy bo'limlari qo'shildi. `2.0.0` npm'ga eski README bilan chiqqan edi.
+
 ## [2.0.0] - 2026-11-13
 
 Bu reliz npmjs.org'da `fuse-schematics` nomi ostida chiqadi (ochiq, MIT). Asosiy o'zgarishlar:
